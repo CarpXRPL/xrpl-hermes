@@ -270,7 +270,7 @@ For recurring payments, payment channels are often better than checks:
 | Aspect | Check | Payment Channel |
 |---|---|---|
 | Setup | One CheckCreate per payment | One channel, many claims |
-| Reserve | 2 XRP per check (one-time) | ~2 XRP per channel (ongoing) |
+| Reserve | 0.2 XRP per check (one-time) | ~0.2 XRP per channel (ongoing) |
 | Cost | One transaction per payment | One claim (off-chain) per payment |
 | Streaming | No | Yes |
 | Trust | Requires trust to cancel | Trustless incremental claims |

@@ -332,7 +332,7 @@ Once signer list is in place, disable the master key for maximum security:
 
 ## 10. Reserve Impact
 
-Each SignerEntry costs 2 XRP reserve:
+Each SignerEntry costs 0.2 XRP reserve:
 ```
 required_reserve = 10 + (2 × N_signers_in_list)
 ```

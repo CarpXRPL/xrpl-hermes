@@ -184,14 +184,56 @@ Use `AccountSet` with the `ClearFlag` field:
 
 ## Account Deletion
 
-**XRPL accounts CANNOT be deleted.** There is no mechanism to remove an AccountRoot from the ledger. XRP held as reserve is permanently locked by the account.
+Accounts **CAN be deleted** using the `AccountDelete` transaction type (enabled via the DeletableAccounts amendment on 2020-05-08). The transaction deletes the account's AccountRoot and all owned ledger objects, sending the remaining XRP to a specified destination account.
 
-An account can be "blackholed" by:
-1. Setting the master key as disabled (`lsfDisableMasterKey`)
-2. Removing any regular key
-3. Removing any signer lists
+### Requirements for Deletion
 
-Once blackholed, no transactions can ever be submitted from that account. The XRP in the reserve is permanently inaccessible.
+1. **Sequence + 255 ≤ current Ledger Index** — prevents replay attacks after account resurrection
+2. **Fewer than 1000 objects** owned in the ledger (otherwise `tefTOO_BIG` error)
+3. **No deletion blockers** — the account must not have non-removable objects such as:
+   - Outstanding token issuance (nonzero IOU balances held by others)
+   - Active escrows, checks, payment channels, or XChainBridge objects
+   - Unburned NFTs (if the account minted NFTs, they must all be burned)
+4. **Destination account** must exist and be a different account
+5. **Cannot be a signer list member** on another account's signer list
+
+### Special Transaction Cost (Burn)
+
+Instead of the standard ~0.00001 XRP fee, `AccountDelete` requires burning **the owner reserve amount** (currently **0.2 XRP**). This cost is:
+- Paid regardless of whether the deletion succeeds or fails
+- Captured by the `Fee` field (e.g., `"Fee": "200000"` for 0.2 XRP)
+- Designed to discourage ledger spam and frivolous account creation/deletion
+
+> ⚠️ **Recommendation:** Use `fail_hard` when submitting AccountDelete to avoid paying the high fee if the transaction cannot succeed.
+
+### How the Remaining Balance is Handled
+
+The sender's XRP balance minus the reserve (1 XRP base reserve) minus the deletion fee is sent to the `Destination` account. The deleted account's reserve is partially recovered — the 0.2 XRP owner reserve is burned, but the 1 XRP base reserve is effectively recovered since the account is removed from the ledger.
+
+### Example Transaction
+
+```json
+{
+    "TransactionType": "AccountDelete",
+    "Account": "rWYkbWkCeg8dP6rXALnjgZSjjLyih5NXm",
+    "Destination": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
+    "DestinationTag": 13,
+    "Fee": "200000",
+    "Sequence": 2470665,
+    "Flags": 2147483648
+}
+```
+
+### Re-creation
+
+A deleted account can be re-created later by sending XRP to its address again — it is indistinguishable from a brand new account.
+
+### Official Documentation
+
+- [Deleting Accounts (xrpl.org)](https://xrpl.org/docs/concepts/accounts/deleting-accounts)
+- [AccountDelete Transaction (xrpl.org)](https://xrpl.org/docs/references/protocol/transactions/types/accountdelete)
+- [DeletableAccounts Amendment](https://xrpl.org/resources/known-amendments#deletableaccounts)
+- [XLS-7d: Deletable Accounts](https://github.com/XRPLF/XRPL-Standards/issues/8)
 
 ## Account Root JSON Example
 

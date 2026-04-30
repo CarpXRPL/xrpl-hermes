@@ -13,7 +13,7 @@
 | Feature | Trust Lines | MPTokens |
 |---|---|---|
 | Relationship | Bilateral (both parties agree) | Unilateral (issuer controls) |
-| Reserve cost | 2 XRP per trust line per account | Single MPTokenIssuance entry |
+| Reserve cost | 0.2 XRP per trust line per account | Single MPTokenIssuance entry |
 | Transfer fees | Via TransferRate (global) | Per-issuance (can vary per issuance) |
 | Freezing | Per trust line or global | Per-holder or global |
 | Locking | Not available natively | Built-in locking mechanism |

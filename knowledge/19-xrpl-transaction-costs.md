@@ -307,7 +307,7 @@ Mint NFT (same page)            0.00001 fee (no extra reserve)
 Create escrow                   0.00001 fee + 0.2 XRP reserve
 Finish escrow                   0.00001+ fee, -0.2 XRP reserve returned
 Open payment channel            0.00001 fee + 0.2 XRP reserve + funded amount
-Create ticket                   0.00001 fee + 2 XRP/ticket reserve
+| Create ticket | 0.00001 fee + 0.2 XRP/ticket reserve |
 Delete account                  2.0000 XRP fee, all reserve returned
 Set signer list (5 signers)     0.00001 fee + 0.2 XRP reserve
 AccountSet                      0.00001 XRP fee (no reserve)

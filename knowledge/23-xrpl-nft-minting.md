@@ -391,7 +391,7 @@ NFTs are stored in pages of up to 32:
 ```
 Owner reserve per NFTokenPage = 0.2 XRP
 
-0–32 NFTs:    1 page  = 2 XRP reserve
+0–32 NFTs:    1 page  = 0.2 XRP reserve
 33–64 NFTs:   2 pages = 4 XRP reserve
 65–96 NFTs:   3 pages = 6 XRP reserve
 ...

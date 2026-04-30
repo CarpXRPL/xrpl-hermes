@@ -320,7 +320,7 @@ function rippleToUnix(rippleTimestamp) {
 Each escrow created consumes 1 owner reserve unit (0.2 XRP). So:
 - 5 escrows = 5 × 0.2 = 1 XRP locked as owner reserve
 - Plus 1 XRP base reserve
-- Total: 2 XRP locked
+- Total: 0.2 XRP locked
 
 When an escrow finishes or is cancelled, the reserve is released back to the owner.
 

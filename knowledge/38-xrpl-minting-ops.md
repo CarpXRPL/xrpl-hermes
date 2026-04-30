@@ -7,7 +7,7 @@ Before minting, choose the right token type:
 | Type | Standard | Reserve | Best For |
 |------|----------|---------|---------|
 | IOU (Trust Line) | Native | 5 XRP/holder | Stablecoins, rewards, complex permissions |
-| NFToken | XLS-20 | 2 XRP/page (16-32 per page) | Unique digital items, collectibles |
+| NFToken | XLS-20 | 0.2 XRP/page (16-32 per page) | Unique digital items, collectibles |
 | MPToken | XLS-70 | ~0.1 XRP/issuance | High-volume tokens, regulated assets |
 
 ---

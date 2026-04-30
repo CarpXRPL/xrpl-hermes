@@ -3,7 +3,7 @@
 ## NFToken Fundamentals Recap
 
 An NFToken is a 256-bit identifier stored in `NFTokenPage` ledger objects on the owner's account. Key facts:
-- Each page holds **16–32 NFTs** sorted by ID; first page costs **2 XRP reserve**
+- Each page holds **16–32 NFTs** sorted by ID; first page costs **0.2 XRP reserve**
 - Royalties (TransferFee) are **automatic on secondary sales** — no off-chain enforcement needed
 - The `Taxon` field (32-bit) groups NFTs into collections; it is XOR-obfuscated in the stored ID
 - URI is stored as **hex-encoded bytes** (max 512 hex chars = 256 bytes)

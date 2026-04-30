@@ -119,7 +119,7 @@ def parse_nft_id(nft_id_hex: str) -> dict:
 ### NFTokenPage Storage Model
 - Each account has 0 or more `NFTokenPage` ledger objects
 - Each page holds 16–32 NFTs sorted by NFToken ID
-- First page costs 2 XRP reserve; each additional page costs 2 XRP
+- First page costs 0.2 XRP reserve; each additional page costs 0.2 XRP
 - Pages merge/split automatically as NFTs are added/removed
 
 ---
