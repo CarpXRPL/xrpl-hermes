@@ -40,6 +40,19 @@ Usage:
   python3 xrpl_tools.py hooks-info rADDRESS
   python3 xrpl_tools.py flare-price SYMBOL [SYMBOL ...]
   python3 xrpl_tools.py build-clawback --from rISSUER --destination rHOLDER --currency USD --issuer rISSUER --amount 100 [--memo TEXT]
+  python3 xrpl_tools.py build-amm-deposit --from rADDR --asset1 XRP --asset2 USD:rISSUER --amount1 XRP:1000000 --amount2 USD:rISSUER:100 [--mode two-asset]
+  python3 xrpl_tools.py build-amm-withdraw --from rADDR --asset1 XRP --asset2 USD:rISSUER --amount1 XRP:500000 [--mode single-asset]
+  python3 xrpl_tools.py build-amm-vote --from rADDR --asset1 XRP --asset2 USD:rISSUER --trading-fee 500
+  python3 xrpl_tools.py build-amm-bid --from rADDR --asset1 XRP --asset2 USD:rISSUER [--bid-min LPT:rAMMPOOL:10]
+  python3 xrpl_tools.py build-signer-list-set --from rADDR --quorum 2 --signers rADDR1:1,rADDR2:1,rADDR3:1
+  python3 xrpl_tools.py build-mpt-issuance-create --from rADDR [--asset-scale 2] [--maximum-amount 1000000] [--transfer-fee 500]
+  python3 xrpl_tools.py build-mpt-authorize --from rADDR --mpt-issuance-id HEX [--holder rADDR]
+  python3 xrpl_tools.py build-set-oracle --from rADDR --oracle-doc-id N --provider HEX --asset-class HEX --last-update-time EPOCH [--price-data XRP/USD:123456:6]
+  python3 xrpl_tools.py build-credential-create --from rISSUER --subject rHOLDER --credential-type HEX [--uri HEX] [--expiration EPOCH]
+  python3 xrpl_tools.py build-credential-accept --from rHOLDER --issuer rISSUER --credential-type HEX
+  python3 xrpl_tools.py build-credential-delete --from rADDR --credential-type HEX [--subject rADDR] [--issuer rADDR]
+  python3 xrpl_tools.py build-cross-currency-payment --from rADDR --to rADDR --deliver USD:rISSUER:100 --send-max XRP:2000000
+  python3 xrpl_tools.py build-batch --from rADDR --inner-txs '[{...},{...}]'
 """
 
 import json, sys, os, hashlib
@@ -56,10 +69,15 @@ try:
     from xrpl.clients import JsonRpcClient
     from xrpl.utils import drops_to_xrp, xrp_to_drops
     from xrpl.models.transactions import Payment, TrustSet, OfferCreate, NFTokenMint, \
-        NFTokenCreateOffer, AMMCreate, AccountSet, SignerListSet, EscrowCreate, \
+        NFTokenCreateOffer, AMMCreate, AMMDeposit, AMMWithdraw, AMMVote, AMMBid, \
+        AccountSet, SignerListSet, EscrowCreate, \
         EscrowFinish, EscrowCancel, CheckCreate, CheckCancel, CheckCash, TicketCreate, \
         DepositPreauth, PaymentChannelCreate, PaymentChannelFund, PaymentChannelClaim, \
-        SetRegularKey, AccountDelete, Clawback
+        SetRegularKey, AccountDelete, Clawback, OracleSet, \
+        MPTokenIssuanceCreate, MPTokenAuthorize, \
+        CredentialCreate, CredentialAccept, CredentialDelete, Batch
+    from xrpl.models.transactions.signer_list_set import SignerEntry
+    from xrpl.models.transactions.oracle_set import PriceData
     from xrpl.models.currencies import XRP as XRPCurrency, IssuedCurrency
     from xrpl.models.amounts import IssuedCurrencyAmount
 except ImportError as e:
@@ -158,6 +176,24 @@ def get_reserve_settings() -> tuple[Decimal, Decimal]:
         return Decimal(str(ledger.get("reserve_base_xrp", 10))), Decimal(str(ledger.get("reserve_inc_xrp", 2)))
     except Exception:
         return Decimal("10"), Decimal("2")
+
+def _parse_asset(arg: str):
+    """Parse 'XRP' or 'CUR:ISSUER' into XRPCurrency or IssuedCurrency."""
+    parts = arg.split(":", 1)
+    if parts[0].upper() == "XRP" and len(parts) == 1:
+        return XRPCurrency()
+    if len(parts) == 2:
+        return IssuedCurrency(currency=parts[0].upper(), issuer=parts[1])
+    raise ValueError(f"Invalid asset '{arg}'. Use 'XRP' or 'CUR:ISSUER'")
+
+def _parse_amount_for_amm(arg: str):
+    """Parse 'XRP:DROPS' or 'CUR:ISSUER:VALUE' into drops str or IssuedCurrencyAmount."""
+    parts = arg.split(":", 2)
+    if parts[0].upper() == "XRP":
+        return parts[1] if len(parts) >= 2 else arg
+    if len(parts) == 3:
+        return IssuedCurrencyAmount(currency=parts[0].upper(), issuer=parts[1], value=parts[2])
+    raise ValueError(f"Invalid amount '{arg}'. Use 'XRP:DROPS' or 'CUR:ISSUER:VALUE'")
 
 # --- TOOL 1: Account Info ---
 def tool_account(address: str):
@@ -480,6 +516,19 @@ def main():
         "hooks-info": lambda: tool_hooks_info(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: hooks-info rADDRESS"),
         "flare-price": lambda: tool_flare_price(*sys.argv[2:]),
         "build-clawback": lambda: _dispatch_build(4, tool_build_clawback),
+        "build-amm-deposit": lambda: _dispatch_build(3, tool_build_amm_deposit),
+        "build-amm-withdraw": lambda: _dispatch_build(3, tool_build_amm_withdraw),
+        "build-amm-vote": lambda: _dispatch_build(4, tool_build_amm_vote),
+        "build-amm-bid": lambda: _dispatch_build(3, tool_build_amm_bid),
+        "build-signer-list-set": lambda: _dispatch_build(2, tool_build_signer_list_set),
+        "build-mpt-issuance-create": lambda: _dispatch_build(1, tool_build_mpt_issuance_create),
+        "build-mpt-authorize": lambda: _dispatch_build(2, tool_build_mpt_authorize),
+        "build-set-oracle": lambda: _dispatch_build(5, tool_build_set_oracle),
+        "build-credential-create": lambda: _dispatch_build(3, tool_build_credential_create),
+        "build-credential-accept": lambda: _dispatch_build(3, tool_build_credential_accept),
+        "build-credential-delete": lambda: _dispatch_build(2, tool_build_credential_delete),
+        "build-cross-currency-payment": lambda: _dispatch_build(4, tool_build_cross_currency_payment),
+        "build-batch": lambda: _dispatch_build(2, tool_build_batch),
     }
 
     fn = dispatcher.get(cmd)
@@ -865,6 +914,258 @@ def tool_build_clawback(frm: str, destination: str, currency: str,
             pass
     tx = Clawback(**kwargs)
     print("# Clawback TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 36: AMM Deposit ---
+def tool_build_amm_deposit(frm: str, asset1: str, asset2: str,
+                            amount1: str = None, amount2: str = None,
+                            lp_token_out: str = None, mode: str = "two-asset"):
+    """Build AMMDeposit. mode: two-asset | single-asset | lp-token"""
+    _FLAGS = {"two-asset": 0x00100000, "single-asset": 0x00080000, "lp-token": 0x00010000}
+    flags = _FLAGS.get(mode, 0x00100000)
+    kwargs = dict(account=frm, asset=_parse_asset(asset1), asset2=_parse_asset(asset2), flags=flags)
+    if amount1:
+        kwargs["amount"] = _parse_amount_for_amm(amount1)
+    if amount2:
+        kwargs["amount2"] = _parse_amount_for_amm(amount2)
+    if lp_token_out:
+        parts = lp_token_out.split(":", 2)
+        if len(parts) == 3:
+            kwargs["lp_token_out"] = IssuedCurrencyAmount(currency=parts[0], issuer=parts[1], value=parts[2])
+    tx = AMMDeposit(**kwargs)
+    print("# AMMDeposit TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 37: AMM Withdraw ---
+def tool_build_amm_withdraw(frm: str, asset1: str, asset2: str,
+                             amount1: str = None, amount2: str = None,
+                             lp_token_in: str = None, mode: str = "two-asset"):
+    """Build AMMWithdraw. mode: two-asset | single-asset | lp-token | withdraw-all"""
+    _FLAGS = {
+        "two-asset": 0x00100000, "single-asset": 0x00080000,
+        "lp-token": 0x00010000, "withdraw-all": 0x00020000,
+    }
+    flags = _FLAGS.get(mode, 0x00100000)
+    kwargs = dict(account=frm, asset=_parse_asset(asset1), asset2=_parse_asset(asset2), flags=flags)
+    if amount1:
+        kwargs["amount"] = _parse_amount_for_amm(amount1)
+    if amount2:
+        kwargs["amount2"] = _parse_amount_for_amm(amount2)
+    if lp_token_in:
+        parts = lp_token_in.split(":", 2)
+        if len(parts) == 3:
+            kwargs["lp_token_in"] = IssuedCurrencyAmount(currency=parts[0], issuer=parts[1], value=parts[2])
+    tx = AMMWithdraw(**kwargs)
+    print("# AMMWithdraw TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 38: AMM Vote ---
+def tool_build_amm_vote(frm: str, asset1: str, asset2: str, trading_fee: str):
+    """Build AMMVote to vote on trading fee. trading_fee: 0-1000 (1000 = 1%)"""
+    tx = AMMVote(
+        account=frm,
+        asset=_parse_asset(asset1),
+        asset2=_parse_asset(asset2),
+        trading_fee=int(trading_fee),
+    )
+    print("# AMMVote TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 39: AMM Bid ---
+def tool_build_amm_bid(frm: str, asset1: str, asset2: str,
+                        bid_min: str = None, bid_max: str = None,
+                        auth_accounts: str = None):
+    """Build AMMBid for auction slot. auth_accounts: comma-separated rADDR list"""
+    kwargs = dict(account=frm, asset=_parse_asset(asset1), asset2=_parse_asset(asset2))
+    if bid_min:
+        parts = bid_min.split(":", 2)
+        if len(parts) == 3:
+            kwargs["bid_min"] = IssuedCurrencyAmount(currency=parts[0], issuer=parts[1], value=parts[2])
+    if bid_max:
+        parts = bid_max.split(":", 2)
+        if len(parts) == 3:
+            kwargs["bid_max"] = IssuedCurrencyAmount(currency=parts[0], issuer=parts[1], value=parts[2])
+    if auth_accounts:
+        kwargs["auth_accounts"] = [{"account": a.strip()} for a in auth_accounts.split(",") if a.strip()]
+    tx = AMMBid(**kwargs)
+    print("# AMMBid TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 40: Signer List Set ---
+def tool_build_signer_list_set(frm: str, quorum: str, signers: str = None):
+    """Build SignerListSet. signers: comma-separated rADDR:WEIGHT pairs"""
+    signer_entries = []
+    if signers:
+        for pair in signers.split(","):
+            pair = pair.strip()
+            if ":" in pair:
+                addr, weight = pair.rsplit(":", 1)
+                signer_entries.append(SignerEntry(account=addr.strip(), signer_weight=int(weight.strip())))
+    kwargs: dict = dict(account=frm, signer_quorum=int(quorum))
+    if signer_entries:
+        kwargs["signer_entries"] = signer_entries
+    tx = SignerListSet(**kwargs)
+    print("# SignerListSet TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 41: MPT Issuance Create ---
+def tool_build_mpt_issuance_create(frm: str, asset_scale: str = None,
+                                    maximum_amount: str = None, transfer_fee: str = None,
+                                    flags: str = None):
+    """Build MPTokenIssuanceCreate (XLS-33 Multi-Purpose Token)."""
+    kwargs: dict = dict(account=frm)
+    if asset_scale is not None:
+        kwargs["asset_scale"] = int(asset_scale)
+    if maximum_amount is not None:
+        kwargs["maximum_amount"] = maximum_amount
+    if transfer_fee is not None:
+        kwargs["transfer_fee"] = int(transfer_fee)
+    if flags is not None:
+        kwargs["flags"] = int(flags, 16) if str(flags).startswith("0x") else int(flags)
+    tx = MPTokenIssuanceCreate(**kwargs)
+    print("# MPTokenIssuanceCreate TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 42: MPT Authorize ---
+def tool_build_mpt_authorize(frm: str, mpt_issuance_id: str, holder: str = None,
+                              flags: str = None):
+    """Build MPTokenAuthorize. Issuer uses --holder to authorize; holder omits it."""
+    kwargs: dict = dict(account=frm, mptoken_issuance_id=mpt_issuance_id)
+    if holder:
+        kwargs["holder"] = holder
+    if flags is not None:
+        kwargs["flags"] = int(flags)
+    tx = MPTokenAuthorize(**kwargs)
+    print("# MPTokenAuthorize TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 43: Oracle Set ---
+def tool_build_set_oracle(frm: str, oracle_doc_id: str, provider: str,
+                           asset_class: str, last_update_time: str,
+                           price_data: str = None, uri: str = None):
+    """Build OracleSet (XLS-47). price_data: BASE/QUOTE:PRICE:SCALE,... (comma-separated)"""
+    price_data_series = []
+    if price_data:
+        for entry in price_data.split(","):
+            entry = entry.strip()
+            parts = entry.split(":")
+            if len(parts) >= 3:
+                pair, price_val, scale = parts[0], parts[1], parts[2]
+                pair_parts = pair.split("/")
+                base_asset = pair_parts[0] if len(pair_parts) >= 1 else pair
+                quote_asset = pair_parts[1] if len(pair_parts) >= 2 else "USD"
+                price_data_series.append(PriceData(
+                    base_asset=base_asset,
+                    quote_asset=quote_asset,
+                    asset_price=int(price_val),
+                    scale=int(scale),
+                ))
+    kwargs: dict = dict(
+        account=frm,
+        oracle_document_id=int(oracle_doc_id),
+        provider=provider,
+        asset_class=asset_class,
+        last_update_time=int(last_update_time),
+    )
+    if price_data_series:
+        kwargs["price_data_series"] = price_data_series
+    if uri:
+        kwargs["uri"] = uri
+    tx = OracleSet(**kwargs)
+    print("# OracleSet TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 44: Credential Create ---
+def tool_build_credential_create(frm: str, subject: str, credential_type: str,
+                                  uri: str = None, expiration: str = None):
+    """Build CredentialCreate (XLS-70). credential_type: hex-encoded type string."""
+    kwargs: dict = dict(account=frm, subject=subject, credential_type=credential_type)
+    if uri:
+        kwargs["uri"] = uri
+    if expiration:
+        kwargs["expiration"] = int(expiration)
+    tx = CredentialCreate(**kwargs)
+    print("# CredentialCreate TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 45: Credential Accept ---
+def tool_build_credential_accept(frm: str, issuer: str, credential_type: str):
+    """Build CredentialAccept. Subject accepts a credential issued to them."""
+    tx = CredentialAccept(account=frm, issuer=issuer, credential_type=credential_type)
+    print("# CredentialAccept TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 46: Credential Delete ---
+def tool_build_credential_delete(frm: str, credential_type: str,
+                                  subject: str = None, issuer: str = None):
+    """Build CredentialDelete. --subject if account is issuer; --issuer if account is subject."""
+    kwargs: dict = dict(account=frm, credential_type=credential_type)
+    if subject:
+        kwargs["subject"] = subject
+    if issuer:
+        kwargs["issuer"] = issuer
+    tx = CredentialDelete(**kwargs)
+    print("# CredentialDelete TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 47: Cross-Currency Payment ---
+def tool_build_cross_currency_payment(frm: str, to: str, deliver: str, send_max: str,
+                                       paths: str = None, dest_tag: str = None):
+    """Build cross-currency Payment. deliver: CUR:ISSUER:VALUE  send_max: XRP:DROPS or CUR:ISSUER:VALUE"""
+    d_parts = deliver.split(":", 2)
+    if d_parts[0].upper() == "XRP":
+        amount = d_parts[1] if len(d_parts) >= 2 else deliver
+    elif len(d_parts) == 3:
+        amount = IssuedCurrencyAmount(currency=d_parts[0], issuer=d_parts[1], value=d_parts[2])
+    else:
+        amount = deliver
+
+    sm_parts = send_max.split(":", 2)
+    if sm_parts[0].upper() == "XRP":
+        send_max_val = sm_parts[1] if len(sm_parts) >= 2 else send_max
+    elif len(sm_parts) == 3:
+        send_max_val = IssuedCurrencyAmount(currency=sm_parts[0], issuer=sm_parts[1], value=sm_parts[2])
+    else:
+        send_max_val = send_max
+
+    kwargs: dict = dict(account=frm, destination=to, amount=amount, send_max=send_max_val)
+    if paths:
+        try:
+            kwargs["paths"] = json.loads(paths)
+        except Exception:
+            print(f"Warning: could not parse --paths JSON: {paths}")
+    if dest_tag:
+        kwargs["destination_tag"] = int(dest_tag)
+    tx = Payment(**kwargs)
+    print("# Cross-Currency Payment TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
+
+# --- TOOL 48: Batch ---
+def tool_build_batch(frm: str, inner_txs: str, flags: str = None):
+    """Build Batch transaction (XLS-56). inner_txs: JSON array of pre-built TX dicts."""
+    try:
+        raw_txs = json.loads(inner_txs)
+    except Exception as e:
+        print(f"Error parsing --inner-txs JSON: {e}")
+        return
+    kwargs: dict = dict(account=frm, raw_transactions=raw_txs)
+    if flags is not None:
+        kwargs["flags"] = int(flags)
+    tx = Batch(**kwargs)
+    print("# Batch TX JSON — sign with Xaman/Crossmark/xrpl-py")
     json_tx_out(tx)
 
 
