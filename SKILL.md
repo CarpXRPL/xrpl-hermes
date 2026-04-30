@@ -138,6 +138,15 @@ For token lookups and AMM queries the skill can use paid API tiers:
 
 **When using the skill, the agent explains trade-offs but lets you choose.**
 
+## Browser Automation
+
+When a user asks to deploy a site or interact with a web3 UI:
+
+1. Use browser tools to navigate to the target
+2. If Xaman deep-link is needed, construct the payload URL and open it
+3. For EVM sidechain dApps, use MetaMask-compatible browser patterns
+4. Never store wallet keys in browser storage
+
 ## Open Source
 
 GitHub: https://github.com/CarpXRPL/xrpl-hermes
