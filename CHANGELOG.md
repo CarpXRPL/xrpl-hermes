@@ -1,6 +1,11 @@
 # Changelog
 
-## v1.1 — Polish (2026-04-29)
+## v1.2 — xrpl.js Hooks, Xahau Patterns, MPT/AMM/DID (2026-04-30)
+
+### 🚀 New Content
+- Added 432 lines of xrpl.js coverage: Hooks install/query/state/emit (16 sections)
+- Added Xahau-specific patterns: network ID, URITokens, Import bridge, namespace conventions
+- Added beta features: MPT issuance/authorize/send, AMM create/deposit/withdraw, DID operations
 
 ### 📚 Documentation
 - Added CONTRIBUTING.md with clear PR and knowledge file guidelines
