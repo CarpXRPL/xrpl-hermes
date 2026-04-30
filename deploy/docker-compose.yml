@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  rippled:
+    image: xrpllabsofficial/xrpld:latest
+    container_name: xrpl_rippled
+    restart: unless-stopped
+    volumes:
+      - ./rippled.cfg:/etc/opt/ripple/rippled.cfg:ro
+      - rippled_data:/var/lib/rippled/db
+    ports:
+      - "5005:5005"    # JSON-RPC
+      - "6006:6006"    # WebSocket
+    networks:
+      - xrpl_net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5005", "-d", '{"method":"server_info"}']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: xrpl_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clio
+      POSTGRES_PASSWORD: cliosecret
+      POSTGRES_DB: clio
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - xrpl_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clio"]
+      interval: 10s
+      retries: 5
+
+  clio:
+    image: ghcr.io/xrplf/clio:latest
+    container_name: xrpl_clio
+    restart: unless-stopped
+    depends_on:
+      rippled:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./clio-config.json:/etc/clio/config.json:ro
+    ports:
+      - "51233:51233"  # Clio JSON-RPC
+      - "51234:51234"  # Clio WebSocket
+    networks:
+      - xrpl_net
+
+volumes:
+  rippled_data:
+  postgres_data:
+
+networks:
+  xrpl_net:
+    driver: bridge

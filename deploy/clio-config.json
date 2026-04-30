@@ -1,0 +1,31 @@
+{
+  "database": {
+    "type": "postgres",
+    "host": "postgres",
+    "port": 5432,
+    "database": "clio",
+    "username": "clio",
+    "password": "cliosecret",
+    "max_connections": 10
+  },
+  "etl_sources": [
+    {
+      "ip": "rippled",
+      "ws_port": "6006"
+    }
+  ],
+  "forwarding": {
+    "cache": {
+      "num_markers": 10
+    }
+  },
+  "server": {
+    "ip": "0.0.0.0",
+    "port": 51233
+  },
+  "log_level": "warning",
+  "num_markers": 10,
+  "cache": {
+    "num_diff_states": 32
+  }
+}
