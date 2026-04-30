@@ -211,254 +211,31 @@ print("bridge solvent")
 - Keep a public supply dashboard comparing locked and minted balances.
 - Write integration tests for replay, wrong destination, wrong amount, and stale nonce cases.
 
-## Practical interop notes
-- Withdrawal workflow 1: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 2: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 3: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 4: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 5: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 6: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 7: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 8: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 9: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 10: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 11: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 12: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 13: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 14: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 15: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 16: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 17: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 18: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 19: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 20: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 21: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 22: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 23: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 24: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 25: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 26: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 27: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 28: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 29: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 30: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 31: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 32: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 33: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 34: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 35: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 36: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 37: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 38: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 39: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 40: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 41: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 42: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 43: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 44: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 45: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 46: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 47: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 48: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 49: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 50: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 51: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 52: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 53: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 54: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 55: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 56: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 57: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 58: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 59: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 60: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 61: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 62: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 63: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 64: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 65: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 66: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 67: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 68: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 69: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 70: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 71: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 72: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 73: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 74: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 75: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 76: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 77: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 78: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 79: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 80: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 81: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 82: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 83: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 84: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 85: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 86: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 87: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 88: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 89: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 90: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 91: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 92: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 93: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 94: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 95: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 96: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 97: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 98: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 99: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 100: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 101: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 102: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 103: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 104: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 105: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 106: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 107: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 108: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 109: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 110: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 111: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 112: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 113: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 114: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 115: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 116: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 117: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 118: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 119: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 120: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 121: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 122: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 123: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 124: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 125: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 126: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 127: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 128: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 129: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 130: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 131: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 132: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 133: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 134: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 135: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 136: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 137: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 138: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 139: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 140: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 141: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 142: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 143: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 144: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 145: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 146: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 147: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 148: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 149: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 150: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 151: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 152: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 153: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 154: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 155: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 156: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 157: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 158: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 159: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 160: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 161: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 162: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 163: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 164: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 165: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 166: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 167: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 168: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 169: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 170: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 171: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 172: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 173: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 174: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 175: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 176: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 177: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 178: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 179: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 180: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 181: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 182: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 183: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 184: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 185: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 186: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 187: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 188: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 189: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 190: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 191: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 192: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 193: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 194: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 195: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 196: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 197: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 198: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 199: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 200: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 201: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 202: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 203: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 204: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 205: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 206: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 207: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 208: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 209: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 210: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 211: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 212: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 213: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 214: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 215: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 216: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 217: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 218: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 219: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 220: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 221: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 222: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 223: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 224: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 225: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 226: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 227: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 228: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 229: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 230: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 231: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 232: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 233: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 234: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 235: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 236: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 237: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 238: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 239: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 240: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 241: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 242: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 243: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 244: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 245: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
-- Withdrawal workflow 246: wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
-- Federator workflow 247: sign exactly one command for each source event and store signer receipts for audit.
-- Axelar workflow 248: include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
-- Representation workflow 249: document whether the token is redeemable, synthetic, issuer-backed, or message-only.
-- Deposit workflow 250: parse XRPL memos as hex, validate the EVM address length, and reject malformed payloads before minting.
+## Practical Interop Notes
+
+### Withdrawal (EVM → XRPL)
+- Wait for the EVM burn transaction receipt and bridge event before preparing the XRPL Payment release.
+- Include the EVM burn tx hash in the XRPL Payment memo for the bridge to validate against its event log.
+- Use a unique nonce per withdrawal to prevent replay if EVM → Axelar → bridge fails and must be retried.
+
+### Federated Bridge Operations
+- Sign exactly one command for each source event and store signer receipts for audit.
+- Federators should run on separate infrastructure; use threshold signatures (M-of-N) so no single federator controls funds.
+- Rotate federator keys through a timelocked governance process.
+- Publish the bridge account, contract addresses, signer set, and current supply reconciliation publicly.
+- Rehearse the emergency pause flow at least quarterly — pause deposits only, confirm no pending tx stuck mid-flight.
+
+### Axelar GMP Hygiene
+- Include an app-level nonce and deadline in every GMP payload to prevent duplicate execution.
+- The destination contract must be idempotent: same commandId + txHash should be a no-op.
+- Gas should be estimated conservatively — Axelar's gas service refunds unused native gas but short gas stalls the transfer.
+
+### Token Representation
+- Document whether the token is redeemable (1:1 backed), synthetic (price exposure only), issuer-backed (gateway custodied), or message-only (no asset movement).
+- For lock-and-mint bridges: monitor the locked balance on L1 against minted supply on EVM; any divergence is a critical incident.
+- For NFT mirrors: prefer burn/mint over escrow — escrowed NFTs complicate concurrent sell offer lifecycle.
+
+### Deposit (XRPL → EVM)
+- Parse XRPL memos as hex; validate the EVM address length (42 chars, 0x prefix); reject malformed payloads before minting.
+- Multi-page deposits (large NFT metadata bundles): use a separate memo per page, keyed by sequence number.
+- Edge case: the same user sends a deposit and a withdrawal for the same asset in the same ledger — buffer both and process deposit first.

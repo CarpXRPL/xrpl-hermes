@@ -214,254 +214,260 @@ def upsert_dns_record(zone_id: str, name: str, target: str) -> dict:
 9. Expiry worker stops workload and removes DNS when grace period ends.
 10. Settlement worker reports host revenue and tenant usage.
 
-## Practical hosting notes
-- Tenant workflow 1: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 2: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 3: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 4: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 5: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 6: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 7: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 8: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 9: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 10: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 11: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 12: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 13: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 14: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 15: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 16: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 17: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 18: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 19: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 20: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 21: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 22: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 23: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 24: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 25: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 26: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 27: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 28: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 29: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 30: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 31: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 32: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 33: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 34: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 35: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 36: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 37: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 38: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 39: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 40: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 41: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 42: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 43: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 44: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 45: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 46: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 47: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 48: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 49: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 50: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 51: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 52: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 53: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 54: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 55: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 56: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 57: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 58: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 59: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 60: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 61: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 62: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 63: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 64: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 65: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 66: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 67: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 68: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 69: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 70: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 71: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 72: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 73: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 74: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 75: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 76: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 77: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 78: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 79: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 80: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 81: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 82: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 83: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 84: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 85: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 86: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 87: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 88: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 89: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 90: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 91: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 92: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 93: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 94: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 95: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 96: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 97: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 98: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 99: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 100: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 101: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 102: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 103: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 104: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 105: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 106: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 107: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 108: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 109: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 110: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 111: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 112: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 113: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 114: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 115: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 116: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 117: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 118: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 119: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 120: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 121: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 122: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 123: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 124: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 125: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 126: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 127: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 128: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 129: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 130: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 131: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 132: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 133: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 134: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 135: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 136: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 137: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 138: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 139: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 140: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 141: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 142: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 143: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 144: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 145: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 146: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 147: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 148: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 149: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 150: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 151: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 152: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 153: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 154: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 155: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 156: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 157: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 158: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 159: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 160: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 161: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 162: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 163: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 164: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 165: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 166: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 167: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 168: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 169: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 170: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 171: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 172: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 173: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 174: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 175: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 176: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 177: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 178: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 179: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 180: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 181: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 182: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 183: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 184: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 185: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 186: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 187: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 188: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 189: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 190: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 191: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 192: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 193: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 194: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 195: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 196: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 197: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 198: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 199: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 200: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 201: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 202: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 203: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 204: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 205: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 206: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 207: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 208: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 209: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 210: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 211: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 212: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 213: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 214: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 215: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 216: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 217: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 218: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 219: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 220: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 221: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 222: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 223: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 224: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 225: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 226: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 227: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 228: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 229: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 230: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 231: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 232: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 233: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 234: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 235: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 236: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 237: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 238: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 239: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 240: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 241: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 242: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 243: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 244: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 245: store the signed transaction hash with the lease record before deploying any workload.
-- Tenant workflow 246: verify the tenant account has enough reserve and fee balance before presenting a lease offer.
-- Hook workflow 247: keep Hook parameters small and put large manifests in content-addressed storage referenced by hash.
-- DNS workflow 248: use low TTL records during migration and raise TTL only after host health is stable.
-- Cost workflow 249: separate ledger fees, host resource charges, bandwidth, and support margin in invoices.
-- Lease workflow 250: store the signed transaction hash with the lease record before deploying any workload.
+## Practical Hosting Notes
+
+### Tenant Readiness Check
+Before presenting a lease offer, verify the tenant account has enough XRP/XAH for reserve (2 XRP base + 0.2 per owner object) and tx fee for the full lease term.
+
+### Hook Optimization
+Keep Hook parameters under 256 bytes total. Put large manifests in content-addressed storage (Arweave, IPFS) and reference by hash in the hook state.
+
+### DNS Migration
+Use low TTL records (120s) during host migration. Only raise TTL (3600s) after host health is stable for 24+ hours.
+
+### Cost Transparency
+Separate ledger fees (reserve + tx costs), host resource charges (CPU/memory/disk), bandwidth (egress), and support margin in invoices. Avoid bundling.
+
+### Lease Audit Trail
+Store the signed transaction hash with the lease record before deploying any workload. This is critical for dispute resolution.
+
+---
+
+## The Sashimi Hook
+
+Evernode's core infrastructure is the **Sashimi Hook** — a Xahau Hook that manages the entire host lifecycle directly on-ledger.
+
+### Sashimi Hook Architecture
+
+```
+Sashimi Hook (installed on host's Xahau account)
+        │
+        ├── Handles: HostRegistration, LeaseOffer, LeasePayment
+        ├── Validates: payment amounts, lease terms, resource limits
+        ├── Emits: deployment signals, renewal notifications, expiry flags
+        └── Stores: host capacity, lease contracts, tenant mappings in HookState
+```
+
+### What Sashimi Does On-Chain
+
+1. **Host Registration** — A new host sends a `Payment` tx with a registration memo to their own account. The Sashimi Hook intercepts it, validates the bond amount, and writes host metadata (CPU cores, RAM GB, disk GB, region) to HookState.
+
+2. **Lease Offer** — A tenant sends a `Payment` with lease terms in the memo. Sashimi validates the offer, checks the host has capacity, and writes the lease contract to state.
+
+3. **Lease Payment** — Tenant sends the lease fee. Sashimi credits the payment, increments the lease period, and sets a deployment flag for the off-chain worker.
+
+4. **Expiry** — Sashimi checks lease deadlines on every triggering tx. Expired leases are flagged; the off-chain worker reads the flag and stops the workload.
+
+### Sashimi Hook State Schema
+
+```c
+// Sashimi Hook state keys (32 bytes each, truncated for display)
+uint8_t KEY_HOST_REG[] = "host_registry_v1";       // → host capacity JSON
+uint8_t KEY_LEASE_NS[] = "lease_";                  // → lease contract JSON (prefix + lease_id)
+uint8_t KEY_TENANT_NS[] = "tenant_";                // → tenant lease list (prefix + tenant_address)
+```
+
+### Deploying a Host with Sashimi
+
+```python
+import os, json, httpx
+from xrpl.clients import JsonRpcClient
+from xrpl.wallet import Wallet
+from xrpl.models.transactions import Payment
+from xrpl.transaction import submit_and_wait
+
+XAHAU_RPC = "https://xahau.network"
+client = JsonRpcClient(XAHAU_RPC)
+host_wallet = Wallet.from_seed(os.environ["HOST_SEED"])
+
+# Register as host via Sashimi Hook
+host_spec = json.dumps({
+    "action": "register_host",
+    "cpu_millicores": 4000,
+    "memory_mb": 8192,
+    "disk_mb": 102400,
+    "region": "us-east",
+    "bond_xah": "1000"
+})
+
+register_tx = Payment(
+    account=host_wallet.classic_address,
+    destination=host_wallet.classic_address,  # Self-payment triggers Sashimi
+    amount="1000000000",  # 1000 XAH bond
+    memos=[{
+        "Memo": {
+            "MemoData": host_spec.encode().hex().upper(),
+            "MemoType": "657665726e6f64652f686f737400",  # "evernode/host"
+        }
+    }]
+)
+
+result = submit_and_wait(register_tx, client, host_wallet)
+print(f"Host registered: {result.result['hash']}")
+```
+
+### Deploying a Tenant Application
+
+```python
+def deploy_tenant_app(
+    tenant_wallet: Wallet,
+    lease_terms: dict,
+    lease_hook_account: str,
+    xahau_client: JsonRpcClient
+) -> dict:
+    """
+    Deploy an application via Evernode/Sashimi.
+    lease_terms: {
+        cpu_millicores, memory_mb, disk_mb,
+        duration_days, artifact_image, artifact_hash
+    }
+    """
+    lease_payload = json.dumps({
+        "action": "request_lease",
+        **lease_terms
+    })
+
+    # Calculate lease cost (example: 25 XAH/month per GB RAM)
+    monthly_xah = (lease_terms["memory_mb"] / 1024) * 25
+    total_xah = monthly_xah * (lease_terms["duration_days"] / 30)
+    total_drops = str(int(total_xah * 1_000_000))
+
+    lease_tx = Payment(
+        account=tenant_wallet.classic_address,
+        destination=lease_hook_account,
+        amount=total_drops,
+        memos=[{
+            "Memo": {
+                "MemoData": lease_payload.encode().hex().upper(),
+                "MemoType": "657665726e6f64652f6c6561736500",  # "evernode/lease"
+            }
+        }]
+    )
+
+    result = submit_and_wait(lease_tx, xahau_client, tenant_wallet)
+    return {
+        "tx_hash": result.result["hash"],
+        "lease_id": f"lease_{result.result['hash'][:12]}",
+        "status": "pending_deployment",
+        "note": "Off-chain worker picks up deployment flag from Sashimi state"
+    }
+```
+
+### Reading Sashimi State (Lease Verification)
+
+```python
+async def check_hook_state(
+    account: str,
+    namespace_id: str,
+    key: str
+) -> dict:
+    """Read a value from the Sashimi Hook's state."""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            XAHAU_RPC,
+            json={
+                "method": "ledger_entry",
+                "params": [{
+                    "hook_state": {
+                        "account": account,
+                        "key": key.encode().hex(),
+                        "namespace_id": namespace_id
+                    }
+                }]
+            }
+        )
+        result = response.json()["result"]
+        return result.get("node", {}).get("HookStateData", {})
+
+# Verify a lease is active
+state = await check_hook_state(
+    lease_hook_account,
+    "0000000000000000000000000000000000000000000000000000000000000000",
+    "lease_abc123"
+)
+```
+
+---
+
+## Evernode Runtime
+
+The off-chain runtime that reads Sashimi state and manages containers:
+
+```python
+# Pseudocode showing the worker loop
+import asyncio, httpx, docker  # docker-py
+
+EVERNODE_WORKER_INTERVAL = 30  # seconds
+
+async def evernode_worker_loop(lease_hook_account: str):
+    """Poll Sashimi state, deploy/stop containers based on hook flags."""
+    docker_client = docker.from_env()
+
+    while True:
+        # 1. Get active leases from Sashimi
+        # (via account_objects or ledger_entry on the hook account)
+
+        # 2. Compare with running containers
+        running = {c.name for c in docker_client.containers.list()}
+
+        # 3. Deploy new leases
+        for lease in active_leases:
+            if lease["id"] not in running:
+                deploy_container(lease)
+
+        # 4. Stop expired leases
+        for container_name in running:
+            if container_name not in {l["id"] for l in active_leases}:
+                stop_container(container_name)
+
+        await asyncio.sleep(EVERNODE_WORKER_INTERVAL)
+```
+
+---
+
+## Evers (EVR) Token Integration
+
+EVR is the Evernode governance and utility token.
+
+```python
+# EVR is an issued currency on Xahau
+EVR_CURRENCY = "EVR"
+EVR_ISSUER = os.environ.get("EVR_ISSUER")  # Verify from evernode.io
+
+async def get_evr_price() -> dict:
+    """Query EVR price from FTSO or market data API."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get("https://api.xrpl.to/v1/token/EVR")
+        return response.json()
+
+def get_evr_balance(wallet: Wallet, client: JsonRpcClient) -> float:
+    """Get EVR token balance for a wallet."""
+    from xrpl.models.requests import AccountLines
+    resp = client.request(AccountLines(account=wallet.classic_address))
+    for line in resp.result.get("lines", []):
+        if line["currency"] == EVR_CURRENCY and line["account"] == EVR_ISSUER:
+            return float(line["balance"])
+    return 0.0
+```
+
+---
+
+## Known Limitations & Production Notes
+
+### Sashimi Hook Limits
+- Max 256 state keys per hook namespace
+- Max 128 bytes per state value
+- Emit limit: 16 emitted transactions per hook execution
+- Max lease contract JSON payload: ~4 KB (fits in multi-page memo)
+
+### Host Infrastructure
+- Each host runs a Docker daemon + Sashimi-aware worker
+- Host must have a funded Xahau account with sufficient XAH for hook fees
+- Recommended: 4+ CPU cores, 8 GB RAM, 100 GB SSD per host
+- Host bond: typically 1000 XAH (slashed if host goes offline without notice)
+
+### Tenant Considerations
+- App must be containerized (Docker image)
+- Recommended to use health check endpoints for the Sashimi worker to monitor
+- Upgrade path: send a new lease tx with updated artifact hash, worker performs rolling update
+- Backup: tenant should store their app image in a registry they control, not rely on host's registry cache
