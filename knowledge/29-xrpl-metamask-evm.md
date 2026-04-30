@@ -2,7 +2,7 @@
 
 ## Overview
 
-The XRPL EVM Sidechain is an Ethereum-compatible blockchain connected to the XRPL via a trust-minimized bridge. It runs Solidity smart contracts, uses wXRP as native currency, and connects to MetaMask. Chain ID: **1440001**.
+The XRPL EVM Sidechain is an Ethereum-compatible blockchain connected to the XRPL via a trust-minimized bridge. It runs Solidity smart contracts, uses wXRP as native currency, and connects to MetaMask. Chain ID: **1440000**.
 
 ---
 
@@ -13,8 +13,8 @@ The XRPL EVM Sidechain is an Ethereum-compatible blockchain connected to the XRP
 | Parameter | Value |
 |-----------|-------|
 | Network Name | XRPL EVM Sidechain |
-| RPC URL | `https://rpc-evm-sidechain.xrpl.org` |
-| Chain ID | `1440001` |
+| RPC URL | `https://rpc.xrplevm.org` |
+| Chain ID | `1440000` |
 | Currency Symbol | `XRP` |
 | Block Explorer | `https://evm-sidechain.xrpl.org` |
 
@@ -24,14 +24,14 @@ async function addXRPLNetwork() {
   await window.ethereum.request({
     method: 'wallet_addEthereumChain',
     params: [{
-      chainId: '0x15F902',  // 1440001 in hex
+      chainId: '0x15F900',  // 1440000 in hex
       chainName: 'XRPL EVM Sidechain',
       nativeCurrency: {
         name: 'XRP',
         symbol: 'XRP',
         decimals: 18
       },
-      rpcUrls: ['https://rpc-evm-sidechain.xrpl.org'],
+      rpcUrls: ['https://rpc.xrplevm.org'],
       blockExplorerUrls: ['https://evm-sidechain.xrpl.org']
     }]
   });
@@ -41,8 +41,8 @@ async function addXRPLNetwork() {
 ### Alternative RPC Endpoints
 
 ```
-Primary:  https://rpc-evm-sidechain.xrpl.org
-Testnet:  https://rpc-evm-sidechain.testnet.xrpl.org (Chain ID: 1440002)
+Primary:  https://rpc.xrplevm.org
+Testnet:  https://rpc.testnet.xrplevm.org (Chain ID: 1450024)
 ```
 
 ---
@@ -101,14 +101,14 @@ module.exports = {
   },
   networks: {
     xrpl_evm: {
-      url: 'https://rpc-evm-sidechain.xrpl.org',
-      chainId: 1440001,
+      url: 'https://rpc.xrplevm.org',
+      chainId: 1440000,
       accounts: [process.env.PRIVATE_KEY],
       gasPrice: 'auto'
     },
     xrpl_evm_testnet: {
-      url: 'https://rpc-evm-sidechain.testnet.xrpl.org',
-      chainId: 1440002,
+      url: 'https://rpc.testnet.xrplevm.org',
+      chainId: 1450024,
       accounts: [process.env.PRIVATE_KEY],
     }
   },
@@ -119,7 +119,7 @@ module.exports = {
     customChains: [
       {
         network: 'xrpl_evm',
-        chainId: 1440001,
+        chainId: 1440000,
         urls: {
           apiURL: 'https://evm-sidechain.xrpl.org/api',
           browserURL: 'https://evm-sidechain.xrpl.org'
@@ -154,8 +154,8 @@ optimizer = true
 optimizer-runs = 200
 
 [rpc_endpoints]
-xrpl_evm = "https://rpc-evm-sidechain.xrpl.org"
-xrpl_evm_testnet = "https://rpc-evm-sidechain.testnet.xrpl.org"
+xrpl_evm = "https://rpc.xrplevm.org"
+xrpl_evm_testnet = "https://rpc.testnet.xrplevm.org"
 
 [etherscan]
 xrpl_evm = { key = "placeholder", url = "https://evm-sidechain.xrpl.org/api" }
@@ -171,8 +171,8 @@ forge create \
 
 # Verify contract
 forge verify-contract \
-  --chain-id 1440001 \
-  --rpc-url https://rpc-evm-sidechain.xrpl.org \
+  --chain-id 1440000 \
+  --rpc-url https://rpc.xrplevm.org \
   0xCONTRACT_ADDRESS \
   src/MyContract.sol:MyContract
 ```
@@ -306,13 +306,13 @@ const { ethers } = require('ethers');
 
 // Connect to XRPL EVM
 const provider = new ethers.JsonRpcProvider(
-  'https://rpc-evm-sidechain.xrpl.org'
+  'https://rpc.xrplevm.org'
 );
 
 // Connect wallet
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 console.log('Address:', wallet.address);
-console.log('Chain ID:', (await provider.getNetwork()).chainId);  // 1440001n
+console.log('Chain ID:', (await provider.getNetwork()).chainId);  // 1440000n
 
 // Send XRP (native token)
 async function sendXRP(to, xrpAmount) {
@@ -337,7 +337,7 @@ const result = await contract.someFunction(arg1, arg2);
 import { useState } from 'react';
 import { ethers } from 'ethers';
 
-const XRPL_EVM_CHAIN_ID = 1440001;
+const XRPL_EVM_CHAIN_ID = 1440000;
 
 function XRPLEVMWallet() {
   const [account, setAccount] = useState(null);
@@ -353,7 +353,7 @@ function XRPLEVMWallet() {
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x15F902' }]
+        params: [{ chainId: '0x15F900' }]
       });
     } catch (e) {
       if (e.code === 4902) {

@@ -66,8 +66,8 @@ usePrivy().getEthereumWallet(); // Ethers provider
 ### Setup
 1. Add XRPL EVM Sidechain RPC
 2. Network Name: XRPL EVM Sidechain
-3. RPC URL: https://rpc-evm-sidechain.xrpl.org
-4. Chain ID: 1440001
+3. RPC URL: https://rpc.xrplevm.org
+4. Chain ID: 1440000
 5. Currency: wXRP
 
 ### Usage

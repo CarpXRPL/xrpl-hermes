@@ -8,9 +8,9 @@
 │  Consensus: RPCA / UNL voting | ~3-5s finality              │
 │  Features: DEX, AMM, NFTs, Escrow, Channels, MPTs, DIDs     │
 ├──────────────┬──────────────────┬───────────────────────────┤
-│ EVM Sidechain│  Xahau Network   │  Flare Network            │
-│ (wXRP, EVM)  │  (Hooks, XAH)    │  (FLR, FTSO, EVM)        │
-│ Chain: 1440002│ Fork of XRPL    │  EVM + state connector   │
+│ **EVM Sidechain**│  **Xahau Network**   │  **Flare Network**            │
+│ (wXRP, EVM)    │  (Hooks, XAH)    │  (FLR, FTSO, EVM)        │
+│ Chain: 1440000 │ Fork of XRPL    │  EVM + state connector   │
 ├──────────────┴──────────────────┴───────────────────────────┤
 │  Bridges & Interop                                           │
 │  XRPL↔EVM: Federated bridge (~3 min)                        │
@@ -497,7 +497,7 @@ L1 → Arweave:          Off-chain: data on Arweave, hash in Memo field
 XRPL_MAINNET_RPC="https://xrplcluster.com"
 XRPL_MAINNET_WS="wss://xrplcluster.com"
 XRPL_TESTNET_RPC="https://testnet.xrpl-labs.com"
-XRPL_EVM_RPC="https://rpc-evm-sidechain.xrpl.org"
+XRPL_EVM_RPC="https://rpc.xrplevm.org"
 XAHAU_RPC="https://xahau.network"
 
 # Faucets

@@ -193,7 +193,7 @@ An account can hold at most **4,294,967,295** objects technically, but practical
 NFTs are packed into **NFTokenPage** objects:
 - Each NFTokenPage holds up to 32 NFTs
 - Only 1 owner reserve per page (not per NFT)
-- 32 NFTs = 1 page = 2 XRP reserve
+- 32 NFTs = 1 page = 0.2 XRP reserve
 
 ```python
 def nft_reserve(nft_count: int) -> int:
@@ -299,17 +299,17 @@ Action                          XRP Cost
 ─────────────────────────────────────────
 Send XRP                        0.00001 XRP fee
 Send token                      0.00001 XRP fee
-Create trust line               0.00001 fee + 2 XRP reserve
-Create DEX offer                0.00001 fee + 2 XRP reserve
-Cancel DEX offer                0.00001 fee, -2 XRP reserve returned
-Mint NFT (first, new page)      0.00001 fee + 2 XRP reserve
+Create trust line               0.00001 fee + 0.2 XRP reserve
+Create DEX offer                0.00001 fee + 0.2 XRP reserve
+Cancel DEX offer                0.00001 fee, -0.2 XRP reserve returned
+Mint NFT (first, new page)      0.00001 fee + 0.2 XRP reserve
 Mint NFT (same page)            0.00001 fee (no extra reserve)
-Create escrow                   0.00001 fee + 2 XRP reserve
-Finish escrow                   0.00001+ fee, -2 XRP reserve returned
-Open payment channel            0.00001 fee + 2 XRP reserve + funded amount
+Create escrow                   0.00001 fee + 0.2 XRP reserve
+Finish escrow                   0.00001+ fee, -0.2 XRP reserve returned
+Open payment channel            0.00001 fee + 0.2 XRP reserve + funded amount
 Create ticket                   0.00001 fee + 2 XRP/ticket reserve
 Delete account                  2.0000 XRP fee, all reserve returned
-Set signer list (5 signers)     0.00001 fee + 2 XRP reserve
+Set signer list (5 signers)     0.00001 fee + 0.2 XRP reserve
 AccountSet                      0.00001 XRP fee (no reserve)
 ```
 

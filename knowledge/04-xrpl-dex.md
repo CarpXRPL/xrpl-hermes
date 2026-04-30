@@ -151,7 +151,7 @@ This liquidity aggregation is automatic — the trader doesn't need to do anythi
 
 ### States
 
-1. **Created**: Offer is placed on the order book. Reserve (2 XRP) locked.
+1. **Created**: Offer is placed on the order book. Reserve (0.2 XRP) locked.
 2. **Partially Filled**: Some of the offer has been consumed, remainder stays on books.
 3. **Fully Filled**: All of the offer has been consumed. Offer removed from books.
 4. **Cancelled**: Offer creator cancels it before it's filled.

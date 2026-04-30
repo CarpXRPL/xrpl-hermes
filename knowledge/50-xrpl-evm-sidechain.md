@@ -16,7 +16,7 @@ The XRPL EVM Sidechain is an Ethereum Virtual Machine (EVM) compatible sidechain
 ┌──────────────────────────────────────────────────────────────┐
 │                                                              │
 │  XRPL L1                      XRPL EVM Sidechain            │
-│  (native XRP,                 (Chain ID: 1440001)            │
+│  (native XRP,                 (Chain ID: 1440000)            │
 │   trust lines,                (Solidity + EVM)               │
 │   DEX, AMM)                                                  │
 │         │                           │                        │
@@ -65,9 +65,9 @@ The XRPL EVM Sidechain is an Ethereum Virtual Machine (EVM) compatible sidechain
 
 | Property | Mainnet | Testnet |
 |----------|---------|---------|
-| Chain ID | 1440001 | 1440002 |
-| RPC URL | https://rpc-evm-sidechain.xrpl.org | https://rpc-evm-sidechain.peersyst.tech |
-| Block Explorer | https://evm-sidechain.xrpl.org | https://evm-sidechain-explorer.peersyst.tech |
+| Chain ID | 1440000 | 1450024 |
+| RPC URL | https://rpc.xrplevm.org | https://rpc.testnet.xrplevm.org |
+| Block Explorer | https://evm-sidechain.xrpl.org | https://testnet-explorer.xrplevm.org |
 | Gas Token | wXRP | test-wXRP |
 | Block Time | 3-5 seconds | 3-5 seconds |
 | Consensus | Authority round-robin | Authority round-robin |
@@ -85,12 +85,12 @@ from eth_account import Account
 import json
 
 # Connect to XRPL EVM Sidechain
-XRPL_EVM_RPC = "https://rpc-evm-sidechain.xrpl.org"
-XRPL_EVM_CHAIN_ID = 1440001
+XRPL_EVM_RPC = "https://rpc.xrplevm.org"
+XRPL_EVM_CHAIN_ID = 1440000
 
 w3 = Web3(Web3.HTTPProvider(XRPL_EVM_RPC))
 print(f"Connected: {w3.is_connected()}")
-print(f"Chain ID: {w3.eth.chain_id}")  # Should be 1440001
+print(f"Chain ID: {w3.eth.chain_id}")  # Should be 1440000
 print(f"Block: {w3.eth.block_number}")
 ```
 
@@ -359,14 +359,14 @@ module.exports = {
   },
   networks: {
     xrplEVM: {
-      url: "https://rpc-evm-sidechain.xrpl.org",
-      chainId: 1440001,
+      url: "https://rpc.xrplevm.org",
+      chainId: 1440000,
       accounts: [process.env.PRIVATE_KEY],
       timeout: 60000
     },
     xrplEVMTestnet: {
-      url: "https://rpc-evm-sidechain.peersyst.tech",
-      chainId: 1440002,
+      url: "https://rpc.testnet.xrplevm.org",
+      chainId: 1450024,
       accounts: [process.env.PRIVATE_KEY]
     }
   },
@@ -377,7 +377,7 @@ module.exports = {
     customChains: [
       {
         network: "xrplEVM",
-        chainId: 1440001,
+        chainId: 1440000,
         urls: {
           apiURL: "https://evm-sidechain.xrpl.org/api",
           browserURL: "https://evm-sidechain.xrpl.org"
@@ -417,21 +417,21 @@ out = "out"
 libs = ["lib"]
 
 [rpc_endpoints]
-xrpl_evm = "https://rpc-evm-sidechain.xrpl.org"
-xrpl_evm_testnet = "https://rpc-evm-sidechain.peersyst.tech"
+xrpl_evm = "https://rpc.xrplevm.org"
+xrpl_evm_testnet = "https://rpc.testnet.xrplevm.org"
 ```
 
 ```bash
 # Deploy
 forge create src/Token.sol:XRPLToken \
-  --rpc-url https://rpc-evm-sidechain.xrpl.org \
+  --rpc-url https://rpc.xrplevm.org \
   --private-key $PRIVATE_KEY \
   --constructor-args "My Token" "MYT" 1000000
 
 # Verify
 forge verify-contract \
-  --chain-id 1440001 \
-  --rpc-url https://rpc-evm-sidechain.xrpl.org \
+  --chain-id 1440000 \
+  --rpc-url https://rpc.xrplevm.org \
   --constructor-args $(cast abi-encode "constructor(string,string,uint256)" "My Token" "MYT" 1000000) \
   $CONTRACT_ADDRESS \
   src/Token.sol:XRPLToken
@@ -473,7 +473,7 @@ forge verify-contract \
     "amountDrops": "10000000"
   },
   "contract": "0xBridgeContractAddress",
-  "chain_id": 1440001
+  "chain_id": 1440000
 }
 ```
 
@@ -483,10 +483,10 @@ forge verify-contract \
 
 | Endpoint | Description |
 |----------|-------------|
-| `https://rpc-evm-sidechain.xrpl.org` | JSON-RPC endpoint (ETH compatible) |
+| `https://rpc.xrplevm.org` | JSON-RPC endpoint (ETH compatible) |
 | `https://evm-sidechain.xrpl.org` | Block explorer UI |
 | `https://evm-sidechain.xrpl.org/api` | Explorer REST API |
-| `wss://rpc-evm-sidechain.xrpl.org/ws` | WebSocket endpoint |
+| `wss://rpc.xrplevm.org/ws/ws` | WebSocket endpoint |
 
 ```python
 import httpx
@@ -495,19 +495,19 @@ async def get_evm_sidechain_info() -> dict:
     """Get EVM sidechain network info."""
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "https://rpc-evm-sidechain.xrpl.org",
+            "https://rpc.xrplevm.org",
             json={"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 1}
         )
         chain_id = int(response.json()["result"], 16)
 
         block_resp = await client.post(
-            "https://rpc-evm-sidechain.xrpl.org",
+            "https://rpc.xrplevm.org",
             json={"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 2}
         )
         block = int(block_resp.json()["result"], 16)
 
         gas_resp = await client.post(
-            "https://rpc-evm-sidechain.xrpl.org",
+            "https://rpc.xrplevm.org",
             json={"jsonrpc": "2.0", "method": "eth_gasPrice", "params": [], "id": 3}
         )
         gas_price_wei = int(gas_resp.json()["result"], 16)
@@ -523,7 +523,7 @@ async def get_account_balance_evm(address: str) -> dict:
     """Get wXRP (native gas) balance on EVM Sidechain."""
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "https://rpc-evm-sidechain.xrpl.org",
+            "https://rpc.xrplevm.org",
             json={
                 "jsonrpc": "2.0",
                 "method": "eth_getBalance",
@@ -652,9 +652,9 @@ The federated model differs from Axelar (permissionless validator set). This is 
 
 - XRPL EVM Sidechain docs: https://docs.xrplevm.org
 - Block explorer: https://evm-sidechain.xrpl.org
-- RPC endpoint: https://rpc-evm-sidechain.xrpl.org
+- RPC endpoint: https://rpc.xrplevm.org
 - Bridge UI: https://bridge.xrpl.org
-- Testnet faucet: https://evm-sidechain.peersyst.tech/faucet
+- Testnet faucet: https://bridge.testnet.xrpl.org (XRPL EVM Sidechain testnet)
 - GitHub: https://github.com/xrplf/xbridge-cli
 
 ---

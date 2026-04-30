@@ -35,7 +35,7 @@ RLUSD)      Witness / Federator
 4. XRP/tokens released to user's L1 account
 
 ### EVM Sidechain Specifics
-- **Chain ID**: 1440001 (mainnet), 1440002 (testnet)
+- **Chain ID**: 1440000 (mainnet), 1450024 (testnet)
 - **RPC**: Public RPC endpoints available
 - **Block Time**: 3-5 seconds
 - **Gas Token**: wXRP (wrapped XRP)
@@ -82,8 +82,8 @@ contract MyToken {
 module.exports = {
   networks: {
     xrplEVM: {
-      url: "https://rpc-evm-sidechain.xrpl.org",
-      chainId: 1440001,
+      url: "https://rpc.xrplevm.org",
+      chainId: 1440000,
       accounts: [process.env.PRIVATE_KEY]
     }
   }
@@ -92,7 +92,7 @@ module.exports = {
 
 ### Deploy via Foundry
 ```bash
-forge create MyToken --rpc-url https://rpc-evm-sidechain.xrpl.org \
+forge create MyToken --rpc-url https://rpc.xrplevm.org \
   --private-key $PRIVATE_KEY \
   --constructor-args 1000000000000000000000000
 ```

@@ -1,24 +1,23 @@
-# 🦞 xrpl-hermes
+# ☤ xrpl-hermes
 
 **The open-source, all-in-one XRPL ecosystem toolkit for Hermes agents.**
 
-**55 knowledge files + 35 working tools** covering **XRPL L1, EVM Sidechain, Xahau Hooks, Flare FTSO, Axelar Bridge, and Arweave**
+**55 knowledge files + 34 working tools** covering **XRPL L1, EVM Sidechain, Xahau Hooks, Flare FTSO, Axelar Bridge, and Arweave**
 
 ## Quick Start
 
 ```bash
-# Install dependency
-pip install xrpl-py
+# One-command setup
+bash setup.sh
 
-# Clone the skill
-git clone https://github.com/CarpXRPL/xrpl-hermes.git
+# Or manually
+pip install -r requirements.txt
 
 # Run a query
-cd xrpl-hermes
 python3 scripts/xrpl_tools.py ledger
 
 # Check an account
-python3 scripts/xrpl_tools.py account rNZzab1XjmdQ2atiBzVDTxZnXqJQdZNeQG
+python3 scripts/xrpl_tools.py account rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
 
 # Build a transaction
 python3 scripts/xrpl_tools.py build-payment --from rADDR --to rADDR --amount 10000000
@@ -34,9 +33,10 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 # > activate xrpl-hermes
 ```
 
-## 35 Tools — All Ecosystems
+## 34 Tools — All Ecosystems
 
-### XRPL L1 (29 tools)
+### XRPL L1 (28 tools)
+
 | Tool | Description |
 |------|-------------|
 | `account` | Account info, balance, flags, sequence |
@@ -62,6 +62,7 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 | `path-find` | Payment path discovery |
 
 ### EVM Sidechain (3 tools)
+
 | Tool | Description |
 |------|-------------|
 | `evm-balance` | Query XRP balance on EVM sidechain |
@@ -69,28 +70,46 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 | `evm-bridge` | Check bridge status |
 
 ### Xahau Hooks (2 tools)
+
 | Tool | Description |
 |------|-------------|
 | `hooks-bitmask` | Calculate HookOn trigger bitmask |
 | `hooks-info` | Query installed hooks on Xahau |
 
 ### Flare / Price Feeds (1 tool)
+
 | Tool | Description |
 |------|-------------|
 | `flare-price` | Live XRP, BTC, ETH price feeds |
 
 ## 55 Knowledge Files
 
-|| Layer | Files | Topics |
-||-------|-------|--------|
-|| XRPL L1 Core (01-15) | 15 files | Accounts, Payments, Trustlines, DEX, AMM, NFTs, Clawback, MPTs, Escrow, Checks, Payment Channels, Multisig, Tickets, Consensus, Transaction Format |
-|| Infrastructure (16-20) | 5 files | Clio, Private Nodes, Rate Limits, Tx Costs, Data APIs |
-|| Token Operations (21-25) | 5 files | Token Model, Issuance, NFT Minting, Deployment, Security |
-|| Wallets (26-30) | 5 files | Xaman, Joey, Privy, MetaMask, xrpl-py |
-|| Side Ecosystems (31-35) | 5 files | xrpl.js, Hooks Dev, EVM Dev, AMM Bots, Interop |
-|| Advanced (36-45) | 10 files | XLS Standards, Amendments, Minting Ops, NFT Ops, Monitoring, Bot Patterns, Treasury, Hooks Advanced, EVM Advanced, Ecosystem Map |
-|| Cross-Chain (46-55) | 10 files | L1 Reference, Wallets/Auth, Evernode, Sidechain Interop, Axelar Bridge, Arweave, TX Ecosystem, Flare FTSO, EVM Sidechain, Xahau Hooks |
-|| References (8 files) | 8 files | XRPL L1, EVM, Hooks, Flare, Axelar, Arweave, TX, Wallets |
+| Layer | Files | Topics |
+|-------|-------|--------|
+| XRPL L1 Core (01-15) | 15 files | Accounts, Payments, Trustlines, DEX, AMM, NFTs, Clawback, MPTs, Escrow, Checks, Payment Channels, Multisig, Tickets, Consensus, Transaction Format |
+| Infrastructure (16-20) | 5 files | Clio, Private Nodes, Rate Limits, Tx Costs, Data APIs |
+| Token Operations (21-25) | 5 files | Token Model, Issuance, NFT Minting, Deployment, Security |
+| Wallets (26-30) | 5 files | Xaman, Joey, Privy, MetaMask, xrpl-py |
+| Side Ecosystems (31-35) | 5 files | xrpl.js, Hooks Dev, EVM Dev, AMM Bots, Interop |
+| Advanced (36-45) | 10 files | XLS Standards, Amendments, Minting Ops, NFT Ops, Monitoring, Bot Patterns, Treasury, Hooks Advanced, EVM Advanced, Ecosystem Map |
+| Cross-Chain (46-55) | 10 files | L1 Reference, Wallets/Auth, Evernode, Sidechain Interop, Axelar Bridge, Arweave, TX Ecosystem, Flare FTSO, EVM Sidechain, Xahau Hooks |
+| References (8 files) | 8 files | XRPL L1, EVM, Hooks, Flare, Axelar, Arweave, TX, Wallets |
+
+## Examples
+
+Ready-to-run scripts in `examples/`:
+
+- [`example-build-payment.py`](examples/example-build-payment.py) — Send XRP on testnet
+- [`example-mint-nft.py`](examples/example-mint-nft.py) — Mint an XLS-20 NFT on testnet
+- [`example-evm-swap.py`](examples/example-evm-swap.py) — Simulate a swap on XRPL EVM sidechain
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to add knowledge, improve tools, or fix docs.
+
+## Changelog
+
+See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 
 ## License
 

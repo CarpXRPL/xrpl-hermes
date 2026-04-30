@@ -2,7 +2,7 @@
 
 ## Overview
 
-The XRPL EVM Sidechain is a fully EVM-compatible blockchain connected to the XRPL mainnet via a decentralized bridge. Deploy Solidity contracts, use standard Ethereum tooling, and access XRPL liquidity through the bridge. Chain ID: **1440001** (mainnet), **1440002** (testnet).
+The XRPL EVM Sidechain is a fully EVM-compatible blockchain connected to the XRPL mainnet via a decentralized bridge. Deploy Solidity contracts, use standard Ethereum tooling, and access XRPL liquidity through the bridge. Chain ID: **1440000** (mainnet), **1450024** (testnet).
 
 ---
 
@@ -11,9 +11,9 @@ The XRPL EVM Sidechain is a fully EVM-compatible blockchain connected to the XRP
 ### Mainnet
 
 ```
-Chain ID:      1440001
-RPC:           https://rpc-evm-sidechain.xrpl.org
-WSS:           wss://rpc-evm-sidechain.xrpl.org
+Chain ID:      1440000
+RPC:           https://rpc.xrplevm.org
+WSS:           wss://rpc.xrplevm.org/ws
 Explorer:      https://evm-sidechain.xrpl.org
 Native token:  XRP (18 decimals on EVM side)
 ```
@@ -21,8 +21,8 @@ Native token:  XRP (18 decimals on EVM side)
 ### Testnet
 
 ```
-Chain ID:      1440002
-RPC:           https://rpc-evm-sidechain.testnet.xrpl.org
+Chain ID:      1450024
+RPC:           https://rpc.testnet.xrplevm.org
 Faucet:        https://bridge.testnet.xrpl.org
 Explorer:      https://evm-sidechain.testnet.xrpl.org
 ```
@@ -51,7 +51,7 @@ npx hardhat init  # Select "TypeScript project"
 
 ```
 PRIVATE_KEY=0x...your_private_key...
-XRPL_EVM_RPC=https://rpc-evm-sidechain.xrpl.org
+XRPL_EVM_RPC=https://rpc.xrplevm.org
 ```
 
 ### `hardhat.config.ts`
@@ -72,21 +72,21 @@ const config: HardhatUserConfig = {
   },
   networks: {
     xrpl_evm: {
-      url: process.env.XRPL_EVM_RPC || "https://rpc-evm-sidechain.xrpl.org",
-      chainId: 1440001,
+      url: process.env.XRPL_EVM_RPC || "https://rpc.xrplevm.org",
+      chainId: 1440000,
       accounts: [process.env.PRIVATE_KEY!],
       gasPrice: "auto",
       gas: "auto"
     },
     xrpl_evm_testnet: {
-      url: "https://rpc-evm-sidechain.testnet.xrpl.org",
-      chainId: 1440002,
+      url: "https://rpc.testnet.xrplevm.org",
+      chainId: 1450024,
       accounts: [process.env.PRIVATE_KEY!]
     },
     hardhat: {
-      chainId: 1440001,
+      chainId: 1440000,
       forking: {
-        url: "https://rpc-evm-sidechain.xrpl.org",
+        url: "https://rpc.xrplevm.org",
         enabled: process.env.FORK === "true"
       }
     }
@@ -97,7 +97,7 @@ const config: HardhatUserConfig = {
     },
     customChains: [{
       network: "xrpl_evm",
-      chainId: 1440001,
+      chainId: 1440000,
       urls: {
         apiURL: "https://evm-sidechain.xrpl.org/api",
         browserURL: "https://evm-sidechain.xrpl.org"
@@ -138,7 +138,7 @@ remappings = [
 
 [rpc_endpoints]
 xrpl_evm = "${XRPL_EVM_RPC}"
-xrpl_evm_testnet = "https://rpc-evm-sidechain.testnet.xrpl.org"
+xrpl_evm_testnet = "https://rpc.testnet.xrplevm.org"
 
 [etherscan]
 xrpl_evm = { key = "${ETHERSCAN_API_KEY}", url = "https://evm-sidechain.xrpl.org/api" }
@@ -156,7 +156,7 @@ forge create \
 forge test --rpc-url xrpl_evm -vvvv
 
 # Fork mainnet locally
-anvil --fork-url https://rpc-evm-sidechain.xrpl.org --chain-id 1440001
+anvil --fork-url https://rpc.xrplevm.org --chain-id 1440000
 ```
 
 ---
@@ -339,7 +339,7 @@ const BRIDGE_ABI = [
   'function withdraw(string calldata xrplAddress, uint32 destinationTag) external payable'
 ];
 
-const provider = new ethers.JsonRpcProvider('https://rpc-evm-sidechain.xrpl.org');
+const provider = new ethers.JsonRpcProvider('https://rpc.xrplevm.org');
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 const bridge = new ethers.Contract(BRIDGE_ADDRESS, BRIDGE_ABI, wallet);
 
@@ -399,8 +399,8 @@ contract CrossChainMessenger {
 ```bash
 # Fork XRPL EVM mainnet
 anvil \
-  --fork-url https://rpc-evm-sidechain.xrpl.org \
-  --chain-id 1440001 \
+  --fork-url https://rpc.xrplevm.org \
+  --chain-id 1440000 \
   --block-time 1 \
   --port 8545
 
@@ -466,7 +466,7 @@ const tx = await contract.mint(to, amount, {
 | Native token | ETH (18 dec) | XRP (18 dec on EVM) |
 | Block time | ~12s | ~3-5s |
 | Consensus | PoS | Federated UNL |
-| Chain ID | 1 | 1440001 |
+| Chain ID | 1 | 1440000 |
 | wETH equivalent | 0xC02a... | wXRP 0xCCcc...0001 |
 | Bridge | Separate L2s | Native XRPL bridge |
 | DEX | Uniswap etc | AMM on XRPL L1 |

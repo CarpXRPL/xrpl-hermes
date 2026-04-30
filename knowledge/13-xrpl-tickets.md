@@ -41,7 +41,7 @@ After this transaction succeeds:
 - 10 ticket objects are created on ledger
 - Each ticket has a `TicketSequence` value: 101, 102, ... 110
 
-**Reserve cost**: Each ticket costs 2 XRP reserve (returned when ticket is consumed or cancelled).
+**Reserve cost**: Each ticket costs 0.2 XRP reserve (returned when ticket is consumed or cancelled).
 
 ---
 
@@ -254,7 +254,7 @@ async def submit_when_ready(proposal):
 
 ## 8. Cancelling Unused Tickets
 
-Unused tickets lock 2 XRP each. Cancel by submitting an `AccountDelete` (not usually practical) or... you cannot directly cancel. Instead submit a trivial transaction using the ticket:
+Unused tickets lock 0.2 XRP each. Cancel by submitting an `AccountDelete` (not usually practical) or... you cannot directly cancel. Instead submit a trivial transaction using the ticket:
 
 ```json
 {
@@ -266,7 +266,7 @@ Unused tickets lock 2 XRP each. Cancel by submitting an `AccountDelete` (not usu
 }
 ```
 
-This "wastes" the ticket but releases the 2 XRP reserve.
+This "wastes" the ticket but releases the 0.2 XRP reserve.
 
 ---
 
@@ -319,9 +319,9 @@ async def airdrop(recipients: list, amount: int):
 |-----------|-------|
 | Max tickets per TicketCreate | 250 |
 | Max outstanding tickets per account | 250 |
-| Reserve per ticket | 2 XRP |
+| Reserve per ticket | 0.2 XRP |
 | Ticket lifetime | Until used or account deleted |
-| TicketCount upper bound cost | 250 × 2 = 500 XRP reserve |
+| TicketCount upper bound cost | 250 × 0.2 = 50 XRP reserve |
 
 ---
 

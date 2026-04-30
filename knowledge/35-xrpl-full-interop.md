@@ -19,7 +19,7 @@ The XRPL ecosystem spans multiple chains and layers: XRPL L1 mainnet, EVM Sidech
     ┌──────▼──────┐ ┌──────▼──────┐ ┌─────▼──────┐
     │ XRPL EVM    │ │   Xahau     │ │  Flare /   │
     │ Sidechain   │ │  (Hooks)    │ │  Songbird  │
-    │ Chain 1440001│ │ Chain 21337 │ │ Chain 14/19│
+    │ Chain 1440000│ │ Chain 21337 │ │ Chain 14/19│
     └──────┬───────┘ └─────────────┘ └─────┬──────┘
            │                               │
            └──────── Axelar GMP ───────────┘
@@ -47,8 +47,8 @@ Wallets:    Xaman, Joey, Bifrost, Crossmark
 
 ```
 Network:    Ethereum-compatible EVM
-Chain ID:   1440001 (mainnet), 1440002 (testnet)
-RPC:        https://rpc-evm-sidechain.xrpl.org
+Chain ID:   1440000 (mainnet), 1450024 (testnet)
+RPC:        https://rpc.xrplevm.org
 Explorer:   https://evm-sidechain.xrpl.org
 Native:     XRP (18 decimal places on EVM)
 Smart contracts: Solidity (full EVM)
@@ -424,7 +424,7 @@ class XRPLEcosystemClient:
         
         # EVM Sidechain
         from web3 import Web3
-        self.evm = Web3(Web3.HTTPProvider("https://rpc-evm-sidechain.xrpl.org"))
+        self.evm = Web3(Web3.HTTPProvider("https://rpc.xrplevm.org"))
         
         # Xahau
         self.xahau = JsonRpcClient("https://xahau.network")
@@ -499,8 +499,8 @@ Recommended Stack:
 |---------|----------|------|
 | XRPL Mainnet | N/A (not EVM) | XRPL |
 | XRPL Testnet | N/A | XRPL |
-| XRPL EVM Sidechain | 1440001 | EVM |
-| XRPL EVM Testnet | 1440002 | EVM |
+| XRPL EVM Sidechain | 1440000 | EVM |
+| XRPL EVM Testnet | 1450024 | EVM |
 | Xahau Mainnet | 21337 | XRPL fork |
 | Xahau Testnet | 21338 | XRPL fork |
 | Flare | 14 | EVM |

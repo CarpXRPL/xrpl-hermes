@@ -250,7 +250,7 @@ Note: Enabling clawback disables NoFreeze and global freeze.
 | Feature | Issued Currency | MPT |
 |---------|----------------|-----|
 | Storage | Trust line objects | MPT objects |
-| Reserve per holder | 2 XRP | Much less |
+| Reserve per holder | 0.2 XRP | Much less |
 | Maximum holders | Millions | Millions |
 | Fractional amounts | 15 sig digits | Configurable precision |
 | Transfer fee | Yes | Yes |
