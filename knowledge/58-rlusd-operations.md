@@ -1,726 +1,384 @@
-# RLUSD Operations — Ripple USD Stablecoin on XRPL
+# RLUSD Operations — Compliance, Freeze, Clawback, Monitoring
 
 ## Overview
 
-**RLUSD** (Ripple USD) is a USD-backed stablecoin issued by Ripple Labs on both the XRP Ledger and the Ethereum network. It is fully collateralized by U.S. dollar deposits, U.S. government bonds, and other cash equivalents, with reserves audited by an independent third party.
+RLUSD is Ripple-issued USD stablecoin on the XRP Ledger. It is designed for regulated financial use cases: cross-border payments, treasury operations, and DeFi — with built-in compliance controls via the Clawback amendment and issuer-managed trust lines.
 
-**Issuer address (XRPL Mainnet):** `rMxCKbEDwqr76QuheSkemd63ovSYkPFBCV`
-**Currency code:** `RLUSD`
-**Asset class:** Regulated USD stablecoin (NYDFS BitLicense / trust charter)
-**Redeemable:** 1 RLUSD = $1.00 USD via Ripple authorized partners
-
-RLUSD uses native XRPL features — **trustlines, Clawback, freeze, and KYC gateway hooks** — to enforce compliance at the ledger level.
-
----
-
-## Architecture
-
-### Dual-Chain Issuance
-
-```
-USD Reserves (audited)
-        │
-        ├──► XRPL L1 RLUSD  (rMxCKbEDwqr76QuheSkemd63ovSYkPFBCV)
-        │       Trustlines, DEX, AMM, cross-border payments
-        │
-        └──► Ethereum ERC-20 RLUSD (0x8292...)
-                DeFi protocols, USDC-compatible liquidity pools
-```
-
-### XRPL-Side Trust Chain
-
-```
-Ripple Issuer (rMxC...)
-    │  DefaultRipple=true
-    │  RequireAuth=true          ← only authorized trustlines accepted
-    │  GlobalFreeze capability   ← emergency halt
-    │  Clawback enabled          ← regulatory recovery
-    │
-    ├── Market Maker (authorized trustline)
-    ├── Exchange Partner (authorized trustline)
-    └── End User (authorized trustline via KYC gateway)
-```
+**Key Properties:**
+- **Issuer:** Ripple (rMxCKbEDwqr76... — verify from official Ripple sources)
+- **Standard:** XRPL issued currency (IOU) with Clawback enabled
+- **Supply control:** Issuer can mint/burn and clawback under regulatory requirements
+- **Compliance:** Travel rule integration, freeze via clawback, KYC-gated trust lines
+- **On-chain visibility:** XRPSCAN, Bithomp, xrpl.to for supply and holder tracking
 
 ---
 
 ## Compliance Architecture
 
-### 1. RequireAuth (KYC Gating)
+### KYC-Gated Trust Lines
 
-RLUSD issuer has `RequireAuth` flag set. Users cannot hold RLUSD without the issuer first authorizing their trustline. This enforces KYC/AML at the protocol level.
+RLUSD uses the standard XRPL trust line model with an important compliance twist: the issuer does NOT automatically accept trust lines from arbitrary accounts. Each holder must go through KYC before the issuer sets up the trust line or allows one to be established.
+
+```
+User completes KYC (off-chain)
+        ↓
+Issuer authorizes trust line or user is whitelisted
+        ↓
+User establishes trust line to RLUSD issuer
+        ↓
+Issuer sends RLUSD payment to user's account
+```
 
 ```python
-import asyncio
-from xrpl.asyncio.clients import AsyncJsonRpcClient
-from xrpl.models import AccountSet, AccountSetFlag, TrustSet
+import os
+from xrpl.clients import JsonRpcClient
+from xrpl.models.transactions import TrustSet, Payment
 from xrpl.wallet import Wallet
+from xrpl.transaction import submit_and_wait
+from xrpl.utils import xrp_to_drops
 
+RLUSD_ISSUER = os.environ["RLUSD_ISSUER"]  # Ripple RLUSD issuer
 XRPL_RPC = "https://xrplcluster.com"
-RLUSD_ISSUER = "rMxCKbEDwqr76QuheSkemd63ovSYkPFBCV"
-RLUSD_CODE = "RLUSD"
+client = JsonRpcClient(XRPL_RPC)
 
+# User establishes trust line to receive RLUSD
+def trust_rlusd(user_wallet: Wallet, limit: str = "1000000") -> dict:
+    tx = TrustSet(
+        account=user_wallet.classic_address,
+        limit_amount={
+            "currency": "RLUSD",
+            "issuer": RLUSD_ISSUER,
+            "value": limit
+        }
+    )
+    result = submit_and_wait(tx, client, user_wallet)
+    return {"status": result.result["meta"]["TransactionResult"]}
 
-async def authorize_trustline(issuer_wallet: Wallet, user_address: str) -> dict:
-    """Authorize a user's RLUSD trustline after KYC approval."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = TrustSet(
-            account=issuer_wallet.address,
-            limit_amount={
-                "currency": RLUSD_CODE,
-                "issuer": user_address,   # the counterparty being authorized
-                "value": "0",
-            },
-            flags=0x00020000,  # tfSetfAuth — authorize the trustline
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        return result.result
-
-
-async def check_trustline_authorized(user_address: str) -> bool:
-    """Check whether a user's RLUSD trustline is authorized."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.models import AccountLines
-        req = AccountLines(account=user_address, peer=RLUSD_ISSUER)
-        resp = await client.request(req)
-        lines = resp.result.get("lines", [])
-        for line in lines:
-            if line["currency"] == RLUSD_CODE:
-                return line.get("authorized", False)
-        return False
-
-
-async def revoke_authorization(issuer_wallet: Wallet, user_address: str) -> dict:
-    """Revoke a user's RLUSD authorization (account flagged / sanctioned)."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = TrustSet(
-            account=issuer_wallet.address,
-            limit_amount={
-                "currency": RLUSD_CODE,
-                "issuer": user_address,
-                "value": "0",
-            },
-            flags=0x00040000,  # tfClearfAuth — de-authorize
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        return result.result
+# Issuer sends RLUSD to a verified user
+def issue_rlusd(issuer_wallet: Wallet, destination: str, amount: str) -> dict:
+    tx = Payment(
+        account=issuer_wallet.classic_address,
+        destination=destination,
+        amount={
+            "currency": "RLUSD",
+            "issuer": RLUSD_ISSUER,
+            "value": amount
+        }
+    )
+    result = submit_and_wait(tx, client, issuer_wallet)
+    return {"tx_hash": result.result["hash"], "amount": amount}
 ```
 
-### 2. Freeze Controls
+### Travel Rule Integration
 
-RLUSD supports both individual trustline freeze and global freeze.
-
-```python
-from xrpl.models import AccountSet, AccountSetFlag, TrustSet
-
-
-async def freeze_individual_trustline(
-    issuer_wallet: Wallet, user_address: str
-) -> dict:
-    """Freeze a single user's RLUSD trustline (OFAC / court order)."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = TrustSet(
-            account=issuer_wallet.address,
-            limit_amount={
-                "currency": RLUSD_CODE,
-                "issuer": user_address,
-                "value": "0",
-            },
-            flags=0x00100000,  # tfSetFreeze
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        return (await submit_and_wait(tx, client, issuer_wallet)).result
-
-
-async def unfreeze_individual_trustline(
-    issuer_wallet: Wallet, user_address: str
-) -> dict:
-    """Unfreeze an individual trustline after clearance."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = TrustSet(
-            account=issuer_wallet.address,
-            limit_amount={
-                "currency": RLUSD_CODE,
-                "issuer": user_address,
-                "value": "0",
-            },
-            flags=0x00200000,  # tfClearFreeze
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        return (await submit_and_wait(tx, client, issuer_wallet)).result
-
-
-async def activate_global_freeze(issuer_wallet: Wallet) -> dict:
-    """Activate global freeze — halts ALL RLUSD transfers (emergency only)."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = AccountSet(
-            account=issuer_wallet.address,
-            set_flag=AccountSetFlag.ASF_GLOBAL_FREEZE,
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        return (await submit_and_wait(tx, client, issuer_wallet)).result
-
-
-async def deactivate_global_freeze(issuer_wallet: Wallet) -> dict:
-    """Lift global freeze after emergency resolved."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = AccountSet(
-            account=issuer_wallet.address,
-            clear_flag=AccountSetFlag.ASF_GLOBAL_FREEZE,
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        return (await submit_and_wait(tx, client, issuer_wallet)).result
-```
-
-### 3. Clawback (Regulatory Recovery)
-
-RLUSD has **Clawback** enabled on the issuer. This allows Ripple to recover funds from a sanctioned or fraudulent account under court order.
+For transactions over the FATF threshold (typically $1,000–$10,000 depending on jurisdiction), RLUSD payments should include Travel Rule data in transaction memos:
 
 ```python
-from xrpl.models import Clawback
+import json, base64
+from xrpl.models.transactions import Payment, Memo
 
+def rlusd_payment_with_travel_rule(
+    wallet: Wallet,
+    destination: str,
+    amount: str,
+    originator_info: dict,
+    beneficiary_info: dict
+) -> Payment:
+    """Create RLUSD payment with embedded Travel Rule data."""
+    tr_payload = {
+        "originator": {
+            "name": originator_info.get("name"),
+            "account": wallet.classic_address,
+            "jurisdiction": originator_info.get("jurisdiction")
+        },
+        "beneficiary": {
+            "name": beneficiary_info.get("name"),
+            "account": destination,
+            "jurisdiction": beneficiary_info.get("jurisdiction")
+        },
+        "asset": "RLUSD",
+        "amount": amount,
+        "timestamp": int(__import__("time").time())
+    }
 
-async def clawback_rlusd(
-    issuer_wallet: Wallet,
-    holder_address: str,
-    amount_str: str,
-) -> dict:
-    """
-    Clawback RLUSD from a holder.
+    memo_data = base64.b64encode(
+        json.dumps(tr_payload).encode()
+    ).hex().upper()
 
-    amount_str: e.g. "500.00"
-    Requires Clawback amendment enabled (live on mainnet).
-    Requires issuer to have AllowTrustLineClawback flag set.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = Clawback(
-            account=issuer_wallet.address,
-            amount={
-                "currency": RLUSD_CODE,
-                "issuer": holder_address,   # holder is the issuer field in clawback
-                "value": amount_str,
-            },
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        return result.result
-
-
-async def check_clawback_enabled(issuer_address: str) -> bool:
-    """Verify that Clawback is enabled on the RLUSD issuer account."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.models import AccountInfo
-        req = AccountInfo(account=issuer_address, ledger_index="validated")
-        resp = await client.request(req)
-        flags = resp.result["account_data"].get("Flags", 0)
-        # lsfAllowTrustLineClawback = 0x80000000
-        return bool(flags & 0x80000000)
+    return Payment(
+        account=wallet.classic_address,
+        destination=destination,
+        amount={
+            "currency": "RLUSD",
+            "issuer": RLUSD_ISSUER,
+            "value": amount
+        },
+        memos=[{
+            "Memo": {
+                "MemoData": memo_data,
+                "MemoType": "54524156454c52554C45",  # "TRAVELRULE"
+                "MemoFormat": "6170706C69636174696F6E2F6A736F6E"  # "application/json"
+            }
+        }]
+    )
 ```
 
 ---
 
-## KYC/AML Integration Patterns
+## Freeze & Clawback Operations
 
-### Architecture: Off-Chain KYC → On-Chain Authorization
+RLUSD has the Clawback amendment enabled on the issuer account. This gives the issuer the ability to claw back tokens from holders for regulatory compliance (e.g., sanctioned addresses, fraud, legal orders).
 
+### Check if Clawback is Enabled
+
+```python
+from xrpl.models.requests import AccountInfo
+
+def has_clawback_enabled(address: str) -> bool:
+    """Check if an account has the Clawback flag (lsfAllowTrustLineClawback)."""
+    resp = client.request(AccountInfo(
+        account=address,
+        ledger_index="validated"
+    ))
+    flags = resp.result["account_data"].get("Flags", 0)
+    # lsfAllowTrustLineClawback = 0x80000000 (high 32-bit flag)
+    CLAWBACK_FLAG = 0x00800000
+    return bool(flags & CLAWBACK_FLAG)
+
+print(f"RLUSD issuer clawback enabled: {has_clawback_enabled(RLUSD_ISSUER)}")
 ```
-User submits KYC docs
-        │
-    KYC Provider (Synaps / Jumio / Sumsub)
-        │  webhook: kyc_approved(user_id, wallet_address)
-        │
-    Compliance Backend
-        ├── Sanctions screening (OFAC / EU / UN lists)
-        ├── PEP check
-        ├── Risk scoring
-        └── If approved → call authorize_trustline(user_wallet)
-                         If denied  → log, reject, notify user
+
+### Execute a Clawback
+
+The issuer can claw back RLUSD from a specific holder when required by regulation or legal order:
+
+```bash
+# Using the build-clawback tool
+python3 scripts/xrpl_tools.py build-clawback \
+  --account rIssuerAddress \
+  --destination rHolderAddress \
+  --currency RLUSD \
+  --issuer rIssuerAddress \
+  --amount 1000
 ```
+
+```python
+from xrpl.models.transactions import Clawback
+
+def clawback_rlusd(
+    issuer_wallet: Wallet,
+    holder_address: str,
+    amount: str
+) -> dict:
+    """Claw back RLUSD tokens from a specific holder to the issuer."""
+    tx = Clawback(
+        account=issuer_wallet.classic_address,
+        amount={
+            "currency": "RLUSD",
+            "issuer": RLUSD_ISSUER,
+            "value": amount
+        },
+        holder=holder_address
+    )
+    result = submit_and_wait(tx, client, issuer_wallet)
+    return {
+        "tx_hash": result.result["hash"],
+        "status": result.result["meta"]["TransactionResult"],
+        "amount_clawed_back": amount,
+        "holder": holder_address
+    }
+```
+
+### Clawback Safeguards
+
+Before executing a clawback, always:
+1. Verify the holder address is not an exchange hot wallet (coordinate first)
+2. Check the holder's actual RLUSD balance
+3. Log the legal/compliance order reference in a memo
+4. Consider partial clawback (only the flagged amount, not the full balance)
+5. Have a multi-signature governance process for clawback approval
+
+```python
+def safe_clawback_rlusd(
+    issuer_wallet: Wallet,
+    holder_address: str,
+    amount: str,
+    reference_id: str = ""
+) -> dict:
+    """Clawback with safety checks and audit trail."""
+    # 1. Check holder balance
+    from xrpl.models.requests import AccountLines
+    lines = client.request(AccountLines(
+        account=holder_address,
+        ledger_index="validated"
+    ))
+    rlusd_balance = 0.0
+    for line in lines.result.get("lines", []):
+        if line["currency"] == "RLUSD" and line["account"] == RLUSD_ISSUER:
+            rlusd_balance = float(line["balance"])
+            break
+
+    if rlusd_balance <= 0:
+        return {"error": "Holder has no RLUSD balance"}
+
+    claw_amount = min(float(amount), rlusd_balance)
+
+    # 2. Execute with reference memo
+    tx = Clawback(
+        account=issuer_wallet.classic_address,
+        amount={
+            "currency": "RLUSD",
+            "issuer": RLUSD_ISSUER,
+            "value": str(claw_amount)
+        },
+        holder=holder_address,
+        memos=[{
+            "Memo": {
+                "MemoData": reference_id.encode().hex().upper(),
+                "MemoType": "434C41574241434B5F524546",  # "CLAWBACK_REF"
+            }
+        }] if reference_id else None
+    )
+    result = submit_and_wait(tx, client, issuer_wallet)
+    return {
+        "success": result.result["meta"]["TransactionResult"] == "tesSUCCESS",
+        "tx_hash": result.result["hash"],
+        "amount": str(claw_amount),
+        "reference_id": reference_id
+    }
+```
+
+---
+
+## Monitoring RLUSD Supply
+
+### Total Supply
 
 ```python
 import httpx
-from typing import Optional
 
-
-class RLUSDComplianceGateway:
-    """Minimal KYC/AML gateway for RLUSD trustline management."""
-
-    def __init__(self, issuer_wallet: Wallet, kyc_api_key: str):
-        self.issuer = issuer_wallet
-        self.kyc_api_key = kyc_api_key
-        self._sanctions_cache: dict[str, bool] = {}
-
-    async def screen_address(self, xrpl_address: str) -> dict:
-        """
-        Screen an XRPL address against sanctions lists.
-        Uses Chainalysis / Elliptic API pattern (replace with your provider).
-        """
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"https://api.chainalysis.com/api/risk/v2/entities/{xrpl_address}",
-                headers={"Token": self.kyc_api_key},
-                timeout=10.0,
-            )
-            data = resp.json()
-            return {
-                "address": xrpl_address,
-                "risk": data.get("risk", "UNKNOWN"),
-                "cluster": data.get("cluster", {}),
-                "is_sanctioned": data.get("risk") == "SEVERE",
-            }
-
-    async def onboard_user(
-        self, xrpl_address: str, kyc_session_id: str
-    ) -> dict:
-        """Full onboarding: KYC check → sanctions screen → authorize trustline."""
-        # 1. Verify KYC session approved
-        async with httpx.AsyncClient() as client:
-            kyc_resp = await client.get(
-                f"https://api.synaps.io/v4/session/{kyc_session_id}",
-                headers={"Api-Key": self.kyc_api_key},
-                timeout=10.0,
-            )
-            session = kyc_resp.json()
-
-        if session.get("status") != "APPROVED":
-            return {"success": False, "reason": "KYC not approved", "status": session.get("status")}
-
-        # 2. Sanctions screen
-        screen = await self.screen_address(xrpl_address)
-        if screen["is_sanctioned"]:
-            return {"success": False, "reason": "Sanctioned address", "risk": screen["risk"]}
-
-        # 3. Authorize trustline
-        result = await authorize_trustline(self.issuer, xrpl_address)
-        return {
-            "success": True,
-            "address": xrpl_address,
-            "tx_hash": result.get("hash"),
-            "kyc_session": kyc_session_id,
-        }
-```
-
----
-
-## Travel Rule Compliance
-
-The **Travel Rule** (FATF Recommendation 16) requires Virtual Asset Service Providers (VASPs) to pass originator and beneficiary information for transfers ≥ $1,000 (USD equivalent). For RLUSD, this applies to institutional transfers.
-
-### Travel Rule Pattern for RLUSD Transfers
-
-```python
-import json
-from dataclasses import dataclass
-from xrpl.models import Payment
-from xrpl.utils import xrp_to_drops
-
-
-@dataclass
-class TravelRulePayload:
-    """IVMS101-compatible Travel Rule data payload."""
-    originator_name: str
-    originator_address: str          # XRPL address
-    originator_vasp_did: str         # DID of sending VASP
-    originator_account_number: str   # internal account ID
-
-    beneficiary_name: str
-    beneficiary_address: str         # XRPL destination address
-    beneficiary_vasp_did: str        # DID of receiving VASP
-
-    amount_usd: float
-    currency: str = "RLUSD"
-    transfer_ref: str = ""           # internal reference ID
-
-
-async def build_travel_rule_payment(
-    sender_wallet: Wallet,
-    destination: str,
-    amount_rlusd: str,
-    travel_payload: TravelRulePayload,
-    destination_tag: Optional[int] = None,
-) -> dict:
-    """
-    Build a RLUSD payment with Travel Rule data.
-
-    Travel Rule data is sent out-of-band to the receiving VASP
-    before or alongside the on-chain transaction.
-    The on-chain tx uses the Memo field for the transfer reference only
-    (NEVER include PII in Memo — it is public on-chain data).
-    """
-    # 1. Send IVMS101 payload to receiving VASP (off-chain)
-    travel_rule_ref = await _send_ivms101_to_vasp(travel_payload)
-
-    # 2. Build on-chain payment with reference only
-    memo_data = json.dumps({"tr_ref": travel_rule_ref}).encode().hex()
-
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = Payment(
-            account=sender_wallet.address,
-            destination=destination,
-            amount={
-                "currency": RLUSD_CODE,
-                "issuer": RLUSD_ISSUER,
-                "value": amount_rlusd,
-            },
-            destination_tag=destination_tag,
-            memos=[{
-                "memo": {
-                    "memo_type": "747261766c5f72756c65",  # "travel_rule" hex
-                    "memo_data": memo_data,
-                }
-            }],
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        result = await submit_and_wait(tx, client, sender_wallet)
-        return {
-            "tx_hash": result.result.get("hash"),
-            "travel_rule_ref": travel_rule_ref,
-            "amount": amount_rlusd,
-            "destination": destination,
-        }
-
-
-async def _send_ivms101_to_vasp(payload: TravelRulePayload) -> str:
-    """
-    Send IVMS101 Travel Rule payload to receiving VASP.
-    Uses Notabene / Sygna Bridge / VerifyVASP pattern.
-    Returns: transfer_reference_id from receiving VASP.
-    """
-    ivms101 = {
-        "originatorVasp": {"vasp": {"name": payload.originator_vasp_did}},
-        "originator": {
-            "originatorPersons": [{
-                "naturalPerson": {
-                    "name": [{"nameIdentifier": [{"primaryIdentifier": payload.originator_name}]}]
-                }
-            }],
-            "accountNumber": [payload.originator_address],
-        },
-        "beneficiaryVasp": {"vasp": {"name": payload.beneficiary_vasp_did}},
-        "beneficiary": {
-            "beneficiaryPersons": [{
-                "naturalPerson": {
-                    "name": [{"nameIdentifier": [{"primaryIdentifier": payload.beneficiary_name}]}]
-                }
-            }],
-            "accountNumber": [payload.beneficiary_address],
-        },
-        "transfer": {
-            "virtualAsset": payload.currency,
-            "transactionAmount": str(int(payload.amount_usd * 100)),
-        },
-    }
-    # POST to your Travel Rule compliance provider
-    # async with httpx.AsyncClient() as client:
-    #     resp = await client.post("https://api.notabene.id/tf/simple/transfers", json=ivms101)
-    #     return resp.json()["id"]
-    return f"TR-{payload.transfer_ref or 'REF'}"
-```
-
----
-
-## Monitoring RLUSD Supply and Circulation
-
-### Fetch Total RLUSD Supply
-
-```python
 async def get_rlusd_supply() -> dict:
-    """
-    Get total RLUSD in circulation on XRPL.
-    XRPL tracks this via gateway_balances on the issuer account.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.models import GatewayBalances
-        req = GatewayBalances(
-            account=RLUSD_ISSUER,
-            ledger_index="validated",
+    """Get RLUSD supply from XRPSCAN."""
+    async with httpx.AsyncClient() as client:
+        # Query issuer obligations
+        resp = await client.get(
+            f"https://api.xrpscan.com/api/v1/account/{RLUSD_ISSUER}/obligations"
         )
-        resp = await client.request(req)
-        obligations = resp.result.get("obligations", {})
-        rlusd_supply = obligations.get("RLUSD", "0")
+        data = resp.json()
+        rlusd = data.get("RLUSD", {})
         return {
+            "supply": rlusd.get("value", "0"),
+            "currency": "RLUSD",
             "issuer": RLUSD_ISSUER,
-            "total_supply_rlusd": rlusd_supply,
-            "all_obligations": obligations,
+            "source": "XRPSCAN"
         }
+```
 
+### Top Holders
 
-async def get_rlusd_holders(limit: int = 200) -> list[dict]:
-    """Paginate through all RLUSD trustline holders."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.models import AccountLines
-        holders = []
-        marker = None
+```python
+async def get_top_rlusd_holders(limit: int = 20) -> list:
+    """Get top RLUSD holders from XRPSCAN or on-chain data."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"https://api.xrpscan.com/api/v1/asset/holders",
+            params={"currency": "RLUSD", "issuer": RLUSD_ISSUER, "limit": limit}
+        )
+        return resp.json().get("holders", [])
+```
+
+### Transaction Monitoring
+
+```python
+async def monitor_rlusd_transactions(
+    webhook_url: str = None,
+    min_amount: float = 10000.0
+):
+    """Monitor large RLUSD transfers via WebSocket."""
+    import asyncio, json
+    import websockets
+
+    async with websockets.connect("wss://xrplcluster.com") as ws:
+        await ws.send(json.dumps({
+            "command": "subscribe",
+            "accounts": [RLUSD_ISSUER]
+        }))
 
         while True:
-            req = AccountLines(
-                account=RLUSD_ISSUER,
-                limit=200,
-                marker=marker,
-            )
-            resp = await client.request(req)
-            lines = resp.result.get("lines", [])
-            for line in lines:
-                if line["currency"] == RLUSD_CODE and float(line["balance"]) != 0:
-                    holders.append({
-                        "address": line["account"],
-                        "balance": line["balance"],
-                        "authorized": line.get("authorized", False),
-                        "frozen": line.get("freeze", False),
-                    })
-            marker = resp.result.get("marker")
-            if not marker or len(holders) >= limit:
-                break
-
-        holders.sort(key=lambda h: float(h["balance"]), reverse=True)
-        return holders
-
-
-async def monitor_large_rlusd_transfers(threshold_rlusd: float = 10000.0) -> None:
-    """
-    Stream ledger transactions and alert on large RLUSD transfers.
-    Useful for compliance monitoring and AML pattern detection.
-    """
-    from xrpl.asyncio.clients import AsyncWebsocketClient
-    import json
-
-    ws_url = "wss://xrplcluster.com"
-    async with AsyncWebsocketClient(ws_url) as client:
-        await client.send({
-            "command": "subscribe",
-            "streams": ["transactions"],
-        })
-        print(f"Monitoring RLUSD transfers ≥ {threshold_rlusd:,.2f}")
-
-        async for msg in client:
-            data = json.loads(msg) if isinstance(msg, str) else msg
-            tx = data.get("transaction", {})
-
-            if tx.get("TransactionType") != "Payment":
-                continue
-
-            amt = tx.get("Amount", {})
-            if not isinstance(amt, dict):
-                continue
-            if amt.get("currency") != RLUSD_CODE:
-                continue
-
-            amount_rlusd = float(amt.get("value", 0))
-            if amount_rlusd < threshold_rlusd:
-                continue
-
-            print(
-                f"[ALERT] Large RLUSD transfer: "
-                f"{amount_rlusd:,.2f} RLUSD | "
-                f"{tx['Account']} → {tx.get('Destination', '?')} | "
-                f"Hash: {data.get('transaction', {}).get('hash', '?')}"
-            )
+            msg = json.loads(await ws.recv())
+            if msg.get("type") == "transaction":
+                tx = msg.get("transaction", {})
+                if tx.get("TransactionType") == "Payment":
+                    amount = tx.get("Amount", {})
+                    if isinstance(amount, dict) and amount.get("currency") == "RLUSD":
+                        value = float(amount.get("value", 0))
+                        if value >= min_amount:
+                            alert = {
+                                "type": "LARGE_RLUSD_TRANSFER",
+                                "from": tx.get("Account"),
+                                "to": tx.get("Destination"),
+                                "amount": value,
+                                "tx_hash": msg.get("hash"),
+                                "ledger": msg.get("ledger_index")
+                            }
+                            print(f"[ALERT] {json.dumps(alert, indent=2)}")
+                            if webhook_url:
+                                await client.post(webhook_url, json=alert)
 ```
 
 ---
 
-## RLUSD AMM Liquidity
+## Practical Workflows
 
-RLUSD is available on XRPL's native AMM (XLS-30). Liquidity providers can deposit RLUSD/XRP or RLUSD/other-token pairs.
+### Workflow 1: Onboard a New RLUSD User
+
+1. User completes KYC through issuer's compliance portal
+2. User submits XRPL address for whitelisting
+3. Issuer adds address to approved list (off-chain or via on-chain whitelist)
+4. User creates trust line: `python3 scripts/xrpl_tools.py build-trustset --account rUSER --currency RLUSD --issuer rISSUER --limit 100000`
+5. User sends signed TrustSet to network
+6. Issuer verifies trust line exists: `python3 scripts/xrpl_tools.py trustlines rUSER | grep RLUSD`
+7. Issuer sends initial RLUSD: `python3 scripts/xrpl_tools.py build-payment --from rISSUER --to rUSER --currency RLUSD --issuer rISSUER --amount 10000`
+
+### Workflow 2: Monthly Compliance Review
+
+1. Export all RLUSD holders and balances
+2. Cross-reference against sanctions lists (off-chain)
+3. Flag accounts with unusual activity patterns
+4. Execute clawbacks for flagged accounts
+5. Update supply reconciliation report
+6. Submit compliance report to regulators
+
+### Workflow 3: Travel Rule for Large Transfer
+
+1. User initiates a $50,000 RLUSD transfer
+2. Sender's VASP collects originator info (name, address, jurisdiction)
+3. Beneficiary VASP provides beneficiary info
+4. Payment is constructed with Travel Rule memo
+5. Transaction is submitted and monitored
+6. Both VASPs store the transaction hash for audit
+
+---
+
+## Regulation & Compliance Notes by Jurisdiction
+
+| Jurisdiction | RLUSD Status | Key Requirements |
+|-------------|-------------|------------------|
+| **USA** | Regulated stablecoin | NYDFS (if Ripple licensed), Travel Rule >$3k, OFAC screening |
+| **EU** | MiCA stablecoin | MiCA Art. 43 compliance, e-money license, Travel Rule |
+| **Singapore** | DPT stablecoin | MAS stablecoin framework, Travel Rule mandatory |
+| **Dubai** | VARA stablecoin | VARA license, stablecoin-specific regulations |
+| **UK** | FCA-regulated | FCA registration, Travel Rule (Jan 2024) |
+
+---
+
+## Key Endpoints
 
 ```python
-from xrpl.models import AMMDeposit, AMMDepositFlag, AMMInfo
+XRPSCAN_API = "https://api.xrpscan.com/api/v1"
+XRPL_RPC = "https://xrplcluster.com"
+XRPL_WS = "wss://xrplcluster.com"
 
-
-async def get_rlusd_xrp_amm_info() -> dict:
-    """Get the RLUSD/XRP AMM pool info."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        req = AMMInfo(
-            asset={"currency": "XRP"},
-            asset2={
-                "currency": RLUSD_CODE,
-                "issuer": RLUSD_ISSUER,
-            },
-        )
-        resp = await client.request(req)
-        amm = resp.result.get("amm", {})
-        return {
-            "amm_account": amm.get("account"),
-            "xrp_amount": amm.get("amount"),
-            "rlusd_amount": amm.get("amount2", {}).get("value"),
-            "lp_token": amm.get("lp_token"),
-            "trading_fee": amm.get("trading_fee"),
-        }
-
-
-async def deposit_rlusd_xrp_amm(
-    lp_wallet: Wallet,
-    rlusd_amount: str,
-    xrp_drops: str,
-) -> dict:
-    """
-    Provide liquidity to the RLUSD/XRP AMM pool.
-    Uses tfTwoAsset — deposit both sides proportionally.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        tx = AMMDeposit(
-            account=lp_wallet.address,
-            asset={"currency": "XRP"},
-            asset2={
-                "currency": RLUSD_CODE,
-                "issuer": RLUSD_ISSUER,
-            },
-            amount=xrp_drops,
-            amount2={
-                "currency": RLUSD_CODE,
-                "issuer": RLUSD_ISSUER,
-                "value": rlusd_amount,
-            },
-            flags=AMMDepositFlag.TF_TWO_ASSET,
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        result = await submit_and_wait(tx, client, lp_wallet)
-        return result.result
+# RLUSD issuer (verify from official Ripple sources)
+RLUSD_ISSUER = "rMxCKbEDwqr76..."  # UPDATE with verified address
 ```
-
----
-
-## Cross-Border Payment Pattern
-
-RLUSD is designed as a bridge currency for institutional cross-border payments.
-
-```python
-async def build_cross_border_rlusd_payment(
-    sender_wallet: Wallet,
-    destination_address: str,
-    destination_currency: str,
-    destination_issuer: str,
-    destination_amount: str,
-    max_rlusd_spend: str,
-) -> dict:
-    """
-    Send a cross-border payment using RLUSD as the bridge currency.
-    Source → RLUSD → destination_currency (via XRPL path-finding).
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        # 1. Find the best path
-        from xrpl.models import RipplePathFind
-        path_req = RipplePathFind(
-            source_account=sender_wallet.address,
-            source_currencies=[{
-                "currency": RLUSD_CODE,
-                "issuer": RLUSD_ISSUER,
-            }],
-            destination_account=destination_address,
-            destination_amount={
-                "currency": destination_currency,
-                "issuer": destination_issuer,
-                "value": destination_amount,
-            },
-        )
-        path_resp = await client.request(path_req)
-        alternatives = path_resp.result.get("alternatives", [])
-        if not alternatives:
-            return {"error": "No path found"}
-
-        best_path = alternatives[0]
-
-        # 2. Build cross-currency payment
-        tx = Payment(
-            account=sender_wallet.address,
-            destination=destination_address,
-            amount={
-                "currency": destination_currency,
-                "issuer": destination_issuer,
-                "value": destination_amount,
-            },
-            send_max={
-                "currency": RLUSD_CODE,
-                "issuer": RLUSD_ISSUER,
-                "value": max_rlusd_spend,
-            },
-            paths=best_path.get("paths_computed", []),
-        )
-        from xrpl.asyncio.transaction import submit_and_wait
-        result = await submit_and_wait(tx, client, sender_wallet)
-        return result.result
-```
-
----
-
-## Regulatory Compliance Checklist
-
-### For RLUSD Issuers / VASPs
-
-| Requirement | XRPL Mechanism | Status |
-|---|---|---|
-| KYC before holding | `RequireAuth` + trustline authorization | ✅ Native |
-| AML screening | Off-chain (Chainalysis/Elliptic) + webhook | ✅ Pattern above |
-| Sanction freeze | `TrustSet tfSetFreeze` | ✅ Native |
-| Emergency halt | `AccountSet ASF_GLOBAL_FREEZE` | ✅ Native |
-| Regulatory clawback | `Clawback` amendment | ✅ Live on mainnet |
-| Travel Rule (FATF R16) | IVMS101 + Memo reference | ✅ Pattern above |
-| Audit trail | XRPL immutable ledger | ✅ Native |
-| Reserve attestation | Off-chain (third-party auditor) | External |
-
-### For Exchanges Listing RLUSD
-
-1. Obtain authorization from Ripple (commercial agreement)
-2. Implement KYC/AML matching Ripple's compliance standards
-3. Set up Travel Rule messaging with Notabene, Sygna, or VerifyVASP
-4. Monitor for frozen trustlines before processing withdrawals
-5. Subscribe to RLUSD issuer account for freeze/unfreeze events
-
----
-
-## Useful Queries
-
-```python
-async def rlusd_full_status_report(user_address: str) -> dict:
-    """Full compliance status for a user's RLUSD position."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.models import AccountLines, AccountInfo
-        lines_req = AccountLines(account=user_address, peer=RLUSD_ISSUER)
-        info_req = AccountInfo(account=user_address, ledger_index="validated")
-
-        lines_resp = await client.request(lines_req)
-        info_resp = await client.request(info_req)
-
-        rlusd_line = None
-        for line in lines_resp.result.get("lines", []):
-            if line["currency"] == RLUSD_CODE:
-                rlusd_line = line
-                break
-
-        return {
-            "address": user_address,
-            "has_trustline": rlusd_line is not None,
-            "balance": rlusd_line["balance"] if rlusd_line else "0",
-            "limit": rlusd_line["limit"] if rlusd_line else "0",
-            "authorized": rlusd_line.get("authorized", False) if rlusd_line else False,
-            "frozen_by_issuer": rlusd_line.get("freeze", False) if rlusd_line else False,
-            "frozen_by_self": rlusd_line.get("freeze_peer", False) if rlusd_line else False,
-            "xrp_balance": info_resp.result["account_data"]["Balance"],
-        }
-```
-
----
-
-## Resources
-
-- Ripple RLUSD page: https://ripple.com/rlusd
-- RLUSD on XRPL explorer: https://livenet.xrpl.org/accounts/rMxCKbEDwqr76QuheSkemd63ovSYkPFBCV
-- XRPL Clawback amendment: https://xrpl.org/clawback.html
-- XRPL Freeze: https://xrpl.org/freezes.html
-- XRPL RequireAuth: https://xrpl.org/authorized-trust-lines.html
-- FATF Travel Rule: https://www.fatf-gafi.org/en/topics/virtual-assets.html
-- IVMS101 standard: https://intervasp.org/
-- Notabene Travel Rule: https://notabene.id
-- Sygna Bridge: https://www.sygna.io
-
----
-
-## Cross-References
-
-- `02-xrpl-payments.md` — Payment transaction format and fields
-- `05-xrpl-amm.md` — AMM deposit/withdraw for RLUSD liquidity
-- `07-xrpl-clawback.md` — Clawback amendment details
-- `21-xrpl-token-model.md` — Trustline model and token issuance
-- `52-xrpl-l1-reference.md` — Full L1 transaction reference
-- `59-rwa-tokenization.md` — Real-world asset tokenization (complementary compliance patterns)
