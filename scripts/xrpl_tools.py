@@ -65,36 +65,40 @@ except ImportError as e:
     print(f'ERROR: xrpl-py missing ({e}). Run: uv pip install xrpl-py')
     sys.exit(1)
 
-# --- Globals ---
-PUBLIC_ENDPOINTS = [
+# --- Endpoint Selection ---
+# XRPL_PRIVATE_RPC env → user-configured private node (choice, not auto-detect)
+# Otherwise → free public endpoints with auto-failover
+_PRIVATE_RPC = os.environ.get("XRPL_PRIVATE_RPC", "").strip()
+_FREE_ENDPOINTS = [
     "https://xrplcluster.com",
     "https://s1.ripple.com:51234",
     "https://s2.ripple.com:51234",
 ]
 
-# Try each endpoint, use first that works
+ENDPOINTS = [_PRIVATE_RPC] + _FREE_ENDPOINTS if _PRIVATE_RPC else _FREE_ENDPOINTS
+
 def get_client() -> JsonRpcClient:
-    for ep in PUBLIC_ENDPOINTS:
+    for ep in ENDPOINTS:
         try:
             c = JsonRpcClient(ep)
             c.request(ServerInfo())
             return c
         except Exception:
             continue
-    return JsonRpcClient(PUBLIC_ENDPOINTS[0])
+    return JsonRpcClient(ENDPOINTS[0])
 
 CLIENT = get_client()
 _ENDPOINT_IDX = 0
+_USING_PRIVATE = bool(_PRIVATE_RPC)
 
 def _request(req):
-    """Try CLIENT, rotate to next endpoint and retry once on failure."""
     global CLIENT, _ENDPOINT_IDX
     try:
         return CLIENT.request(req)
     except Exception as e:
-        _ENDPOINT_IDX = (_ENDPOINT_IDX + 1) % len(PUBLIC_ENDPOINTS)
+        _ENDPOINT_IDX = (_ENDPOINT_IDX + 1) % len(ENDPOINTS)
         try:
-            CLIENT = JsonRpcClient(PUBLIC_ENDPOINTS[_ENDPOINT_IDX])
+            CLIENT = JsonRpcClient(ENDPOINTS[_ENDPOINT_IDX])
             return CLIENT.request(req)
         except Exception as e2:
             raise Exception(f"All endpoints failed: {e2}") from e2

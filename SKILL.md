@@ -109,18 +109,34 @@ After every complex task:
 
 ## Infrastructure
 
-### Public Endpoints (Free, Default)
+### Free (Default) — Zero cost, rate limited
 ```python
-PUBLIC_ENDPOINTS = [
-    "https://xrplcluster.com",
-    "https://s1.ripple.com:51234",
-    "https://s2.ripple.com:51234",
+ENDPOINTS = [
+    "https://xrplcluster.com",      # Main public Clio
+    "https://s1.ripple.com:51234",   # Ripple fallback
+    "https://s2.ripple.com:51234",   # Ripple fallback
 ]
 ```
-No storage, no setup, zero cost. Auto-failover between endpoints.
+- **Rate limit:** ~100 req/5min per endpoint (auto-failover between them)
+- **Setup:** None — works immediately with no config
+- **Good for:** Development, research, light bot usage
 
-### Private Clio (Optional, $7/mo)
-For heavy usage → load `xrpl-private-node` skill and provision on Hetzner CX22.
+### Private Node ($7/mo or self-hosted)
+Set `XRPL_PRIVATE_RPC` env var to your private Clio/rippled URL:
+```bash
+export XRPL_PRIVATE_RPC="https://your-clio-node.com"
+```
+- **Rate limit:** None (your own node)
+- **Setup:** Run a Clio instance (see `xrpl-private-node` skill) or use a hosted provider
+- **Good for:** Heavy bot usage, production apps, high query volume
+
+### API Keys (Optional — xrpl.to, XRPSCAN)
+For token lookups and AMM queries the skill can use paid API tiers:
+- **xrpl.to API:** Set `XRPL_TO_API_KEY` env var for higher rate limits on token data
+- **XRPSCAN API:** Set `XRPLSCAN_API_KEY` env var for pro-level historical data
+- These are used by the agent for data enrichment, not JSON-RPC operations
+
+**When using the skill, the agent explains trade-offs but lets you choose.**
 
 ## Open Source
 
