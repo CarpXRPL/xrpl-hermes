@@ -39,6 +39,7 @@ Usage:
   python3 xrpl_tools.py hooks-bitmask HOOK [HOOK ...]
   python3 xrpl_tools.py hooks-info rADDRESS
   python3 xrpl_tools.py flare-price SYMBOL [SYMBOL ...]
+  python3 xrpl_tools.py build-clawback --from rISSUER --destination rHOLDER --currency USD --issuer rISSUER --amount 100 [--memo TEXT]
 """
 
 import json, sys, os, hashlib
@@ -58,7 +59,7 @@ try:
         NFTokenCreateOffer, AMMCreate, AccountSet, SignerListSet, EscrowCreate, \
         EscrowFinish, EscrowCancel, CheckCreate, CheckCancel, CheckCash, TicketCreate, \
         DepositPreauth, PaymentChannelCreate, PaymentChannelFund, PaymentChannelClaim, \
-        SetRegularKey, AccountDelete
+        SetRegularKey, AccountDelete, Clawback
     from xrpl.models.currencies import XRP as XRPCurrency, IssuedCurrency
     from xrpl.models.amounts import IssuedCurrencyAmount
 except ImportError as e:
@@ -478,6 +479,7 @@ def main():
         "hooks-bitmask": lambda: tool_hooks_bitmask(*sys.argv[2:]),
         "hooks-info": lambda: tool_hooks_info(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: hooks-info rADDRESS"),
         "flare-price": lambda: tool_flare_price(*sys.argv[2:]),
+        "build-clawback": lambda: _dispatch_build(4, tool_build_clawback),
     }
 
     fn = dispatcher.get(cmd)
@@ -826,6 +828,45 @@ def tool_account_objects(address: str, obj_type: str = None):
     print(f"Account Objects for {address}: {len(objects)} found{label}")
     for obj in objects:
         json_out(obj)
+
+# --- TOOL 35: Clawback ---
+def tool_build_clawback(frm: str, destination: str, currency: str,
+                         amount: str, issuer: str = None, memo: str = None):
+    """Build a Clawback transaction (issuer reclaims tokens from holder).
+
+    In the Clawback TX: account=issuer, amount.issuer=holder_address.
+    --destination is the holder being clawed back from.
+    --issuer is the token issuer (defaults to --from if omitted).
+    """
+    import re
+    try:
+        amt_val = float(amount)
+        if amt_val <= 0:
+            print("Error: amount must be positive")
+            return
+    except ValueError:
+        print(f"Error: invalid amount '{amount}'")
+        return
+
+    cur = currency.upper()
+    if not (re.match(r'^[A-Z0-9]{3}$', cur) or re.match(r'^[0-9A-F]{40}$', cur)):
+        print(f"Error: currency must be 3-letter ISO code or 40-char hex, got '{currency}'")
+        return
+
+    # amount.issuer = holder being clawed back (XRPL Clawback protocol)
+    amount_obj = IssuedCurrencyAmount(currency=cur, issuer=destination, value=amount)
+    kwargs: dict = dict(account=frm, amount=amount_obj)
+    if memo:
+        from xrpl.models.transactions.transaction import Memo, MemoWrapper
+        try:
+            memo_hex = memo.encode("utf-8").hex().upper()
+            kwargs["memos"] = [MemoWrapper(memo=Memo(memo_data=memo_hex))]
+        except Exception:
+            pass
+    tx = Clawback(**kwargs)
+    print("# Clawback TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    json_tx_out(tx)
+
 
 if __name__ == "__main__":
     main()
