@@ -683,3 +683,466 @@ async def get_xahau_server_info() -> dict:
 - `52-xrpl-l1-reference.md` — XRPL L1 transaction types that hooks can intercept
 - `53-xrpl-wallets-auth.md` — Joey wallet for Hooks development
 - `47-xrpl-arweave-storage.md` — Store hook audit logs permanently on Arweave
+
+---
+
+## URITokens (XLS-70) — Linking Off-Chain Data to On-Chain State
+
+### Overview
+
+**URITokens** are a Xahau-native NFT-like primitive that links an on-chain token to an off-chain resource via a URI. Unlike XRPL mainnet NFTs (XLS-20), URITokens are first-class ledger objects — they are simpler, cheaper, and directly integrated with the Hooks execution model.
+
+**Key differences vs. XLS-20 NFTs:**
+- No broker-mediated transfers — direct peer-to-peer
+- URI is stored directly in the ledger object (immutable or mutable depending on minting flags)
+- Hooks can react to URIToken transfer events natively
+- No royalty enforcement (enforced via Hooks instead)
+- Lower reserve requirement per token
+
+### URIToken Transactions
+
+| Transaction | Purpose |
+|---|---|
+| `URITokenMint` | Mint a new URIToken on your account |
+| `URITokenBurn` | Destroy a URIToken you own |
+| `URITokenBuy` | Buy a URIToken listed for sale |
+| `URITokenCreateSellOffer` | List a URIToken for sale at a price |
+| `URITokenCancelSellOffer` | Cancel an active sell offer |
+
+### Minting a URIToken
+
+```python
+import httpx
+import json
+
+XAHAU_RPC = "https://xahau.network"
+
+
+async def mint_uri_token(
+    account: str,
+    uri: str,                          # points to off-chain metadata (IPFS, Arweave, HTTPS)
+    digest: str = "",                  # SHA-256 hash of the off-chain content (hex)
+    flags: int = 0,                    # 1 = tfBurnable
+    destination: str = "",             # auto-transfer to this address on mint
+) -> dict:
+    """
+    Mint a URIToken on Xahau.
+    URI should be a content-addressed link (IPFS CID preferred).
+    digest provides integrity verification for the off-chain data.
+    """
+    tx = {
+        "TransactionType": "URITokenMint",
+        "Account": account,
+        "URI": uri.encode().hex().upper(),
+        "Flags": flags,
+        "Fee": "12",
+        "Sequence": 0,  # fill from account_info
+    }
+    if digest:
+        tx["Digest"] = digest.upper()
+    if destination:
+        tx["Destination"] = destination
+
+    # In production: sign with xrpl-py or Xaman, then submit
+    return {"unsigned_tx": tx, "note": "Sign with Xaman or xrpl-py before submitting"}
+
+
+async def get_uri_token(token_id: str) -> dict:
+    """Fetch a URIToken ledger object by ID."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            XAHAU_RPC,
+            json={
+                "method": "ledger_entry",
+                "params": [{
+                    "uri_token": token_id,
+                    "ledger_index": "validated",
+                }]
+            }
+        )
+        node = resp.json()["result"].get("node", {})
+        uri_hex = node.get("URI", "")
+        return {
+            "token_id": token_id,
+            "owner": node.get("Owner"),
+            "uri": bytes.fromhex(uri_hex).decode("utf-8", errors="replace"),
+            "digest": node.get("Digest"),
+            "flags": node.get("Flags"),
+            "amount": node.get("Amount"),  # price if listed for sale
+        }
+
+
+async def list_uri_token_for_sale(
+    account: str,
+    token_id: str,
+    price_xah_drops: str,           # price in drops of XAH
+    destination: str = "",           # restrict to specific buyer
+) -> dict:
+    """List a URIToken for sale at a fixed XAH price."""
+    tx = {
+        "TransactionType": "URITokenCreateSellOffer",
+        "Account": account,
+        "URITokenID": token_id,
+        "Amount": price_xah_drops,
+        "Fee": "12",
+        "Sequence": 0,
+    }
+    if destination:
+        tx["Destination"] = destination
+    return {"unsigned_tx": tx}
+
+
+async def buy_uri_token(
+    buyer_account: str,
+    token_id: str,
+    price_xah_drops: str,
+) -> dict:
+    """Buy a URIToken that is listed for sale."""
+    tx = {
+        "TransactionType": "URITokenBuy",
+        "Account": buyer_account,
+        "URITokenID": token_id,
+        "Amount": price_xah_drops,
+        "Fee": "12",
+        "Sequence": 0,
+    }
+    return {"unsigned_tx": tx}
+```
+
+### Hook Integration: React to URIToken Transfers
+
+A Hook can fire when a URIToken changes hands, enabling:
+- Royalty enforcement (emit a payment to the creator)
+- Transfer gating (reject transfers to non-whitelisted addresses)
+- Metadata update (write new hook state when token moves)
+
+```c
+// Pseudocode: Hook that enforces 5% royalty on URIToken sales
+#include "hookapi.h"
+
+int64_t hook(uint32_t reserved) {
+    // Only fire on URITokenBuy transactions
+    int64_t tt = otxn_type();
+    if (tt != ttURI_TOKEN_BUY) ACCEPT("not a URITokenBuy", 0);
+
+    // Get sale amount
+    unsigned char amount_buf[8];
+    otxn_field(amount_buf, 8, sfAmount);
+    int64_t sale_amount = *((int64_t*)amount_buf);
+
+    // Calculate 5% royalty
+    int64_t royalty = sale_amount / 20;
+
+    // Emit royalty payment to creator (hardcoded in hook params)
+    unsigned char creator[20];
+    hook_param(creator, 20, "CREATOR", 7);
+
+    // Build and emit payment
+    uint8_t emitted_txn[PREPARE_PAYMENT_SIMPLE_SIZE];
+    PREPARE_PAYMENT_SIMPLE(emitted_txn, royalty, creator, 1, 1);
+    uint8_t emithash[32];
+    emit(emithash, emitted_txn, PREPARE_PAYMENT_SIMPLE_SIZE);
+
+    ACCEPT("royalty emitted", 0);
+}
+```
+
+### URIToken Use Cases on Xahau
+
+| Use Case | URI Content | Hook Role |
+|---|---|---|
+| **NFT Art** | IPFS CID of image/metadata | Royalty enforcement |
+| **RWA Certificate** | Arweave TX of legal doc + audit | Transfer gating (KYC check) |
+| **Credential / Badge** | DID document URL | Soulbound (burn-only, no transfer) |
+| **Game Item** | Game server asset ID | In-game logic via Hook state |
+| **Domain Alias** | xrp-ledger.toml URL | Name resolution |
+| **Event Ticket** | IPFS ticket metadata | Single-use scan (burn on entry) |
+
+---
+
+## Hooks v3 — New Features and Improvements
+
+### What's New in Hooks v3
+
+Hooks v3 is the production version running on Xahau mainnet as of 2025. Key improvements over earlier versions:
+
+| Feature | Hooks v2 | Hooks v3 |
+|---|---|---|
+| Max emitted transactions | 8 per execution | 16 per execution |
+| Hook parameters | 16 max | 32 max |
+| Hook state slots | 128 | 256 |
+| Namespace sharing | Single namespace | Named namespaces per hook |
+| Strong hooks | Not available | Available (can block rollback) |
+| cbak (callback) hooks | Basic | Full access to emitted tx result |
+| XAH native amount | Drops only | Drops + sfAmount for IOU |
+| `hook_account` | Account only | Full hook context |
+| Ledger entry access | Limited | Full `ledger_entry` access |
+
+### v3 Key Functions
+
+```c
+// New in v3: read any ledger entry from hook context
+int64_t ledger_entry(
+    uint32_t write_ptr, uint32_t write_len,
+    uint32_t read_ptr, uint32_t read_len
+);
+
+// New in v3: get hook execution context
+int64_t hook_account(uint32_t write_ptr, uint32_t write_len);
+
+// New in v3: named hook state namespace
+int64_t state_foreign(
+    uint32_t write_ptr, uint32_t write_len,   // output buffer
+    uint32_t kread_ptr, uint32_t kread_len,   // key
+    uint32_t nread_ptr, uint32_t nread_len,   // namespace
+    uint32_t aread_ptr, uint32_t aread_len    // hook account address
+);
+
+// v3: access to sfURITokenID in otxn_field
+// Allows hooks to inspect URIToken operations natively
+```
+
+### Strong Hooks
+
+In Hooks v3, a hook can be installed as a **strong hook** (via `HookSet` `Flags: 1`). A strong hook can block the `rollback()` of a weak hook — useful for mandatory compliance checks that must always execute.
+
+```python
+async def install_strong_hook(
+    account: str,
+    hook_hash: str,
+    hook_params: list[dict],
+) -> dict:
+    """Install a v3 strong hook that cannot be bypassed by rollback."""
+    tx = {
+        "TransactionType": "HookSet",
+        "Account": account,
+        "Hooks": [{
+            "Hook": {
+                "HookHash": hook_hash,
+                "Flags": 1,              # 1 = strong hook
+                "HookParameters": hook_params,
+                "HookOn": "0000000000000000",  # all transactions
+            }
+        }],
+        "Fee": "2000000",
+        "Sequence": 0,
+    }
+    return {"unsigned_tx": tx, "note": "Strong hook — blocks all rollback attempts"}
+```
+
+### Callback Hooks (cbak) in v3
+
+Callback hooks fire after an emitted transaction is validated. This lets your hook react to the *result* of a transaction it previously emitted.
+
+```c
+// Callback hook: fires when emitted payment is validated
+int64_t cbak(uint32_t reserved) {
+    // Get the result of the emitted transaction
+    unsigned char result_buf[32];
+    int64_t result_len = otxn_field(result_buf, 32, sfTransactionResult);
+
+    // tesSUCCESS = 0
+    int64_t result_code = *((int64_t*)result_buf);
+
+    if (result_code == 0) {
+        // Payment succeeded — update state
+        uint8_t key[32] = "last_success";
+        uint8_t val[8];
+        // encode ledger sequence into val...
+        state_set(val, 8, key, 32);
+        ACCEPT("payment confirmed", 0);
+    } else {
+        // Payment failed — log to state, trigger retry logic
+        ROLLBACK("emitted payment failed", 25);
+    }
+}
+```
+
+---
+
+## B2M — Batch-to-Mainnet (Xahau → XRPL L1 Settlement)
+
+### Overview
+
+**B2M (Batch-to-Mainnet)** is a bridging architecture that batches many micro-transactions processed on Xahau into periodic settlement transactions on XRPL L1. This leverages Xahau's low-cost, high-throughput Hook execution for business logic, while settling final balances on XRPL mainnet for maximum liquidity and interoperability.
+
+```
+Users / Applications
+        │  (individual micro-transactions)
+        ▼
+    Xahau (XAH sidechain)
+    ├── Hooks execute business logic
+    ├── Low fee: ~0.000012 XAH per tx
+    ├── Fast settlement: ~3 seconds
+    ├── Accumulate net balances per user
+    └── Periodic batch trigger (every N ledgers or X amount)
+        │
+        │  (one settlement tx per batch)
+        ▼
+    XRPL Mainnet (L1)
+    ├── Single Payment / OfferCreate representing net of N micro-txs
+    ├── Full finality and liquidity access
+    └── DEX / AMM / cross-chain bridges
+```
+
+### Why B2M?
+
+| Factor | Direct L1 | B2M (Xahau → L1) |
+|---|---|---|
+| Tx cost | ~0.000012 XRP × N | ~0.000012 XRP × 1 (settlement only) |
+| Business logic | None (pure ledger) | Full Hooks |
+| Throughput | ~1500 tps theoretical | Higher via batching |
+| Finality | 3-5s each | 3-5s each on Xahau, +1 settlement |
+| L1 liquidity | Direct | After settlement |
+
+### B2M Implementation Pattern
+
+```python
+import asyncio
+from dataclasses import dataclass, field
+from typing import Optional
+import httpx
+
+XAHAU_RPC = "https://xahau.network"
+XRPL_RPC = "https://xrplcluster.com"
+
+
+@dataclass
+class BatchAccumulator:
+    """Accumulates micro-transactions on Xahau and settles to XRPL L1."""
+
+    bridge_account: str             # the Xahau escrow/bridge account
+    l1_settlement_account: str      # the XRPL L1 settlement wallet
+    batch_threshold_xah: float = 100.0   # trigger settlement at this balance
+    batch_max_ledgers: int = 256         # or at most every 256 ledgers
+
+    pending: dict[str, float] = field(default_factory=dict)  # address → net XAH
+    last_settlement_ledger: int = 0
+
+    def record_micro_tx(self, from_addr: str, to_addr: str, amount_xah: float) -> None:
+        """Record a micro-transaction (processed by Hook on Xahau)."""
+        self.pending[from_addr] = self.pending.get(from_addr, 0) - amount_xah
+        self.pending[to_addr] = self.pending.get(to_addr, 0) + amount_xah
+
+    def net_positions(self) -> dict[str, float]:
+        """Return only non-zero net positions for settlement."""
+        return {addr: bal for addr, bal in self.pending.items() if abs(bal) > 0.000001}
+
+    async def should_settle(self, current_ledger: int) -> bool:
+        """Check if settlement threshold is reached."""
+        total_volume = sum(abs(v) for v in self.pending.values()) / 2
+        ledgers_since = current_ledger - self.last_settlement_ledger
+        return (
+            total_volume >= self.batch_threshold_xah
+            or ledgers_since >= self.batch_max_ledgers
+        )
+
+    async def build_settlement_tx(
+        self,
+        destination: str,
+        net_amount_xrp_drops: str,
+        batch_ref: str,
+    ) -> dict:
+        """
+        Build a single XRPL L1 Payment representing net settlement.
+        In production: loop through net_positions and send to each creditor.
+        """
+        import json
+        memo_data = json.dumps({
+            "type": "b2m_settlement",
+            "ref": batch_ref,
+            "ledger": self.last_settlement_ledger,
+            "net_txs": len(self.pending),
+        })
+        return {
+            "TransactionType": "Payment",
+            "Account": self.l1_settlement_account,
+            "Destination": destination,
+            "Amount": net_amount_xrp_drops,
+            "Memos": [{
+                "Memo": {
+                    "MemoType": "62326d5f73657474",       # "b2m_sett"
+                    "MemoData": memo_data.encode().hex(),
+                }
+            }],
+            "Fee": "12",
+        }
+
+
+async def monitor_xahau_for_batch_trigger(
+    bridge_account: str,
+    threshold_xah: float = 100.0,
+) -> None:
+    """
+    Subscribe to Xahau transactions on the bridge account.
+    When the balance crosses threshold, trigger L1 settlement.
+    """
+    import json
+    XAHAU_WS = "wss://xahau.network"
+
+    async with httpx.AsyncClient() as client:
+        # Get current balance
+        resp = await client.post(
+            XAHAU_RPC,
+            json={
+                "method": "account_info",
+                "params": [{"account": bridge_account, "ledger_index": "validated"}]
+            }
+        )
+        info = resp.json()["result"]["account_data"]
+        balance_drops = int(info.get("Balance", 0))
+        balance_xah = balance_drops / 1_000_000
+        print(f"Bridge balance: {balance_xah:.6f} XAH")
+
+        if balance_xah >= threshold_xah:
+            print(f"[B2M] Threshold reached ({balance_xah:.2f} XAH) → triggering L1 settlement")
+            # → build settlement tx → sign → submit to XRPL mainnet
+```
+
+### Hook-Driven B2M Settlement Trigger
+
+The cleanest B2M pattern uses a Hook on the Xahau bridge account that automatically emits a cross-chain settlement when the accumulated balance exceeds a threshold.
+
+```c
+// Hook pseudocode: auto-trigger B2M settlement
+#include "hookapi.h"
+
+#define SETTLEMENT_THRESHOLD 100000000LL  // 100 XAH in drops
+
+int64_t hook(uint32_t reserved) {
+    // Get bridge account current balance
+    unsigned char acc_buf[20];
+    hook_account(acc_buf, 20);
+
+    int64_t balance = 0;
+    // ... read balance from account info via ledger_entry ...
+
+    if (balance >= SETTLEMENT_THRESHOLD) {
+        // Emit settlement payment to L1 bridge address
+        unsigned char l1_bridge[20];
+        hook_param(l1_bridge, 20, "L1BRIDGE", 8);
+
+        uint8_t emitted[PREPARE_PAYMENT_SIMPLE_SIZE];
+        PREPARE_PAYMENT_SIMPLE(emitted, balance - 1000000LL, l1_bridge, 1, 1);
+        uint8_t emithash[32];
+        emit(emithash, emitted, PREPARE_PAYMENT_SIMPLE_SIZE);
+
+        ACCEPT("B2M settlement emitted", 22);
+    }
+
+    ACCEPT("below threshold", 0);
+}
+```
+
+### B2M Use Cases
+
+| Application | Micro-Tx Pattern | L1 Settlement |
+|---|---|---|
+| **Micropayments** | Per-click/per-second payments on Xahau | Daily net settlement per user |
+| **Gaming economy** | In-game item trades every second | Hourly net withdrawal |
+| **IoT billing** | Per-device usage metering | Weekly invoice settlement |
+| **DEX aggregation** | Many small trades batched | Single net AMM deposit/withdrawal |
+| **RWA income** | Daily rental accrual tracking | Monthly distribution on L1 |
+
+---
+
