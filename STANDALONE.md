@@ -92,10 +92,10 @@ Build a Payment transaction (XRP drops or issued token).
 python3 scripts/xrpl_tools.py build-payment \
   --from rSENDER --to rDEST --amount 1000000
 
-# Token payment
+# Token payment (use --cur and --iss flags)
 python3 scripts/xrpl_tools.py build-payment \
   --from rSENDER --to rDEST \
-  --amount USD:rISSUER:100 --cur USD
+  --amount 100 --cur USD --iss rISSUER
 ```
 
 ---

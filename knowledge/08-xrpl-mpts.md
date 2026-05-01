@@ -1,12 +1,12 @@
-# XRPL MPTokens (XLS-70)
+# XRPL MPTokens (XLS-33)
 
 ## Overview
 
-**MPTokens** (Multi-Purpose Tokens) are a new token standard on the XRP Ledger introduced by the **XLS-70** draft specification. Unlike issued currencies on trust lines, MPTokens operate through a single-issuer issuance model with native support for features like transfer fees, locking, freezing, and authorized minting — all without requiring bilateral trust lines.
+**MPTokens** (Multi-Purpose Tokens) are a new token standard on the XRP Ledger introduced by the **XLS-33** specification. Unlike issued currencies on trust lines, MPTokens operate through a single-issuer issuance model with native support for features like transfer fees, locking, freezing, and authorized minting — all without requiring bilateral trust lines.
 
 ## Amendment Status
 
-**IMPORTANT: The XLS-70 amendment for MPTokens is NOT YET ACTIVE on XRPL mainnet as of early 2026.** It has been specified and may be in testing on testnet/devnet. Check the current XRPL amendment status at [https://xrpl.org/amendments.html](https://xrpl.org/amendments.html) for the latest.
+**IMPORTANT: The MPTokensV1 amendment is pending activation on XRPL mainnet.** Check the current XRPL amendment status at [https://xrpl.org/amendments.html](https://xrpl.org/amendments.html) for the latest.
 
 ## MPTokens vs Trust Lines
 

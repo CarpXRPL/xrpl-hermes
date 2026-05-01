@@ -5,8 +5,8 @@ Get from zero to your first XRPL transaction in 5 minutes. No wallet required fo
 ## 1. Clone & Install
 
 ```bash
-git clone https://github.com/CarpXRPL/xrpl-hermes-v1.0.git
-cd xrpl-hermes-v1.0
+git clone https://github.com/CarpXRPL/xrpl-hermes.git
+cd xrpl-hermes
 pip install -r requirements.txt
 ```
 
@@ -23,7 +23,11 @@ python3 scripts/xrpl_tools.py server-info
 
 Expected output:
 ```
-Server: xrplcluster.com | Version: 2.x.x | Ledger: 93xxxxxx | Load: 1
+Version:       2.x.x
+Uptime:        12345s
+Ledgers:       0-93xxxxxx
+Last Ledger:   93xxxxxx
+State:         full
 ```
 
 ## 3. Query an Account (no wallet needed)

@@ -18,7 +18,7 @@ To enable clawback, an account must set the `lsfAllowTrustLineClawback` flag usi
 {
   "TransactionType": "AccountSet",
   "Account": "rIssuerAddress",
-  "SetFlag": 14  // lsfAllowTrustLineClawback
+  "SetFlag": 16  // asfAllowTrustLineClawback
 }
 ```
 
@@ -44,7 +44,7 @@ The `Clawback` transaction type allows an issuer to reclaim tokens from a holder
 ### Important Rules
 
 1. **Issuer-only**: Only the token issuer can initiate a clawback
-2. **No partial clawback**: The entire trust line balance must be clawed back (cannot claw back a partial amount)
+2. **Partial clawback supported**: The `Amount.value` field specifies how much to claw back. If the value exceeds the holder's balance, it claws back the entire balance. You are not required to claw back the full trust line.
 3. **Trust line creation window**: Clawback only applies to trust lines created AFTER the `lsfAllowTrustLineClawback` flag was set on the issuer's account
 4. **No XRP clawback**: XRP cannot be clawed back — only issued tokens
 5. **No AMM LP tokens**: LP tokens from AMM pools cannot be clawed back

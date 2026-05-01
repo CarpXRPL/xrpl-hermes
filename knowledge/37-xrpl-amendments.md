@@ -146,11 +146,11 @@ def wait_for_amendment(client, amendment_name: str, timeout_s: int = 300) -> boo
 | Amendment | Date | Purpose |
 |-----------|------|---------|
 | **fixAMMv1_1** | 2024-Q2 | Fix AMM trading fee precision, LP token math |
-| **MPT (XLS-70)** | 2024-12 | Multi-Purpose Tokens: compact on-ledger fungible tokens |
+| **MPT (XLS-33)** | 2024-12 | Multi-Purpose Tokens: compact on-ledger fungible tokens |
 | **fixAMMv1_2** | 2025-Q1 | Additional AMM edge case corrections |
-|| **DID (XLS-40)** | 2025-Q1 | W3C Decentralized Identifiers on XRPL (DIDSet/DIDDelete) |
+| | **DID (XLS-40)** | 2025-Q1 | W3C Decentralized Identifiers on XRPL (DIDSet/DIDDelete) |
 | **ExpandedSignerList** | 2025-Q2 | Increase max signers in SignerList from 8 to 32 |
-| **Credentials** | 2025-Q2 | On-chain verifiable credentials for DepositPreauth |
+| **Credentials (XLS-70)** | 2025-Q2 | On-chain verifiable credentials for DepositPreauth |
 
 ---
 
@@ -159,7 +159,7 @@ def wait_for_amendment(client, amendment_name: str, timeout_s: int = 300) -> boo
 | Amendment | Stage | Purpose |
 |-----------|-------|---------|
 || **Hooks** | Draft | WebAssembly smart hooks (live on Xahau, pending mainnet) |
-| **XLS-56 (Auth Framework)** | Draft | Enhanced authorization across transaction types |
+| **XLS-56 (Batch)** | Draft | Group up to 8 transactions into a single submission |
 | **Remit** | In Voting | Combined payment + memo + destination tag in one tx |
 | **PriceOracle** | In Voting | Native on-ledger price oracle aggregation |
 | **fixEmptyDID** | Patch | Prevent empty DID documents from being stored |

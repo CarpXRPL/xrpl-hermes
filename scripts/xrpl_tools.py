@@ -33,7 +33,7 @@ Usage:
   python3 xrpl_tools.py nft-info NFT_ID
   python3 xrpl_tools.py book-offers CUR:ISSUER CUR:ISSUER
   python3 xrpl_tools.py path-find rSENDER rDEST AMOUNT CUR:ISSUER
-  python3 xrpl_tools.py evm-balance rADDRESS [mainnet|testnet]
+  python3 xrpl_tools.py evm-balance 0xADDRESS [mainnet|testnet]
   python3 xrpl_tools.py evm-contract --from rADDR --bytecode HEX
   python3 xrpl_tools.py evm-bridge [mainnet|testnet]
   python3 xrpl_tools.py hooks-bitmask HOOK [HOOK ...]
@@ -285,7 +285,8 @@ def tool_build_payment(frm: str, to: str, amount: str, cur: Optional[str] = None
     print("# Payment TX JSON — sign with Xaman/Joey")
     tx_json = tx_to_xrpl_json(tx)
     json_out(tx_json)
-    print(f"\n# Payload URL: xumm://sign?payload={quote(json.dumps(tx_json))}")
+    print("\n# ⚠️ Xaman deep-link requires the Xaman Platform API (not implemented here).")
+    print("# To sign: paste the JSON above into Xaman → Developer → Sign Transaction")
 
 def tool_build_trustset(frm: str, currency: str, issuer: str, value: str = "1000000000"):
     cur = IssuedCurrencyAmount(currency=currency, issuer=issuer, value=value)
@@ -610,6 +611,7 @@ def tool_nft_info(nft_id: str):
 
 # --- TOOL 11: EVM Sidechain Balance ---
 def tool_evm_balance(address: str, network: str = "mainnet"):
+    """Query XRP balance on EVM sidechain. Address must be 0x-prefixed Ethereum address."""
     import httpx
     rpc_urls = {"mainnet": "https://rpc.xrplevm.org", "testnet": "https://rpc.testnet.xrplevm.org"}
     url = rpc_urls.get(network, rpc_urls["mainnet"])
@@ -640,36 +642,33 @@ def tool_evm_contract(frm: str, bytecode: str, abi: str = None, value: str = "0"
 def tool_evm_bridge(network: str = "mainnet"):
     import httpx
     rpc_urls = {"mainnet": "https://rpc.xrplevm.org", "testnet": "https://rpc.testnet.xrplevm.org"}
+    chain_ids = {"mainnet": 1440000, "testnet": 1449000}
     url = rpc_urls.get(network, rpc_urls["mainnet"])
+    cid = chain_ids.get(network, chain_ids["mainnet"])
     payload = {"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1}
-    resp = httpx.post(url, json=payload, timeout=10)
-    data = resp.json()
-    block = int(data.get("result", "0x0"), 16)
+    try:
+        resp = httpx.post(url, json=payload, timeout=10)
+        data = resp.json()
+        block = int(data.get("result", "0x0"), 16)
+    except Exception as e:
+        block = "unknown"
     print(f"XRPL EVM Sidechain ({network})")
     print(f"Latest Block: {block}")
     print(f"RPC: {url}")
-    print(f"Chain ID: 1440000")
+    print(f"Chain ID: {cid}")
     print(f"Bridge: L1↔EVM federated bridge active")
 
-# --- TOOL 14: Hooks Bitmask Calculator ---
-HOOK_BITS = {
-    "onAccountDelete": 1, "onLedgerClose": 2, "onTransaction": 4, "onStaked": 8, "onEmit": 16,
-    "onURITokenCreateSellOffer": 256, "onURITokenCreateBuyOffer": 512,
-    "onURITokenAcceptSellOffer": 1024, "onURITokenAcceptBuyOffer": 2048,
-    "onURITokenCancelSellOffer": 4096, "onURITokenCancelBuyOffer": 8192,
-}
+# --- TOOL 14: Hooks Bitmask (BROKEN — Xahau HookOn uses tx-type ID bitmap, not named events)
+# This tool is placeholder. Real implementation requires the full Xahau HookOn bitmap spec from xrpld.
+# See: https://xrpl-hooks.readthedocs.io/
+HOOK_BITS = {}  # Will be populated once real mapping is determined
 
 def tool_hooks_bitmask(*hook_names: str):
-    mask = 0
-    for name in hook_names:
-        bit = HOOK_BITS.get(name)
-        if bit is not None:
-            mask |= bit
-        else:
-            print(f"  ⚠️ Unknown hook: {name}")
-    print(f"HookOn: {mask}")
-    print(f"Hex:    {hex(mask)}")
-    print(f"Hooks:  {', '.join(hook_names)}")
+    """⚠️ Currently BROKEN — Xahau HookOn is a 256-bit bitmap indexed by tx-type ID, not named events.
+    This tool produces incorrect values. Do not use for production hook deployments."""
+    print("# ⚠️ WARNING: hooks-bitmask is BROKEN — produces incorrect values for Xahau hooks.")
+    print("# Xahau HookOn uses a 256-bit bitmap indexed by transaction-type ID.")
+    print("# Remove this tool from your workflow until it is rewritten against the real spec.")
 
 # --- TOOL 15: Hooks Account Info ---
 def tool_hooks_info(address: str):
@@ -913,12 +912,9 @@ def tool_build_clawback(frm: str, destination: str, currency: str,
     amount_obj = IssuedCurrencyAmount(currency=cur, issuer=destination, value=amount)
     kwargs: dict = dict(account=frm, amount=amount_obj)
     if memo:
-        from xrpl.models.transactions.transaction import Memo, MemoWrapper
-        try:
-            memo_hex = memo.encode("utf-8").hex().upper()
-            kwargs["memos"] = [MemoWrapper(memo=Memo(memo_data=memo_hex))]
-        except Exception:
-            pass
+        memo_hex = memo.encode("utf-8").hex().upper()
+        from xrpl.models.transactions.transaction import Memo
+        kwargs["memos"] = [Memo(memo_data=memo_hex)]
     tx = Clawback(**kwargs)
     print("# Clawback TX JSON — sign with Xaman/Crossmark/xrpl-py")
     json_tx_out(tx)
@@ -1033,6 +1029,11 @@ def tool_build_mpt_issuance_create(frm: str, asset_scale: str = None,
         kwargs["maximum_amount"] = maximum_amount
     if transfer_fee is not None:
         kwargs["transfer_fee"] = int(transfer_fee)
+        # Auto-set tfMPTCanTransfer flag when transfer_fee is provided
+        if flags is None:
+            flags = 0
+        flags = int(flags, 16) if str(flags).startswith("0x") else int(flags)
+        flags |= 0x20  # tfMPTCanTransfer
     if flags is not None:
         kwargs["flags"] = int(flags, 16) if str(flags).startswith("0x") else int(flags)
     tx = MPTokenIssuanceCreate(**kwargs)
@@ -1058,7 +1059,7 @@ def tool_build_mpt_authorize(frm: str, mpt_issuance_id: str, holder: str = None,
 def tool_build_set_oracle(frm: str, oracle_doc_id: str, provider: str,
                            asset_class: str, last_update_time: str,
                            price_data: str = None, uri: str = None):
-    """Build OracleSet (XLS-47). price_data: BASE/QUOTE:PRICE:SCALE,... (comma-separated)"""
+    """Build OracleSet (XLS-47). price_data: BASE/QUOTE:PRICE:SCALE,... (comma-separated). last_update_time is Unix epoch seconds."""
     price_data_series = []
     if price_data:
         for entry in price_data.split(","):
@@ -1168,11 +1169,113 @@ def tool_build_batch(frm: str, inner_txs: str, flags: str = None):
     except Exception as e:
         print(f"Error parsing --inner-txs JSON: {e}")
         return
-    kwargs: dict = dict(account=frm, raw_transactions=raw_txs)
+    if not isinstance(raw_txs, list):
+        print("Error: --inner-txs must be a JSON array of transaction objects")
+        return
+    if len(raw_txs) < 2 or len(raw_txs) > 8:
+        print(f"Error: Batch requires 2-8 inner transactions, got {len(raw_txs)}")
+        return
+
+    # Build a lookup from TransactionType string → model class
+    TX_MODELS = {
+        "Payment": Payment,
+        "TrustSet": TrustSet,
+        "OfferCreate": OfferCreate,
+        "NFTokenMint": NFTokenMint,
+        "AMMCreate": AMMCreate,
+        "AMMDeposit": AMMDeposit,
+        "AMMWithdraw": AMMWithdraw,
+        "AMMVote": AMMVote,
+        "AMMBid": AMMBid,
+        "Clawback": Clawback,
+        "AccountSet": AccountSet,
+        "SignerListSet": SignerListSet,
+        "EscrowCreate": EscrowCreate,
+        "EscrowFinish": EscrowFinish,
+        "EscrowCancel": EscrowCancel,
+        "CheckCreate": CheckCreate,
+        "CheckCash": CheckCash,
+        "CheckCancel": CheckCancel,
+        "PaymentChannelCreate": PaymentChannelCreate,
+        "PaymentChannelFund": PaymentChannelFund,
+        "PaymentChannelClaim": PaymentChannelClaim,
+        "SetRegularKey": SetRegularKey,
+        "AccountDelete": AccountDelete,
+        "DepositPreauth": DepositPreauth,
+        "TicketCreate": TicketCreate,
+        "OracleSet": OracleSet,
+        "MPTokenIssuanceCreate": MPTokenIssuanceCreate,
+        "MPTokenAuthorize": MPTokenAuthorize,
+        "CredentialCreate": CredentialCreate,
+        "CredentialAccept": CredentialAccept,
+        "CredentialDelete": CredentialDelete,
+        "NFTokenCreateOffer": NFTokenCreateOffer,
+        "Batch": Batch,
+    }
+
+    wrapped = []
+    for raw in raw_txs:
+        tx_type = raw.get("TransactionType")
+        model_class = TX_MODELS.get(tx_type)
+        if model_class is None:
+            print(f"Error: Unknown or unsupported TransactionType '{tx_type}'")
+            return
+        # Convert XRPL JSON field names to snake_case xrpl-py kwargs
+        FIELD_MAP = {
+            "Account": "account", "Destination": "destination", "Amount": "amount",
+            "Fee": "fee", "Sequence": "sequence", "Flags": "flags",
+            "SigningPubKey": "signing_pub_key", "LastLedgerSequence": "last_ledger_sequence",
+            "SourceTag": "source_tag", "TicketSequence": "ticket_sequence",
+            "Memos": "memos", "Signers": "signers",
+            "Owner": "owner", "OfferSequence": "offer_sequence",
+            "CheckID": "check_id", "Channel": "channel",
+            "SettleDelay": "settle_delay", "PublicKey": "public_key",
+            "LimitAmount": "limit_amount", "TakerGets": "taker_gets", "TakerPays": "taker_pays",
+            "NFTokenTaxon": "nftoken_taxon", "URI": "uri", "TransferFee": "transfer_fee",
+            "Issuer": "issuer", "Subject": "subject", "CredentialType": "credential_type",
+            "MPTokenIssuanceID": "mptoken_issuance_id",
+            "OracleDocumentID": "oracle_document_id",
+            "Provider": "provider", "AssetClass": "asset_class",
+            "LastUpdateTime": "last_update_time",
+            "PriceDataSeries": "price_data_series",
+            "RawTransactions": "raw_transactions",
+            "DestinationTag": "destination_tag", "InvoiceID": "invoice_id",
+            "Expiration": "expiration", "CancelAfter": "cancel_after",
+            "FinishAfter": "finish_after", "Condition": "condition",
+            "Fulfillment": "fulfillment",
+            "Authorize": "authorize", "Unauthorize": "unauthorize",
+            "RegularKey": "regular_key",
+            "Asset": "asset", "Asset2": "asset2",
+            "Amount2": "amount2", "LPTokenOut": "lp_token_out",
+            "LPTokenIn": "lp_token_in", "TradingFee": "trading_fee",
+            "BidMin": "bid_min", "BidMax": "bid_max", "AuthAccounts": "auth_accounts",
+            "SignerQuorum": "signer_quorum", "SignerEntries": "signer_entries",
+            "AssetScale": "asset_scale", "MaximumAmount": "maximum_amount",
+            "RawTransaction": "raw_transaction",
+            "HookOn": "hook_on",
+        }
+        kwargs = {}
+        for k, v in raw.items():
+            if k == "TransactionType":
+                continue
+            mapped = FIELD_MAP.get(k, k[0].lower() + k[1:] if k else k)
+            kwargs[mapped] = v
+        # Mark inner tx with required Batch flags and defaults
+        kwargs.setdefault("flags", 0)
+        kwargs["flags"] |= 0x40000000  # tfInnerBatchTxn
+        kwargs.setdefault("fee", "0")
+        kwargs.setdefault("signing_pub_key", "")
+        try:
+            wrapped.append(model_class(**kwargs))
+        except Exception as e:
+            print(f"Error validating inner {tx_type}: {e}")
+            return
+
+    kwargs: dict = dict(account=frm, raw_transactions=wrapped)
     if flags is not None:
         kwargs["flags"] = int(flags)
     tx = Batch(**kwargs)
-    print("# Batch TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# Batch TX JSON — sign with Xaman/Crossmark/xrpl-py (each inner tx must be signed separately)")
     json_tx_out(tx)
 
 

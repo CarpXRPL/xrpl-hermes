@@ -115,10 +115,10 @@ The `scripts/xrpl_tools.py` provides these XRPL-native commands through `termina
 | 39 | NFT Info | `nft-info NFT_ID` | NFT metadata lookup |
 | 40 | Book Offers | `book-offers TAKER_GETS TAKER_PAYS` | Live DEX orderbook |
 | 41 | Path Find | `path-find rSENDER rDEST AMOUNT CUR:ISSUER` | Cross-currency paths |
-| 42 | EVM Balance | `evm-balance rADDR [mainnet|testnet]` | XRP balance on EVM sidechain |
+| 42 | EVM Balance | `evm-balance 0xADDR [mainnet|testnet]` | XRP balance on EVM sidechain |
 | 43 | EVM Contract | `evm-contract --from rADDR --bytecode HEX` | Contract deployment JSON |
 | 44 | EVM Bridge | `evm-bridge [mainnet|testnet]` | Sidechain bridge status |
-| 45 | Hooks Bitmask | `hooks-bitmask HOOK [HOOK ...]` | HookOn trigger bitmask |
+| 45 | Hooks Bitmask | `hooks-bitmask HOOK [HOOK ...]` | ⚠️ BROKEN — see warning in tool |
 | 46 | Hooks Info | `hooks-info rADDRESS` | Installed hooks on Xahau account |
 | 47 | Flare Price | `flare-price SYMBOL [SYMBOL ...]` | Live price feeds |
 | 48 | Balance | `balance rADDR` | Account balance alias |
