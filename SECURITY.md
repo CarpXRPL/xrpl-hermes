@@ -6,7 +6,7 @@ This tool NEVER stores, transmits, or requests your private keys/seeds. All tran
 
 ## API Keys
 
-Any API keys you configure (`XRPLSCAN_API_KEY`, `XRPL_TO_API_KEY`, `CLIO_NODE_URL`) are stored in your environment only and never logged or transmitted outside of direct API calls.
+Any API keys you configure (`XRPLSCAN_API_KEY`, `XRPL_TO_API_KEY`, `XRPL_PRIVATE_RPC`) are stored in your environment only and never logged or transmitted outside of direct API calls.
 
 ## Reporting
 

@@ -180,9 +180,9 @@ def get_reserve_settings() -> tuple[Decimal, Decimal]:
     try:
         info = _request(ServerInfo()).result.get("info", {})
         ledger = info.get("validated_ledger", {})
-        return Decimal(str(ledger.get("reserve_base_xrp", 10))), Decimal(str(ledger.get("reserve_inc_xrp", 2)))
+        return Decimal(str(ledger.get("reserve_base_xrp", 1))), Decimal(str(ledger.get("reserve_inc_xrp", 0.2)))
     except Exception:
-        return Decimal("10"), Decimal("2")
+        return Decimal("1"), Decimal("0.2")
 
 def _parse_asset(arg: str):
     """Parse 'XRP' or 'CUR:ISSUER' into XRPCurrency or IssuedCurrency."""
@@ -231,6 +231,7 @@ def tool_account(address: str):
     if flags & 0x00200000: flag_descriptions.append("lsfNoFreeze")
     if flags & 0x00040000: flag_descriptions.append("lsfRequireAuth")
     if flags & 0x00020000: flag_descriptions.append("lsfRequireDestTag")
+    if flags & 0x80000000: flag_descriptions.append("lsfAllowTrustLineClawback")
     print(f"{'Address:':12s} {address}")
     print(f"{'Balance:':12s} {fmt_xrp(bal)}")
     print(f"{'Reserve:':12s} {reserved:.2f} XRP ({owner} objects)")
@@ -448,7 +449,7 @@ def tool_book_offers(taker_gets: str, taker_pays: str):
             "ledger_index": "current"
         }]
     }
-    resp = httpx.post("https://xrplcluster.com", json=payload, timeout=10)
+    resp = httpx.post(ENDPOINTS[0], json=payload, timeout=10)
     data = resp.json()
     offers = data.get("result", {}).get("offers", [])
     print(f"Orderbook: {taker_gets} / {taker_pays} — {len(offers)} offers")
@@ -692,37 +693,28 @@ def tool_hooks_info(address: str):
 # --- TOOL 16: Flare Price Feeds ---
 def tool_flare_price(*symbols: str):
     import httpx
-    try:
-        resp = httpx.get("https://api.flare.network/ftso/v2/feeds", timeout=10)
-        data = resp.json()
-        feeds = {}
-        for f in data:
-            feed_name = f.get("feed", "").upper()
-            if feed_name:
-                feeds[feed_name] = float(f.get("value", 0))
-        for sym in symbols:
-            s = sym.upper()
-            if s in feeds:
-                print(f"{s}: ${feeds[s]:.6f}")
-            else:
-                print(f"{s}: not found")
-    except Exception as e:
+    urls = [
+        "https://api.flare.network/ftso/v2/feeds",
+        "https://flare-api.flare.network/ftso/v2/feeds",
+    ]
+    feeds = {}
+    for url in urls:
         try:
-            resp = httpx.get("https://flare-api.flare.network/ftso/v2/feeds", timeout=10)
+            resp = httpx.get(url, timeout=10)
             data = resp.json()
-            feeds = {}
             for f in data:
                 feed_name = f.get("feed", "").upper()
                 if feed_name:
                     feeds[feed_name] = float(f.get("value", 0))
-            for sym in symbols:
-                s = sym.upper()
-                if s in feeds:
-                    print(f"{s}: ${feeds[s]:.6f}")
-                else:
-                    print(f"{s}: not found")
-        except Exception as e2:
-            print(f"Flare API error: {e2}")
+            break
+        except Exception:
+            continue
+    for sym in symbols:
+        s = sym.upper()
+        if s in feeds:
+            print(f"{s}: ${feeds[s]:.6f}")
+        else:
+            print(f"{s}: not found")
 
 # --- TOOL 17: Escrow Create ---
 def tool_build_escrow_create(frm: str, to: str, amount: str, condition: str = None,

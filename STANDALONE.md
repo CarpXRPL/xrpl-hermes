@@ -439,7 +439,7 @@ python3 scripts/xrpl_tools.py flare-price XRP FLR BTC ETH
 | `XRPL_SEED` | (none) | Wallet seed for example scripts |
 | `XRPLSCAN_API_KEY` | (none) | XRPLScan enhanced API access |
 | `XRPL_TO_API_KEY` | (none) | XRPL.to API key |
-| `CLIO_NODE_URL` | (none) | Specific Clio node URL |
+| `XRPL_PRIVATE_RPC` | (none) | Private rippled/Clio endpoint URL |
 
 ---
 
