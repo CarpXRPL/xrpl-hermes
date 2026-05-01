@@ -335,10 +335,10 @@ async def monitor_rlusd_transactions(
 1. User completes KYC through issuer's compliance portal
 2. User submits XRPL address for whitelisting
 3. Issuer adds address to approved list (off-chain or via on-chain whitelist)
-4. User creates trust line: `python3 scripts/xrpl_tools.py build-trustset --account rUSER --currency RLUSD --issuer rISSUER --limit 100000`
+4. User creates trust line: `python3 scripts/xrpl_tools.py build-trustset --from rUSER --currency RLUSD --issuer rISSUER --value 100000`
 5. User sends signed TrustSet to network
 6. Issuer verifies trust line exists: `python3 scripts/xrpl_tools.py trustlines rUSER | grep RLUSD`
-7. Issuer sends initial RLUSD: `python3 scripts/xrpl_tools.py build-payment --from rISSUER --to rUSER --currency RLUSD --issuer rISSUER --amount 10000`
+7. Issuer sends initial RLUSD: `python3 scripts/xrpl_tools.py build-payment --from rISSUER --to rUSER --cur RLUSD --iss rISSUER --amount 10000`
 
 ### Workflow 2: Monthly Compliance Review
 

@@ -106,19 +106,26 @@ def get_client() -> JsonRpcClient:
             continue
     return JsonRpcClient(ENDPOINTS[0])
 
-CLIENT = get_client()
+_CLIENT: Optional[JsonRpcClient] = None
 _ENDPOINT_IDX = 0
 _USING_PRIVATE = bool(_PRIVATE_RPC)
 
+def _get_client() -> JsonRpcClient:
+    global _CLIENT
+    if _CLIENT is None:
+        _CLIENT = get_client()
+    return _CLIENT
+
 def _request(req):
-    global CLIENT, _ENDPOINT_IDX
+    global _CLIENT, _ENDPOINT_IDX
+    client = _get_client()
     try:
-        return CLIENT.request(req)
+        return client.request(req)
     except Exception as e:
         _ENDPOINT_IDX = (_ENDPOINT_IDX + 1) % len(ENDPOINTS)
         try:
-            CLIENT = JsonRpcClient(ENDPOINTS[_ENDPOINT_IDX])
-            return CLIENT.request(req)
+            _CLIENT = JsonRpcClient(ENDPOINTS[_ENDPOINT_IDX])
+            return _CLIENT.request(req)
         except Exception as e2:
             raise Exception(f"All endpoints failed: {e2}") from e2
 
@@ -582,7 +589,7 @@ def tool_nft_info(nft_id: str):
     from xrpl.models.requests import NFTInfo
     last_error = None
     result = {}
-    for ep in PUBLIC_ENDPOINTS:
+    for ep in ENDPOINTS:
         try:
             result = JsonRpcClient(ep).request(NFTInfo(nft_id=nft_id)).result
         except Exception as e:

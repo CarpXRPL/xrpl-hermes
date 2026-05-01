@@ -226,7 +226,7 @@ enable_clawback = AccountSet(
 claw = Clawback(
     account="rIssuer...",
     amount=IssuedCurrencyAmount(
-        currency="LOX",
+        currency="TOKEN",
         issuer="rHolder...",   # NOTE: issuer field = the HOLDER for clawback
         value="1000",          # Amount to claw back
     ),

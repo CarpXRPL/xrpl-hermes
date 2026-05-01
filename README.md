@@ -2,7 +2,7 @@
 
 **The open-source, all-in-one XRPL ecosystem toolkit for Hermes agents.**
 
-**55 knowledge files + 34 working tools** covering **XRPL L1, EVM Sidechain, Xahau Hooks, Flare FTSO, Axelar Bridge, and Arweave**
+**59 knowledge files + 48 working tools** covering **XRPL L1, EVM Sidechain, Xahau Hooks, Flare FTSO, Axelar Bridge, and Arweave**
 
 ## Quick Start
 
@@ -33,13 +33,14 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 # > activate xrpl-hermes
 ```
 
-## 34 Tools — All Ecosystems
+## 48 Tools — All Ecosystems
 
-### XRPL L1 (28 tools)
+### XRPL L1 (32 tools)
 
 | Tool | Description |
 |------|-------------|
 | `account` | Account info, balance, flags, sequence |
+| `balance` | Account balance (alias) |
 | `trustlines` | All trust lines for an address |
 | `account_objects` | All objects (checks, offers, escrows, NFTs) |
 | `build-payment` | Payment transaction JSON |
@@ -47,18 +48,27 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 | `build-offer` | DEX order JSON |
 | `build-nft-mint` | NFT mint JSON |
 | `build-amm-create` | AMM pool creation |
+| `build-clawback` | Issuer clawback transaction |
+| `build-cross-currency-payment` | Path-finding cross-currency payment |
 | `build-escrow-create/finish/cancel` | Escrow management |
 | `build-check-create/cash/cancel` | Check management |
 | `build-paychannel-create/fund/claim` | Payment channels |
+| `build-amm-deposit/withdraw/vote/bid` | AMM LP operations |
 | `build-set-regular-key` | Key management |
 | `build-account-delete` | Account deletion |
 | `build-deposit-preauth` | Deposit preauthorization |
+| `build-signer-list-set` | Multisig signer list |
+| `build-mpt-issuance-create` | MPT issuance (XLS-33) |
+| `build-mpt-authorize` | MPT holder authorization |
+| `build-set-oracle` | Price oracle (XLS-47) |
+| `build-credential-create/accept/delete` | DID credentials (XLS-70) |
+| `build-batch` | Batch transactions (XLS-56) |
 | `decode` | Decode signed transaction blobs |
 | `tx-info` | Transaction lookup |
 | `ledger` | Ledger state |
 | `server-info` | Node information |
-| `book-offers` | DEX orderbook depth |
 | `nft-info` | NFT metadata |
+| `book-offers` | DEX orderbook depth |
 | `path-find` | Payment path discovery |
 
 ### EVM Sidechain (3 tools)
@@ -82,7 +92,7 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 |------|-------------|
 | `flare-price` | Live XRP, BTC, ETH price feeds |
 
-## 55 Knowledge Files
+## 59 Knowledge Files
 
 | Layer | Files | Topics |
 |-------|-------|--------|
