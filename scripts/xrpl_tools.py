@@ -282,7 +282,7 @@ def tool_build_payment(frm: str, to: str, amount: str, cur: Optional[str] = None
         amt = amount
     tx = Payment(account=frm, destination=to, amount=amt,
                  destination_tag=tag if tag else None)
-    print("# Payment TX JSON — sign with Xaman/Joey")
+    print("# Payment TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     tx_json = tx_to_xrpl_json(tx)
     json_out(tx_json)
     print("\n# ⚠️ Xaman deep-link requires the Xaman Platform API (not implemented here).")
@@ -291,7 +291,7 @@ def tool_build_payment(frm: str, to: str, amount: str, cur: Optional[str] = None
 def tool_build_trustset(frm: str, currency: str, issuer: str, value: str = "1000000000"):
     cur = IssuedCurrencyAmount(currency=currency, issuer=issuer, value=value)
     tx = TrustSet(account=frm, limit_amount=cur)
-    print("# TrustSet TX JSON — sign with Xaman/Joey")
+    print("# TrustSet TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 def tool_build_offer(frm: str, taker_gets: str = None, taker_pays: str = None,
@@ -309,7 +309,7 @@ def tool_build_offer(frm: str, taker_gets: str = None, taker_pays: str = None,
     gets = make_amount(gets_cur, gets_iss, gets_val)
     pays = make_amount(pays_cur, pays_iss, pays_val)
     tx = OfferCreate(account=frm, taker_gets=gets, taker_pays=pays)
-    print("# OfferCreate TX JSON — sign with Xaman/Joey")
+    print("# OfferCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 def tool_build_nft_mint(frm: str, taxon: int = 0, uri: str = "",
@@ -329,7 +329,7 @@ def tool_build_nft_mint(frm: str, taxon: int = 0, uri: str = "",
         flags=flags,
         issuer=issuer if issuer else None,
     )
-    print("# NFTokenMint TX JSON — sign with Xaman/Joey")
+    print("# NFTokenMint TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 def tool_build_amm_create(frm: str, amount1: str, amount2: str, fee: int = 600):
@@ -339,7 +339,7 @@ def tool_build_amm_create(frm: str, amount1: str, amount2: str, fee: int = 600):
     amt1 = make_amount(a1_cur, a1_iss, a1_val)
     amt2 = make_amount(a2_cur, a2_iss, a2_val)
     tx = AMMCreate(account=frm, amount=amt1, amount2=amt2, trading_fee=fee)
-    print("# AMMCreate TX JSON — sign with Xaman/Joey")
+    print("# AMMCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 4: Decode Transaction ---
@@ -473,12 +473,7 @@ def tool_path_find(src: str, dest: str, amount: str, cur: str, iss: Optional[str
     except Exception as e:
         print(f"Path find error: {e}")
 
-# --- TOOL 10: Simple Xaman Payload URL ---
-def tool_xaman_url(tx_json: dict) -> str:
-    """Generate a Xaman deep-link payload URL."""
-    import base64
-    payload_b64 = base64.urlsafe_b64encode(json.dumps(tx_json).encode()).decode()
-    return f"https://xumm.app/detect/request?payload={payload_b64}"
+# --- (removed dead tool_xaman_url — see build-payment for the honest sign message) ---
 
 # --- Main Dispatch ---
 def main():
@@ -740,7 +735,7 @@ def tool_build_escrow_create(frm: str, to: str, amount: str, condition: str = No
     if finish_after:
         kwargs["finish_after"] = int(finish_after)
     tx = EscrowCreate(**kwargs)
-    print("# EscrowCreate TX JSON — sign with Xaman/Joey")
+    print("# EscrowCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 12: Escrow Finish ---
@@ -752,13 +747,13 @@ def tool_build_escrow_finish(frm: str, owner: str, offer_sequence: str,
     if fulfillment:
         kwargs["fulfillment"] = fulfillment
     tx = EscrowFinish(**kwargs)
-    print("# EscrowFinish TX JSON — sign with Xaman/Joey")
+    print("# EscrowFinish TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 13: Escrow Cancel ---
 def tool_build_escrow_cancel(frm: str, owner: str, offer_sequence: str):
     tx = EscrowCancel(account=frm, owner=owner, offer_sequence=int(offer_sequence))
-    print("# EscrowCancel TX JSON — sign with Xaman/Joey")
+    print("# EscrowCancel TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 14: Check Create ---
@@ -775,7 +770,7 @@ def tool_build_check_create(frm: str, to: str, amount: str, invoice_id: str = No
     if expiry:
         kwargs["expiration"] = int(expiry)
     tx = CheckCreate(**kwargs)
-    print("# CheckCreate TX JSON — sign with Xaman/Joey")
+    print("# CheckCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 15: Check Cash ---
@@ -790,13 +785,13 @@ def tool_build_check_cash(frm: str, check_id: str, amount: str = None,
     if deliver_min:
         kwargs["deliver_min"] = deliver_min
     tx = CheckCash(**kwargs)
-    print("# CheckCash TX JSON — sign with Xaman/Joey")
+    print("# CheckCash TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 16: Check Cancel ---
 def tool_build_check_cancel(frm: str, check_id: str):
     tx = CheckCancel(account=frm, check_id=check_id)
-    print("# CheckCancel TX JSON — sign with Xaman/Joey")
+    print("# CheckCancel TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 17: Payment Channel Create ---
@@ -812,13 +807,13 @@ def tool_build_paychannel_create(frm: str, to: str, amount: str, settle_delay: s
     if cancel_after:
         kwargs["cancel_after"] = int(cancel_after)
     tx = PaymentChannelCreate(**kwargs)
-    print("# PaymentChannelCreate TX JSON — sign with Xaman/Joey")
+    print("# PaymentChannelCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 18: Payment Channel Fund ---
 def tool_build_paychannel_fund(frm: str, channel_id: str, amount: str):
     tx = PaymentChannelFund(account=frm, channel=channel_id, amount=amount)
-    print("# PaymentChannelFund TX JSON — sign with Xaman/Joey")
+    print("# PaymentChannelFund TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 19: Payment Channel Claim ---
@@ -832,7 +827,7 @@ def tool_build_paychannel_claim(frm: str, channel_id: str, amount: str = None,
     if public_key:
         kwargs["public_key"] = public_key
     tx = PaymentChannelClaim(**kwargs)
-    print("# PaymentChannelClaim TX JSON — sign with Xaman/Joey")
+    print("# PaymentChannelClaim TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 20: Set Regular Key ---
@@ -841,13 +836,13 @@ def tool_build_set_regular_key(frm: str, regular_key: str = None):
     if regular_key:
         kwargs["regular_key"] = regular_key
     tx = SetRegularKey(**kwargs)
-    print("# SetRegularKey TX JSON — sign with Xaman/Joey")
+    print("# SetRegularKey TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 21: Account Delete ---
 def tool_build_account_delete(frm: str, to: str):
     tx = AccountDelete(account=frm, destination=to)
-    print("# AccountDelete TX JSON — sign with Xaman/Joey")
+    print("# AccountDelete TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 22: Deposit Preauth ---
@@ -861,7 +856,7 @@ def tool_build_deposit_preauth(frm: str, authorize: str = None, unauthorize: str
     if unauthorize:
         kwargs["unauthorize"] = unauthorize
     tx = DepositPreauth(**kwargs)
-    print("# DepositPreauth TX JSON — sign with Xaman/Joey")
+    print("# DepositPreauth TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 # --- TOOL 23: Account Objects ---
@@ -916,7 +911,7 @@ def tool_build_clawback(frm: str, destination: str, currency: str,
         from xrpl.models.transactions.transaction import Memo
         kwargs["memos"] = [Memo(memo_data=memo_hex)]
     tx = Clawback(**kwargs)
-    print("# Clawback TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# Clawback TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -937,7 +932,7 @@ def tool_build_amm_deposit(frm: str, asset1: str, asset2: str,
         if len(parts) == 3:
             kwargs["lp_token_out"] = IssuedCurrencyAmount(currency=parts[0], issuer=parts[1], value=parts[2])
     tx = AMMDeposit(**kwargs)
-    print("# AMMDeposit TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# AMMDeposit TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -961,7 +956,7 @@ def tool_build_amm_withdraw(frm: str, asset1: str, asset2: str,
         if len(parts) == 3:
             kwargs["lp_token_in"] = IssuedCurrencyAmount(currency=parts[0], issuer=parts[1], value=parts[2])
     tx = AMMWithdraw(**kwargs)
-    print("# AMMWithdraw TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# AMMWithdraw TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -974,7 +969,7 @@ def tool_build_amm_vote(frm: str, asset1: str, asset2: str, trading_fee: str):
         asset2=_parse_asset(asset2),
         trading_fee=int(trading_fee),
     )
-    print("# AMMVote TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# AMMVote TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -995,7 +990,7 @@ def tool_build_amm_bid(frm: str, asset1: str, asset2: str,
     if auth_accounts:
         kwargs["auth_accounts"] = [{"account": a.strip()} for a in auth_accounts.split(",") if a.strip()]
     tx = AMMBid(**kwargs)
-    print("# AMMBid TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# AMMBid TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1013,7 +1008,7 @@ def tool_build_signer_list_set(frm: str, quorum: str, signers: str = None):
     if signer_entries:
         kwargs["signer_entries"] = signer_entries
     tx = SignerListSet(**kwargs)
-    print("# SignerListSet TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# SignerListSet TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1037,7 +1032,7 @@ def tool_build_mpt_issuance_create(frm: str, asset_scale: str = None,
     if flags is not None:
         kwargs["flags"] = int(flags, 16) if str(flags).startswith("0x") else int(flags)
     tx = MPTokenIssuanceCreate(**kwargs)
-    print("# MPTokenIssuanceCreate TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# MPTokenIssuanceCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1051,7 +1046,7 @@ def tool_build_mpt_authorize(frm: str, mpt_issuance_id: str, holder: str = None,
     if flags is not None:
         kwargs["flags"] = int(flags)
     tx = MPTokenAuthorize(**kwargs)
-    print("# MPTokenAuthorize TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# MPTokenAuthorize TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1088,7 +1083,7 @@ def tool_build_set_oracle(frm: str, oracle_doc_id: str, provider: str,
     if uri:
         kwargs["uri"] = uri
     tx = OracleSet(**kwargs)
-    print("# OracleSet TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# OracleSet TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1102,7 +1097,7 @@ def tool_build_credential_create(frm: str, subject: str, credential_type: str,
     if expiration:
         kwargs["expiration"] = int(expiration)
     tx = CredentialCreate(**kwargs)
-    print("# CredentialCreate TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# CredentialCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1110,7 +1105,7 @@ def tool_build_credential_create(frm: str, subject: str, credential_type: str,
 def tool_build_credential_accept(frm: str, issuer: str, credential_type: str):
     """Build CredentialAccept. Subject accepts a credential issued to them."""
     tx = CredentialAccept(account=frm, issuer=issuer, credential_type=credential_type)
-    print("# CredentialAccept TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# CredentialAccept TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1124,7 +1119,7 @@ def tool_build_credential_delete(frm: str, credential_type: str,
     if issuer:
         kwargs["issuer"] = issuer
     tx = CredentialDelete(**kwargs)
-    print("# CredentialDelete TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# CredentialDelete TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1157,7 +1152,7 @@ def tool_build_cross_currency_payment(frm: str, to: str, deliver: str, send_max:
     if dest_tag:
         kwargs["destination_tag"] = int(dest_tag)
     tx = Payment(**kwargs)
-    print("# Cross-Currency Payment TX JSON — sign with Xaman/Crossmark/xrpl-py")
+    print("# Cross-Currency Payment TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
 
@@ -1275,7 +1270,7 @@ def tool_build_batch(frm: str, inner_txs: str, flags: str = None):
     if flags is not None:
         kwargs["flags"] = int(flags)
     tx = Batch(**kwargs)
-    print("# Batch TX JSON — sign with Xaman/Crossmark/xrpl-py (each inner tx must be signed separately)")
+    print("# Batch TX JSON — signer-ready JSON — paste into Xaman Developer tab (each inner tx must be signed separately)")
     json_tx_out(tx)
 
 

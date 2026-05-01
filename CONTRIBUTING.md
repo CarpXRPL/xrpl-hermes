@@ -9,14 +9,14 @@ Thanks for helping build the definitive XRPL knowledge base. ☤
 New files go in `knowledge/` with the next available number:
 
 ```
-knowledge/56-xrpl-your-topic.md
+knowledge/60-xrpl-your-topic.md
 ```
 
 File format: standard markdown with a `# Title` header and practical Python/Solidity code examples. Use real public endpoints (xrplcluster.com, xrpl.to). Keep internal API keys out.
 
 ### 2. Improve Tools
 
-The CLI tools live in `scripts/xrpl_tools.py`. Each tool is a function registered in the TOOLS dict. Add new tools following the existing pattern.
+The CLI tools live in `scripts/xrpl_tools.py`. Each tool is a function registered in the dispatcher dict. Add new tools following the existing pattern.
 
 ### 3. Fix a Bug or Docs Error
 

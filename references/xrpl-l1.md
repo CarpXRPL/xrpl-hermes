@@ -199,7 +199,7 @@ Allows token issuers to claw back tokens from holders. Requires:
 }
 ```
 
-### MPTokens (XLS-70)
+### MPTokens (XLS-33)
 Multi-Purpose Tokens — next-gen token standard replacing IOUs:
 - Single issuer, single currency
 - Configurable: transfer fees, locking, freezing, authorization
@@ -237,7 +237,7 @@ Multi-hop payments through multiple issuers and currencies. Server computes `pat
    - XLS-20 (NFTs) — enabled
    - XLS-30 (AMM) — enabled  
    - XLS-39 (Clawback) — enabled
-   - XLS-70 (MPTs) — in progress
+   - XLS-33 (MPTs) — in progress
    - XLS-??? (Hooks on mainnet) — proposed
 
 ## Public API Endpoints

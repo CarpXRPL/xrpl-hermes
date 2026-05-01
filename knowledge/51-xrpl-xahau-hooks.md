@@ -690,7 +690,8 @@ async def get_xahau_server_info() -> dict:
 
 ### Overview
 
-**URITokens** are a Xahau-native NFT-like primitive that links an on-chain token to an off-chain resource via a URI. Unlike XRPL mainnet NFTs (XLS-20), URITokens are first-class ledger objects — they are simpler, cheaper, and directly integrated with the Hooks execution model.
+URITokens are a Xahau-native NFT-like primitive that links an on-chain token to an off-chain resource via a URI. Unlike XRPL mainnet NFTs (XLS-20), URITokens are first-class ledger objects — they are simpler, cheaper, and directly integrated with the Hooks execution model.
+> **Note:** URITokens use XLS-70 on Xahau. This is a different XLS-70 than XRPL Credentials (also XLS-70). They share a number by coincidence across two ecosystems.
 
 **Key differences vs. XLS-20 NFTs:**
 - No broker-mediated transfers — direct peer-to-peer

@@ -242,7 +242,7 @@ claw = Clawback(
 
 ---
 
-## XLS-70: Multi-Purpose Tokens (MPTs)
+## XLS-33: Multi-Purpose Tokens (MPTs)
 
 **Status:** Enabled Dec 2024  
 **Amendment ID:** `67E4BD1C87F5FE4D32D15C0A98C01B22ABABDE3A1C37D9A7CEA0EF3D4A99D2E5`

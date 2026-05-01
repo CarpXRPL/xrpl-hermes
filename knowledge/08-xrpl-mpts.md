@@ -227,7 +227,7 @@ For projects currently using trust lines and considering MPTokens:
 
 ## Development Status
 
-As XLS-70 is still in draft/specification phase:
+As the MPTokensV1 amendment is pending activation:
 
 1. **Follow development**: Watch the XRPL spec repo for updates
 2. **Testnet testing**: When available, experiment on testnet
@@ -236,6 +236,6 @@ As XLS-70 is still in draft/specification phase:
 
 ## Resources
 
-- [XLS-70 Specification](https://github.com/XRPLF/XRPL-Standards/discussions/70)
+- [XLS-33 Specification (originally XLS-70)](https://github.com/XRPLF/XRPL-Standards/discussions/70)
 - [xrpl.org MPToken Docs](https://xrpl.org/docs/concepts/tokens/mptokens)
 - XRPL Dev Blog for amendment status updates

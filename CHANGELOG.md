@@ -1,5 +1,35 @@
 # Changelog
 
+## v1.3.1 — Critical Bugfix Pass (2026-04-30)
+
+### 🐛 Crash Fixes
+- `build-batch`: Now wraps inner dicts in proper Transaction models + validates 2-8 inner txs
+- `build-clawback --memo`: Fixed `MemoWrapper` ImportError — uses `Memo` directly
+- `build-mpt-issuance-create --transfer-fee`: Auto-sets `tfMPTCanTransfer` flag
+- `hooks-bitmask`: Disabled with warning (was using fictional event names, wrong spec)
+- Dead Xaman URL removed from `build-payment` — replaced with honest manual-sign instructions
+
+### 🧹 Docs & Knowledge
+- `knowledge/07-xrpl-clawback.md`: `SetFlag` 14→16 (`asfAllowTrustLineClawback`), removed "no partial clawback" lie
+- `knowledge/08-xrpl-mpts.md`: XLS-70→XLS-33 throughout
+- `knowledge/36-xrpl-xls-standards.md`: XLS-70→XLS-33 for MPT section
+- `knowledge/37-xrpl-amendments.md`: XLS-33 for MPT, XLS-70 for Credentials, Batch (not Auth Framework)
+- `knowledge/38-xrpl-minting-ops.md`: XLS-70→XLS-33 for MPT table
+- `references/xrpl-l1.md`: XLS-70→XLS-33 for MPT references
+- `QUICKSTART.md`: Fixed git clone URL (was 404), fixed `server-info` output format
+- `STANDALONE.md`: Fixed token payment example, removed dead `xaman-url` section
+- `CONTRIBUTING.md`: Updated file numbering, TOOLS→dispatcher
+- `.env.example`: Cleaned up — only includes vars the code actually reads
+
+### ✅ Infrastructure
+- Lazy network client — module loads instantly, build commands work offline
+- `nft-info`: Fixed `PUBLIC_ENDPOINTS`→`ENDPOINTS` (undefined variable crash)
+- `evm-balance` docs: rADDR→0xADDRESS
+- `evm-bridge`: Per-network Chain IDs + error handling
+- SKILL.md tool table regenerated from real dispatcher (48 tools)
+
+---
+
 ## v1.3 — Audit Fixes (2026-04-30)
 
 ### ✅ Accuracy

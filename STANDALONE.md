@@ -19,7 +19,7 @@ Sample output:
 ```
 Account: rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
 Balance: 25.123456 XRP  |  Seq: 4821
-Reserve: 10.000000 XRP base + 2.000000 XRP/object (5 objects = 20.00 XRP locked)
+Reserve: 1.000000 XRP base + 0.200000 XRP/object (5 objects = 2.00 XRP locked)
 ```
 
 ---
@@ -427,21 +427,6 @@ Fetch current FTSOv2 price for one or more symbols.
 
 ```bash
 python3 scripts/xrpl_tools.py flare-price XRP FLR BTC ETH
-```
-
----
-
-## Utilities
-
-### `xaman-url`
-Generate a Xaman deep-link sign URL from a TX JSON blob.
-
-```bash
-echo '{"TransactionType":"Payment",...}' | python3 -c "
-import sys, json
-from scripts.xrpl_tools import tool_xaman_url
-print(tool_xaman_url(json.load(sys.stdin)))
-"
 ```
 
 ---
