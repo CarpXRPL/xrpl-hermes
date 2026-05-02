@@ -16,13 +16,19 @@ python3 scripts/xrpl_tools.py balance rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
 ```
 
 Sample output:
-```
-Address:     rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
-Balance:     25.123456 XRP
-Reserve:     2.00 XRP (5 objects)
-Spendable:   23.123456 XRP
-Sequence:    4821
-Flags:       0 (none)
+```json
+{
+  "Account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
+  "BalanceDrops": "25123456",
+  "BalanceXRP": "25.123456",
+  "ReserveXRP": "2.0",
+  "OwnerCount": 5,
+  "SpendableXRP": "23.123456",
+  "Sequence": 4821,
+  "Domain": null,
+  "Flags": 0,
+  "FlagDescriptions": []
+}
 ```
 
 ---
@@ -591,7 +597,7 @@ isn't misled into shipping a broken hook config. Do not rely on it. See
 
 ```bash
 python3 scripts/xrpl_tools.py hooks-bitmask Payment OfferCreate
-# prints a warning; produces no usable bitmask
+# emits JSON warning; produces no usable bitmask
 ```
 
 ---

@@ -75,53 +75,53 @@ The `scripts/xrpl_tools.py` provides these XRPL-native commands through `termina
 | # | Tool | Command | Purpose |
 |---|------|---------|---------|
 | 1 | Account Info | `account rADDR` | Full account details, balance, flags, sequence |
-| 2 | Trustlines | `trustlines rADDR [CURRENCY]` | List all trustlines for an account |
-| 3 | Account Objects | `account_objects rADDR [type]` | All ledger objects (offers, checks, escrows) |
-| 4 | Build Payment | `build-payment --from rSRC --to rDST --amount DROPS [--cur CUR --iss rISS]` | XRP/token payment JSON |
-| 5 | Build TrustSet | `build-trustset --from rADDR --currency CUR --issuer rISS --value AMT` | Trust line setup JSON |
-| 6 | Build Offer | `build-offer --from rADDR --sell XRP:AMT --buy CUR:rISS:AMT` | DEX order JSON |
-| 7 | Build NFT Mint | `build-nft-mint --from rADDR --taxon N --uri URI` | NFT mint JSON |
-| 8 | Build AMM Create | `build-amm-create --from rADDR --amount1 XRP:DROPS --amount2 CUR:rISS:AMT --fee N` | AMM pool creation |
-| 9 | Build Escrow Create | `build-escrow-create --from rADDR --to rDST --amount DROPS` | Time/condition escrow JSON |
-| 10 | Build Escrow Finish | `build-escrow-finish --from rADDR --owner rOWN --offer-sequence N` | Release escrow |
-| 11 | Build Escrow Cancel | `build-escrow-cancel --from rADDR --owner rOWN --offer-sequence N` | Cancel expired escrow |
-| 12 | Build Check Create | `build-check-create --from rADDR --to rDST --amount DROPS` | Deferred payment check JSON |
-| 13 | Build Check Cash | `build-check-cash --from rADDR --check-id HEX --amount DROPS` | Cash a check |
-| 14 | Build Check Cancel | `build-check-cancel --from rADDR --check-id HEX` | Cancel a check |
-| 15 | Build PayChannel Create | `build-paychannel-create --from rADDR --to rDST --amount DROPS --settle-delay N --public-key HEX` | Payment channel JSON |
-| 16 | Build PayChannel Fund | `build-paychannel-fund --from rADDR --channel-id HEX --amount DROPS` | Fund existing channel |
-| 17 | Build PayChannel Claim | `build-paychannel-claim --from rADDR --channel-id HEX [--amount DROPS] [--balance DROPS]` | Claim from channel |
-| 18 | Build Set Regular Key | `build-set-regular-key --from rADDR [--regular-key rADDR]` | Set/clear regular key |
-| 19 | Build Account Delete | `build-account-delete --from rADDR --to rDST` | Delete account + sweep XRP |
-| 20 | Build Deposit Preauth | `build-deposit-preauth --from rADDR --authorize rSENDER` | Deposit preauthorization |
-| 21 | Build Signer List Set | `build-signer-list-set --from rADDR --quorum N --signers rA:W,rB:W` | Multisig signer list |
-| 22 | Build MPT Issuance | `build-mpt-issuance-create --from rADDR [--maximum-amount N] [--transfer-fee BPS]` | MPT issuance (XLS-33) |
-| 23 | Build MPT Authorize | `build-mpt-authorize --from rADDR --mpt-issuance-id HEX [--holder rADDR]` | Authorize MPT holder |
-| 24 | Build Oracle Set | `build-set-oracle --from rADDR --oracle-doc-id N --provider HEX --asset-class HEX --last-update-time EPOCH` | Price oracle (XLS-47) |
-| 25 | Build Credential Create | `build-credential-create --from rISS --subject rHOLDER --credential-type HEX` | DID credential (XLS-70) |
-| 26 | Build Credential Accept | `build-credential-accept --from rHOLDER --issuer rISS --credential-type HEX` | Accept credential |
-| 27 | Build Credential Delete | `build-credential-delete --from rADDR --credential-type HEX` | Delete credential |
-| 28 | Build Clawback | `build-clawback --from rISS --destination rHOLDER --currency CUR --amount VAL` | Regulatory token clawback |
-| 29 | Build Cross-Currency Payment | `build-cross-currency-payment --from rSRC --to rDST --deliver CUR:rISS:VAL --send-max XRP:DROPS` | Path-finding payment |
-| 30 | Build AMM Deposit | `build-amm-deposit --from rADDR --asset1 XRP --asset2 CUR:rISS [--amount1 XRP:DROPS]` | Add AMM liquidity |
-| 31 | Build AMM Withdraw | `build-amm-withdraw --from rADDR --asset1 XRP --asset2 CUR:rISS [--amount1 XRP:DROPS]` | Remove AMM liquidity |
-| 32 | Build AMM Vote | `build-amm-vote --from rADDR --asset1 XRP --asset2 CUR:rISS --trading-fee N` | Vote on AMM fee |
-| 33 | Build AMM Bid | `build-amm-bid --from rADDR --asset1 XRP --asset2 CUR:rISS [--bid-min LPT:rPOOL:AMT]` | Bid for AMM auction slot |
-| 34 | Build Batch | `build-batch --from rADDR --inner-txs '[{...},{...}]'` | Batch TX (XLS-56) |
-| 35 | Decode TX | `decode TX_BLOB` | Decode signed transaction blob |
-| 36 | TX Lookup | `tx-info TX_HASH` | Fetch transaction by hash |
-| 37 | Ledger Info | `ledger [INDEX]` | Latest/specific validated ledger |
-| 38 | Server Info | `server-info` | Node version, load, fees |
-| 39 | NFT Info | `nft-info NFT_ID` | NFT metadata lookup |
-| 40 | Book Offers | `book-offers TAKER_GETS TAKER_PAYS` | Live DEX orderbook |
-| 41 | Path Find | `path-find rSENDER rDEST AMOUNT CUR:ISSUER` | Cross-currency paths |
-| 42 | EVM Balance | `evm-balance 0xADDR [mainnet|testnet]` | XRP balance on EVM sidechain |
-| 43 | EVM Contract | `evm-contract --from 0xADDR --bytecode HEX` | Contract deployment JSON |
-| 44 | EVM Bridge | `evm-bridge [mainnet|testnet]` | Sidechain bridge status |
-| 45 | Hooks Bitmask | `hooks-bitmask HOOK [HOOK ...]` | ⚠️ BROKEN — see warning in tool |
-| 46 | Hooks Info | `hooks-info rADDRESS` | Installed hooks on Xahau account |
-| 47 | Flare Price | `flare-price SYMBOL [SYMBOL ...]` | Live price feeds |
-| 48 | Balance | `balance rADDR` | Account balance alias |
+| 2 | Balance | `balance rADDR` | Account balance alias |
+| 3 | Trustlines | `trustlines rADDR [CURRENCY]` | List all trustlines for an account |
+| 4 | Account Objects | `account_objects rADDR [type]` | All ledger objects (offers, checks, escrows) |
+| 5 | Build Payment | `build-payment --from rSRC --to rDST --amount DROPS [--cur CUR --iss rISS]` | XRP/token payment JSON |
+| 6 | Build TrustSet | `build-trustset --from rADDR --currency CUR --issuer rISS --value AMT` | Trust line setup JSON |
+| 7 | Build Offer | `build-offer --from rADDR --sell XRP:AMT --buy CUR:rISS:AMT` | DEX order JSON |
+| 8 | Build NFT Mint | `build-nft-mint --from rADDR --taxon N --uri URI` | NFT mint JSON |
+| 9 | Build AMM Create | `build-amm-create --from rADDR --amount1 XRP:DROPS --amount2 CUR:rISS:AMT --fee N` | AMM pool creation |
+| 10 | Build Escrow Create | `build-escrow-create --from rADDR --to rDST --amount DROPS` | Time/condition escrow JSON |
+| 11 | Build Escrow Finish | `build-escrow-finish --from rADDR --owner rOWN --offer-sequence N` | Release escrow |
+| 12 | Build Escrow Cancel | `build-escrow-cancel --from rADDR --owner rOWN --offer-sequence N` | Cancel expired escrow |
+| 13 | Build Check Create | `build-check-create --from rADDR --to rDST --amount DROPS` | Deferred payment check JSON |
+| 14 | Build Check Cash | `build-check-cash --from rADDR --check-id HEX --amount DROPS` | Cash a check |
+| 15 | Build Check Cancel | `build-check-cancel --from rADDR --check-id HEX` | Cancel a check |
+| 16 | Build PayChannel Create | `build-paychannel-create --from rADDR --to rDST --amount DROPS --settle-delay N --public-key HEX` | Payment channel JSON |
+| 17 | Build PayChannel Fund | `build-paychannel-fund --from rADDR --channel-id HEX --amount DROPS` | Fund existing channel |
+| 18 | Build PayChannel Claim | `build-paychannel-claim --from rADDR --channel-id HEX [--amount DROPS] [--balance DROPS]` | Claim from channel |
+| 19 | Build Set Regular Key | `build-set-regular-key --from rADDR [--regular-key rADDR]` | Set/clear regular key |
+| 20 | Build Account Delete | `build-account-delete --from rADDR --to rDST` | Delete account + sweep XRP |
+| 21 | Build Deposit Preauth | `build-deposit-preauth --from rADDR --authorize rSENDER` | Deposit preauthorization |
+| 22 | Decode TX | `decode TX_BLOB` | Decode signed transaction blob |
+| 23 | TX Lookup | `tx-info TX_HASH` | Fetch transaction by hash |
+| 24 | Ledger Info | `ledger [INDEX]` | Latest/specific validated ledger |
+| 25 | Server Info | `server-info` | Node version, load, fees |
+| 26 | NFT Info | `nft-info NFT_ID` | NFT metadata lookup |
+| 27 | Book Offers | `book-offers TAKER_GETS TAKER_PAYS` | Live DEX orderbook |
+| 28 | Path Find | `path-find rSENDER rDEST AMOUNT CUR:ISSUER` | Cross-currency paths |
+| 29 | EVM Balance | `evm-balance 0xADDR [mainnet|testnet]` | XRP balance on EVM sidechain |
+| 30 | EVM Contract | `evm-contract --from 0xADDR --bytecode HEX` | Contract deployment JSON |
+| 31 | EVM Bridge | `evm-bridge [mainnet|testnet]` | Sidechain bridge status |
+| 32 | Hooks Bitmask | `hooks-bitmask HOOK [HOOK ...]` | Disabled; emits JSON warning |
+| 33 | Hooks Info | `hooks-info rADDRESS` | Installed hooks on Xahau account |
+| 34 | Flare Price | `flare-price SYMBOL [SYMBOL ...]` | Live price feeds |
+| 35 | Build Clawback | `build-clawback --from rISS --destination rHOLDER --currency CUR --amount VAL` | Regulatory token clawback |
+| 36 | Build AMM Deposit | `build-amm-deposit --from rADDR --asset1 XRP --asset2 CUR:rISS [--amount1 XRP:DROPS]` | Add AMM liquidity |
+| 37 | Build AMM Withdraw | `build-amm-withdraw --from rADDR --asset1 XRP --asset2 CUR:rISS [--amount1 XRP:DROPS]` | Remove AMM liquidity |
+| 38 | Build AMM Vote | `build-amm-vote --from rADDR --asset1 XRP --asset2 CUR:rISS --trading-fee N` | Vote on AMM fee |
+| 39 | Build AMM Bid | `build-amm-bid --from rADDR --asset1 XRP --asset2 CUR:rISS [--bid-min LPT:rPOOL:AMT]` | Bid for AMM auction slot |
+| 40 | Build Signer List Set | `build-signer-list-set --from rADDR --quorum N --signers rA:W,rB:W` | Multisig signer list |
+| 41 | Build MPT Issuance | `build-mpt-issuance-create --from rADDR [--maximum-amount N] [--transfer-fee BPS]` | MPT issuance (XLS-33) |
+| 42 | Build MPT Authorize | `build-mpt-authorize --from rADDR --mpt-issuance-id HEX [--holder rADDR]` | Authorize MPT holder |
+| 43 | Build Oracle Set | `build-set-oracle --from rADDR --oracle-doc-id N --provider HEX --asset-class HEX --last-update-time EPOCH` | Price oracle (XLS-47) |
+| 44 | Build Credential Create | `build-credential-create --from rISS --subject rHOLDER --credential-type HEX` | DID credential (XLS-70) |
+| 45 | Build Credential Accept | `build-credential-accept --from rHOLDER --issuer rISS --credential-type HEX` | Accept credential |
+| 46 | Build Credential Delete | `build-credential-delete --from rADDR --credential-type HEX` | Delete credential |
+| 47 | Build Cross-Currency Payment | `build-cross-currency-payment --from rSRC --to rDST --deliver CUR:rISS:VAL --send-max XRP:DROPS` | Path-finding payment |
+| 48 | Build Batch | `build-batch --from rADDR --inner-txs '[{...},{...}]'` | Batch TX (XLS-56) |
 
 **Preference:** Use CLI tools for transactions. Build it → output JSON + Xaman URL → explain risks and next steps.
 

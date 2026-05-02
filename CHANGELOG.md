@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.3.6 — Continuation Dev-Test Audit (2026-05-02)
+
+### Crash / JSON Fixes
+- `scripts/xrpl_tools.py`: Query tools now emit valid JSON on stdout instead
+  of human-formatted text. Covered `account`, `balance`, `trustlines`,
+  `account_objects`, `decode`, `tx-info`, `ledger`, `server-info`,
+  `nft-info`, `book-offers`, `path-find`, `evm-balance`, `evm-bridge`,
+  `hooks-bitmask`, `hooks-info`, and `flare-price`.
+- `scripts/xrpl_tools.py`: AMM asset parsing now accepts amount-shaped asset
+  examples such as `--asset1 XRP:1000000` and `--asset2 USD:rISS:100` by
+  stripping values when building `Asset` / `Asset2`.
+- `scripts/xrpl_tools.py`: `evm-bridge` now verifies `eth_chainId` live and
+  includes both configured and observed chain IDs in JSON output.
+
+### Docs / Verification
+- `STANDALONE.md`: Updated account sample output and `hooks-bitmask` wording to
+  match JSON output.
+- `SKILL.md`: Reordered the 48-tool table to match the dispatcher exactly.
+- Verified README counts against the repo: 59 knowledge files and 48 CLI tools.
+- Verified XRPL EVM RPC requires `Content-Type: application/json`; with the
+  header, `eth_chainId` reports `0x15f900` (`1440000`).
+
+---
+
 ## v1.3.4 — Pre-Release Audit Round 2 (2026-05-02)
 
 ### 🐛 Crash Fixes

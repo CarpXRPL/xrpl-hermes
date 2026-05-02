@@ -218,17 +218,17 @@ def parse_amount_arg(arg: str):
     return arg
 
 def _parse_asset(arg: str):
-    """Parse 'XRP' or 'CUR:ISSUER' into XRPCurrency or IssuedCurrency."""
+    """Parse 'XRP', 'XRP:DROPS', 'CUR:ISSUER', or 'CUR:ISSUER:VALUE' as an AMM asset."""
     if _is_numeric_text(arg):
         return XRPCurrency()
     slash = _parse_value_slash_asset(arg)
     if slash:
         currency, issuer, _value = slash
         return IssuedCurrency(currency=currency.upper(), issuer=issuer)
-    parts = arg.split(":", 1)
-    if parts[0].upper() == "XRP" and len(parts) == 1:
+    parts = arg.split(":", 2)
+    if parts[0].upper() == "XRP":
         return XRPCurrency()
-    if len(parts) == 2:
+    if len(parts) >= 2:
         return IssuedCurrency(currency=parts[0].upper(), issuer=parts[1])
     raise ValueError(f"Invalid asset '{arg}'. Use 'XRP' or 'CUR:ISSUER'")
 
@@ -249,7 +249,7 @@ def tool_account(address: str):
     try:
         resp = _request(AccountInfo(account=address, ledger_index="validated"))
     except Exception as e:
-        print(f"Error fetching account {address}: {e}")
+        json_out({"Error": "AccountInfoError", "Message": str(e), "Account": address})
         return
     data = resp.result.get("account_data", {})
     bal = int(data.get("Balance", 0))
@@ -274,14 +274,18 @@ def tool_account(address: str):
     if flags & 0x00040000: flag_descriptions.append("lsfRequireAuth")
     if flags & 0x00020000: flag_descriptions.append("lsfRequireDestTag")
     if flags & 0x80000000: flag_descriptions.append("lsfAllowTrustLineClawback")
-    print(f"{'Address:':12s} {address}")
-    print(f"{'Balance:':12s} {fmt_xrp(bal)}")
-    print(f"{'Reserve:':12s} {reserved:.2f} XRP ({owner} objects)")
-    print(f"{'Spendable:':12s} {spendable:.6f} XRP")
-    print(f"{'Sequence:':12s} {seq}")
-    if domain:
-        print(f"{'Domain:':12s} {domain}")
-    print(f"{'Flags:':12s} {flags} ({', '.join(flag_descriptions) if flag_descriptions else 'none'})")
+    json_out({
+        "Account": address,
+        "BalanceDrops": str(bal),
+        "BalanceXRP": str(drops_to_xrp(str(bal))),
+        "ReserveXRP": str(reserved),
+        "OwnerCount": owner,
+        "SpendableXRP": str(spendable),
+        "Sequence": seq,
+        "Domain": domain or None,
+        "Flags": flags,
+        "FlagDescriptions": flag_descriptions,
+    })
 
 # --- TOOL 2: Trustlines ---
 def tool_trustlines(address: str, currency: Optional[str] = None):
@@ -291,7 +295,7 @@ def tool_trustlines(address: str, currency: Optional[str] = None):
         try:
             resp = _request(AccountLines(account=address, ledger_index="validated", marker=marker))
         except Exception as e:
-            print(f"Error fetching trust lines for {address}: {e}")
+            json_out({"Error": "AccountLinesError", "Message": str(e), "Account": address})
             return
         data = resp.result
         all_lines.extend(data.get("lines", []))
@@ -301,20 +305,15 @@ def tool_trustlines(address: str, currency: Optional[str] = None):
     if currency:
         filtered = [l for l in all_lines if l.get("currency", "").upper() == currency.upper()]
         if not filtered:
-            print(f"No trust lines for {currency.upper()}.")
+            json_out({"Account": address, "Currency": currency.upper(), "TrustLines": []})
             return
         all_lines = filtered
-    if not all_lines:
-        print("No trust lines found.")
-        return
-    for l in all_lines:
-        cur = l.get("currency", "??")
-        iss = l.get("account", "??")
-        bal = float(l.get("balance", 0))
-        lim = float(l.get("limit", 0))
-        rippling = not l.get("no_ripple", False)
-        frozen = l.get("freeze", False)
-        print(f"{cur:20s} {bal:>20,.6f}  / limit {lim:,.0f}  ({short(iss)}){' 🔒' if frozen else ''}{' 🌊' if rippling else ''}")
+    json_out({
+        "Account": address,
+        "Currency": currency.upper() if currency else None,
+        "TrustLineCount": len(all_lines),
+        "TrustLines": all_lines,
+    })
 
 # --- TOOL 3: Transaction Building ---
 def tool_build_payment(frm: str, to: str, amount: str, cur: Optional[str] = None,
@@ -386,7 +385,6 @@ def tool_decode(blob: str):
     from xrpl.core.binarycodec import decode
     try:
         decoded = decode(blob)
-        print("# Decoded Transaction")
         json_out(decoded)
     except Exception as e:
         json_out({
@@ -400,7 +398,7 @@ def tool_tx_info(tx_hash: str):
     try:
         resp = _request(Tx(transaction=tx_hash))
     except Exception as e:
-        print(f"Error fetching transaction {tx_hash}: {e}")
+        json_out({"Error": "TxError", "Message": str(e), "Transaction": tx_hash})
         return
     data = resp.result
     tx_json = data.get("tx_json", data)
@@ -410,45 +408,54 @@ def tool_tx_info(tx_hash: str):
     dest = tx_json.get("Destination", "")
     fee = tx_json.get("Fee", "0")
     date_value = data.get("close_time_iso") or tx_json.get("date") or data.get("date")
-    print(f"Hash:     {tx_hash}")
-    print(f"Type:     {tx_type}")
-    print(f"Status:   {status}")
-    print(f"From:     {account}")
-    if dest:
-        print(f"To:       {dest}")
-    print(f"Fee:      {fmt_xrp(fee)}")
-    print(f"Ledger:   {data.get('ledger_index', '?')}")
-    print(f"Date:     {ripple_time_to_iso(date_value)}")
+    json_out({
+        "Hash": tx_hash,
+        "TransactionType": tx_type,
+        "Status": status,
+        "Account": account,
+        "Destination": dest or None,
+        "FeeDrops": fee,
+        "FeeXRP": str(drops_to_xrp(str(fee))),
+        "LedgerIndex": data.get("ledger_index"),
+        "Date": ripple_time_to_iso(date_value),
+        "Raw": data,
+    })
 
 # --- TOOL 6: Ledger Info ---
 def tool_ledger(index: Optional[int] = None):
     try:
         resp = _request(Ledger(ledger_index=index if index else "validated", transactions=False))
     except Exception as e:
-        print(f"Error fetching ledger: {e}")
+        json_out({"Error": "LedgerError", "Message": str(e), "LedgerIndex": index})
         return
     data = resp.result.get("ledger", {})
-    print(f"Ledger:        {data.get('ledger_index', '?')}")
-    print(f"Hash:          {data.get('ledger_hash', '?')}")
-    print(f"Close Time:    {data.get('close_time_human', '?')}")
-    print(f"Total XRP:     {drops_to_xrp(str(data.get('total_coins', '0'))):,.0f} XRP")
-    print(f"Tx Count:      {data.get('transaction_count', 0)}")
-    print(f"Close Flags:   {data.get('close_flags', 0)}")
+    json_out({
+        "LedgerIndex": data.get("ledger_index"),
+        "LedgerHash": data.get("ledger_hash"),
+        "CloseTimeHuman": data.get("close_time_human"),
+        "TotalCoinsDrops": data.get("total_coins"),
+        "TotalCoinsXRP": str(drops_to_xrp(str(data.get("total_coins", "0")))),
+        "TransactionCount": data.get("transaction_count", 0),
+        "CloseFlags": data.get("close_flags", 0),
+    })
 
 # --- TOOL 7: Server Info ---
 def tool_server_info():
     try:
         resp = _request(ServerInfo())
     except Exception as e:
-        print(f"Error fetching server info: {e}")
+        json_out({"Error": "ServerInfoError", "Message": str(e)})
         return
     info = resp.result.get("info", {})
-    print(f"Version:       {info.get('build_version', '?')}")
-    print(f"Uptime:        {info.get('uptime', 0)}s")
     validated = info.get("validated_ledger", {})
-    print(f"Ledgers:       {info.get('complete_ledgers', '?')}")
-    print(f"Last Ledger:   {validated.get('seq', '?')}")
-    print(f"State:         {info.get('server_state', '?')}")
+    json_out({
+        "BuildVersion": info.get("build_version"),
+        "Uptime": info.get("uptime", 0),
+        "CompleteLedgers": info.get("complete_ledgers"),
+        "ValidatedLedger": validated,
+        "ServerState": info.get("server_state"),
+        "Info": info,
+    })
 
 # --- TOOL 8: Book Offers ---
 def tool_book_offers(taker_gets: str, taker_pays: str):
@@ -497,13 +504,13 @@ def tool_book_offers(taker_gets: str, taker_pays: str):
         except Exception:
             continue
     offers = data.get("result", {}).get("offers", [])
-    print(f"Orderbook: {taker_gets} / {taker_pays} — {len(offers)} offers")
-    for o in offers[:10]:
-        qual = o.get("quality", "?")
-        pays = o.get("TakerPays", {})
-        gets = o.get("TakerGets", {})
-        acct = o.get("Account", "?")
-        print(f"  Quality: {qual}  ({short(acct)})")
+    json_out({
+        "TakerGets": taker_gets,
+        "TakerPays": taker_pays,
+        "OfferCount": len(offers),
+        "Offers": offers[:10],
+        "Raw": data.get("result", data),
+    })
 
 # --- TOOL 9: Path Find ---
 def tool_path_find(src: str, dest: str, amount: str, cur: str, iss: Optional[str] = None):
@@ -512,12 +519,15 @@ def tool_path_find(src: str, dest: str, amount: str, cur: str, iss: Optional[str
         resp = _request(RipplePathFind(source_account=src, destination_account=dest,
                                        destination_amount=dest_amt))
         alts = resp.result.get("alternatives", [])
-        print(f"Found {len(alts)} paths")
-        for a in alts[:5]:
-            src_amt = a.get("source_amount", {})
-            print(f"  Source: {src_amt}")
+        json_out({
+            "SourceAccount": src,
+            "DestinationAccount": dest,
+            "DestinationAmount": dest_amt,
+            "PathCount": len(alts),
+            "Alternatives": alts,
+        })
     except Exception as e:
-        print(f"Path find error: {e}")
+        json_out({"Error": "PathFindError", "Message": str(e)})
 
 # --- (removed dead tool_xaman_url — see build-payment for the honest sign message) ---
 
@@ -649,11 +659,14 @@ def tool_nft_info(nft_id: str):
             continue
         break
     else:
-        print(f"Error fetching NFT {nft_id}: {last_error}")
+        json_out({"Error": "NFTInfoError", "Message": str(last_error), "NFTokenID": nft_id})
         return
     if result.get("error"):
-        print(f"NFT not found or unavailable: {nft_id}")
-        print(f"Error: {result.get('error')} ({result.get('error_message', 'no message')})")
+        json_out({
+            "Error": result.get("error"),
+            "Message": result.get("error_message", "no message"),
+            "NFTokenID": nft_id,
+        })
         return
     json_out(result)
 
@@ -668,8 +681,14 @@ def tool_evm_balance(address: str, network: str = "mainnet"):
     data = resp.json()
     wei = int(data.get("result", "0x0"), 16)
     xrp = wei / 1e18
-    print(f"Address: {address}")
-    print(f"Balance: {xrp:.6f} XRP ({network})")
+    json_out({
+        "Address": address,
+        "Network": network,
+        "RPC": url,
+        "BalanceWei": str(wei),
+        "BalanceXRP": f"{xrp:.18f}".rstrip("0").rstrip(".") or "0",
+        "Raw": data,
+    })
 
 # --- TOOL 12: EVM Contract Deploy ---
 def tool_evm_contract(frm: str, bytecode: str, abi: str = None, value: str = "0", gas: str = "200000"):
@@ -694,17 +713,26 @@ def tool_evm_bridge(network: str = "mainnet"):
     url = rpc_urls.get(network, rpc_urls["mainnet"])
     cid = chain_ids.get(network, chain_ids["mainnet"])
     payload = {"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1}
+    chain_payload = {"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 1}
     try:
         resp = httpx.post(url, json=payload, timeout=10)
         data = resp.json()
         block = int(data.get("result", "0x0"), 16)
+        chain_resp = httpx.post(url, json=chain_payload, timeout=10).json()
+        observed_cid = int(chain_resp.get("result", "0x0"), 16)
     except Exception as e:
         block = "unknown"
-    print(f"XRPL EVM Sidechain ({network})")
-    print(f"Latest Block: {block}")
-    print(f"RPC: {url}")
-    print(f"Chain ID: {cid}")
-    print(f"Bridge: L1↔EVM federated bridge active")
+        chain_resp = {"error": str(e)}
+        observed_cid = None
+    json_out({
+        "Network": network,
+        "LatestBlock": block,
+        "RPC": url,
+        "ConfiguredChainID": cid,
+        "ObservedChainID": observed_cid,
+        "Bridge": "L1-EVM federated bridge active",
+        "RawChainID": chain_resp,
+    })
 
 # --- TOOL 14: Hooks Bitmask (BROKEN — Xahau HookOn uses tx-type ID bitmap, not named events)
 # This tool is placeholder. Real implementation requires the full Xahau HookOn bitmap spec from xrpld.
@@ -714,9 +742,12 @@ HOOK_BITS = {}  # Will be populated once real mapping is determined
 def tool_hooks_bitmask(*hook_names: str):
     """⚠️ Currently BROKEN — Xahau HookOn is a 256-bit bitmap indexed by tx-type ID, not named events.
     This tool produces incorrect values. Do not use for production hook deployments."""
-    print("# ⚠️ WARNING: hooks-bitmask is BROKEN — produces incorrect values for Xahau hooks.")
-    print("# Xahau HookOn uses a 256-bit bitmap indexed by transaction-type ID.")
-    print("# Remove this tool from your workflow until it is rewritten against the real spec.")
+    json_out({
+        "Error": "UnsupportedTool",
+        "Command": "hooks-bitmask",
+        "HookNames": list(hook_names),
+        "Message": "hooks-bitmask is disabled because Xahau HookOn uses a 256-bit bitmap indexed by transaction-type ID, not named events.",
+    })
 
 # --- TOOL 15: Hooks Account Info ---
 def tool_hooks_info(address: str):
@@ -726,21 +757,14 @@ def tool_hooks_info(address: str):
         resp = httpx.post("https://xahau.network", json=payload, timeout=15)
         data = resp.json()
         hooks = data.get("result", {}).get("account_objects", [])
-        if not hooks:
-            print(f"No hooks found on {address}")
-            return
-        print(f"Hooks installed on {address}: {len(hooks)}")
-        for i, h in enumerate(hooks, 1):
-            h_hash = h.get("HookHash", "?")
-            ns = h.get("HookNamespace", "")
-            params = h.get("HookParameters", [])
-            print(f"  {i}. Hash: {h_hash[:20]}...")
-            if ns: print(f"     Namespace: {ns[:20]}...")
-            for p in params[:3]:
-                pname = p.get("HookParameterName", "?")
-                print(f"     Param: {pname}")
+        json_out({
+            "Account": address,
+            "HookCount": len(hooks),
+            "Hooks": hooks,
+            "Raw": data.get("result", data),
+        })
     except Exception as e:
-        print(f"Error querying Xahau: {e}")
+        json_out({"Error": "HooksInfoError", "Message": str(e), "Account": address})
 
 # --- TOOL 16: Flare Price Feeds ---
 def tool_flare_price(*symbols: str):
@@ -761,12 +785,14 @@ def tool_flare_price(*symbols: str):
             break
         except Exception:
             continue
+    result = {}
     for sym in symbols:
         s = sym.upper()
         if s in feeds:
-            print(f"{s}: ${feeds[s]:.6f}")
+            result[s] = feeds[s]
         else:
-            print(f"{s}: not found")
+            result[s] = None
+    json_out({"Prices": result, "FeedCount": len(feeds)})
 
 # --- TOOL 17: Escrow Create ---
 def tool_build_escrow_create(frm: str, to: str, amount: str, condition: str = None,
@@ -918,13 +944,15 @@ def tool_account_objects(address: str, obj_type: str = None):
                 pass
         resp = _request(AccountObjects(**req_kwargs))
     except Exception as e:
-        print(f"Error fetching account objects for {address}: {e}")
+        json_out({"Error": "AccountObjectsError", "Message": str(e), "Account": address})
         return
     objects = resp.result.get("account_objects", [])
-    label = f" (type={obj_type})" if obj_type else ""
-    print(f"Account Objects for {address}: {len(objects)} found{label}")
-    for obj in objects:
-        json_out(obj)
+    json_out({
+        "Account": address,
+        "Type": obj_type,
+        "ObjectCount": len(objects),
+        "Objects": objects,
+    })
 
 # --- TOOL 35: Clawback ---
 def tool_build_clawback(frm: str, destination: str, currency: str,
