@@ -320,14 +320,14 @@ commit = XChainCommit(
 
 ---
 
-## XLS-40: Hooks (Smart Contracts)
+## Hooks (Smart Contracts — Xahau)
 
 **Status:** Draft — live on Xahau network, pending for XRPL mainnet  
 Hooks are small WebAssembly programs that execute on transaction acceptance. See `knowledge/43-xrpl-hooks-advanced.md` for full detail.
 
 ---
 
-## XLS-60: Decentralized Identifiers (DID)
+## XLS-40: Decentralized Identifiers (DID)
 
 **Status:** Enabled 2025
 

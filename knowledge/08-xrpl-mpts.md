@@ -53,30 +53,18 @@ MPTokenIssuanceID = SHA-512Half(Issuer's AccountID + Issuer's Sequence Number)
 | `mfMPTCanLock` | 0x0004 | 4 | Holders can lock their own tokens |
 | `mfMPTAuthorizedMint` | 0x0008 | 8 | Only authorized accounts can mint new tokens |
 
-## MPTokenIssuanceSet Transaction
+## MPTokenIssuanceCreate Transaction
 
-Creates or modifies an MPTokenIssuance.
-
-```json
-{
-  "TransactionType": "MPTokenIssuanceSet",
-  "Account": "rIssuerAddress",
-  "MPTokenIssuanceID": "0000000000000000000000000000000000000000000000000000000000000001",
-  "Flags": 3,  // mfMPTLocking (1) + mfMPTFreezing (2)
-  "TransferFee": 50  // 0.5%
-}
-```
-
-### Creating a New Issuance
+Creates a new MPTokenIssuance. This is a one-time setup transaction — you cannot modify fields like `AssetScale` or `MaximumAmount` after creation.
 
 ```json
 {
-  "TransactionType": "MPTokenIssuanceSet",
+  "TransactionType": "MPTokenIssuanceCreate",
   "Account": "rIssuerAddress",
   "AssetScale": 6,
   "MaximumAmount": "1000000000000000",
   "Flags": 1,
-  "TransferFee": 100  // 1%
+  "TransferFee": 100
 }
 ```
 
@@ -85,6 +73,19 @@ This creates a new MPTokenIssuance with:
 - 1 billion max supply (1,000,000,000,000,000 / 10^6)
 - Locking support enabled
 - 1% transfer fee
+
+## MPTokenIssuanceSet Transaction
+
+Modifies an **existing** MPTokenIssuance (e.g., freeze a holder, lock a balance). Cannot change `AssetScale`, `MaximumAmount`, or `TransferFee` after creation.
+
+```json
+{
+  "TransactionType": "MPTokenIssuanceSet",
+  "Account": "rIssuerAddress",
+  "MPTokenIssuanceID": "0000000000000000000000000000000000000000000000000000000000000001",
+  "Flags": 2
+}
+```
 
 ## MPTokenAuthorize Transaction
 
@@ -165,9 +166,7 @@ Similar to freezing on trust lines:
 
 ### Minting Tokens
 
-To create new tokens (increase supply):
-1. Issuer calls `MPTokenIssuanceSet` with increased supply parameters
-2. Or uses a specific mint transaction (depending on final spec)
+To create new tokens (increase supply), use a `Payment` transaction from the issuer's account to a holder with the MPToken amount. The supply is controlled by the `MaximumAmount` set at issuance time.
 
 ### Transferring Tokens
 

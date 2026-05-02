@@ -34,7 +34,7 @@ Usage:
   python3 xrpl_tools.py book-offers CUR:ISSUER CUR:ISSUER
   python3 xrpl_tools.py path-find rSENDER rDEST AMOUNT CUR:ISSUER
   python3 xrpl_tools.py evm-balance 0xADDRESS [mainnet|testnet]
-  python3 xrpl_tools.py evm-contract --from rADDR --bytecode HEX
+  python3 xrpl_tools.py evm-contract --from 0xADDR --bytecode HEX
   python3 xrpl_tools.py evm-bridge [mainnet|testnet]
   python3 xrpl_tools.py hooks-bitmask HOOK [HOOK ...]
   python3 xrpl_tools.py hooks-info rADDRESS
@@ -438,7 +438,7 @@ def tool_book_offers(taker_gets: str, taker_pays: str):
         pays_param = {"currency": pays_cur}
         if pays_iss: pays_param["issuer"] = pays_iss
 
-    # Use raw JSON-RPC
+    # Use raw JSON-RPC with failover
     import json
     payload = {
         "method": "book_offers",
@@ -449,8 +449,15 @@ def tool_book_offers(taker_gets: str, taker_pays: str):
             "ledger_index": "current"
         }]
     }
-    resp = httpx.post(ENDPOINTS[0], json=payload, timeout=10)
-    data = resp.json()
+    data = {}
+    for ep in ENDPOINTS:
+        try:
+            resp = httpx.post(ep, json=payload, timeout=10)
+            data = resp.json()
+            if "result" in data:
+                break
+        except Exception:
+            continue
     offers = data.get("result", {}).get("offers", [])
     print(f"Orderbook: {taker_gets} / {taker_pays} — {len(offers)} offers")
     for o in offers[:10]:
@@ -730,7 +737,7 @@ def tool_build_escrow_create(frm: str, to: str, amount: str, condition: str = No
     print("# EscrowCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
-# --- TOOL 12: Escrow Finish ---
+# --- Escrow Finish ---
 def tool_build_escrow_finish(frm: str, owner: str, offer_sequence: str,
                               condition: str = None, fulfillment: str = None):
     kwargs = dict(account=frm, owner=owner, offer_sequence=int(offer_sequence))
@@ -742,13 +749,13 @@ def tool_build_escrow_finish(frm: str, owner: str, offer_sequence: str,
     print("# EscrowFinish TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
-# --- TOOL 13: Escrow Cancel ---
+# --- Escrow Cancel ---
 def tool_build_escrow_cancel(frm: str, owner: str, offer_sequence: str):
     tx = EscrowCancel(account=frm, owner=owner, offer_sequence=int(offer_sequence))
     print("# EscrowCancel TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
-# --- TOOL 14: Check Create ---
+# --- Check Create ---
 def tool_build_check_create(frm: str, to: str, amount: str, invoice_id: str = None,
                              expiry: str = None):
     parts = amount.split(":", 2)
@@ -765,7 +772,7 @@ def tool_build_check_create(frm: str, to: str, amount: str, invoice_id: str = No
     print("# CheckCreate TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
-# --- TOOL 15: Check Cash ---
+# --- Check Cash ---
 def tool_build_check_cash(frm: str, check_id: str, amount: str = None,
                            deliver_min: str = None):
     if not amount and not deliver_min:
@@ -780,13 +787,13 @@ def tool_build_check_cash(frm: str, check_id: str, amount: str = None,
     print("# CheckCash TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
-# --- TOOL 16: Check Cancel ---
+# --- Check Cancel ---
 def tool_build_check_cancel(frm: str, check_id: str):
     tx = CheckCancel(account=frm, check_id=check_id)
     print("# CheckCancel TX JSON — signer-ready JSON — paste into Xaman Developer tab")
     json_tx_out(tx)
 
-# --- TOOL 17: Payment Channel Create ---
+# --- Payment Channel Create ---
 def tool_build_paychannel_create(frm: str, to: str, amount: str, settle_delay: str,
                                   public_key: str, cancel_after: str = None):
     kwargs = dict(

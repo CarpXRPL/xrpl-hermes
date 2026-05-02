@@ -83,7 +83,7 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 
 | Tool | Description |
 |------|-------------|
-| `hooks-bitmask` | Calculate HookOn trigger bitmask |
+| `hooks-bitmask` | ⚠️ BROKEN — HookOn bitmap spec not implemented; outputs warning only |
 | `hooks-info` | Query installed hooks on Xahau |
 
 ### Flare / Price Feeds (1 tool)

@@ -148,7 +148,7 @@ def wait_for_amendment(client, amendment_name: str, timeout_s: int = 300) -> boo
 | **fixAMMv1_1** | 2024-Q2 | Fix AMM trading fee precision, LP token math |
 | **MPT (XLS-33)** | 2024-12 | Multi-Purpose Tokens: compact on-ledger fungible tokens |
 | **fixAMMv1_2** | 2025-Q1 | Additional AMM edge case corrections |
-| | **DID (XLS-40)** | 2025-Q1 | W3C Decentralized Identifiers on XRPL (DIDSet/DIDDelete) |
+| **DID (XLS-40)** | 2025-Q1 | W3C Decentralized Identifiers on XRPL (DIDSet/DIDDelete) |
 | **ExpandedSignerList** | 2025-Q2 | Increase max signers in SignerList from 8 to 32 |
 | **Credentials (XLS-70)** | 2025-Q2 | On-chain verifiable credentials for DepositPreauth |
 
@@ -158,7 +158,7 @@ def wait_for_amendment(client, amendment_name: str, timeout_s: int = 300) -> boo
 
 | Amendment | Stage | Purpose |
 |-----------|-------|---------|
-|| **Hooks** | Draft | WebAssembly smart hooks (live on Xahau, pending mainnet) |
+| **Hooks** | Draft | WebAssembly smart hooks (live on Xahau, pending mainnet) |
 | **XLS-56 (Batch)** | Draft | Group up to 8 transactions into a single submission |
 | **Remit** | In Voting | Combined payment + memo + destination tag in one tx |
 | **PriceOracle** | In Voting | Native on-ledger price oracle aggregation |
@@ -317,7 +317,7 @@ AMENDMENT_IDS = {
     "Clawback":        "56B241D7A43D40354D02A9DC4C8DF5C7A1F930D92A9035C4E12291B3CA3E1C2B",
     "AMM (XLS-30)":    "8CC0774A3BF66D1D22E76BBDA8E8A232E6B6313834301B3B23E8601196AE6455",
     "MPT (XLS-33)":    "67E4BD1C87F5FE4D32D15C0A98C01B22ABABDE3A1C37D9A7CEA0EF3D4A99D2E5",
-    "DID (XLS-60)":    "C4483A1896579A7E1AFF0F7D22F3C023EE5B13A4F1E6B7E8DBB57F4A1FBD26F",
+    "DID (XLS-40)":    "C4483A1896579A7E1AFF0F7D22F3C023EE5B13A4F1E6B7E8DBB57F4A1FBD26F",
     "DepositAuth":     "F64E1EABBE79D55B3BB82020516CEC2C582A98A6B300094AB71B60D2DCA2FB8F",
     "DisallowIncoming":"878A53F7BD9E5D63AEC7F5D1B1ECB1C7DB37DFE5E0F44B4F84A71A65B8DF8B5",
 }

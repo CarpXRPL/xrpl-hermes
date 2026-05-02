@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
 description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (59 files, 30K+ lines) + 48 working tools covering L1, EVM Sidechain, Xahau Hooks, Flare FTSO, Axelar Bridge, Arweave, Evernode, RLUSD, and RWA tokenization.
-version: 1.3.0
+version: 1.3.4
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"
@@ -95,7 +95,7 @@ The `scripts/xrpl_tools.py` provides these XRPL-native commands through `termina
 | 19 | Build Account Delete | `build-account-delete --from rADDR --to rDST` | Delete account + sweep XRP |
 | 20 | Build Deposit Preauth | `build-deposit-preauth --from rADDR --authorize rSENDER` | Deposit preauthorization |
 | 21 | Build Signer List Set | `build-signer-list-set --from rADDR --quorum N --signers rA:W,rB:W` | Multisig signer list |
-| 22 | Build MPT Issuance | `build-mpt-issuance-create --from rADDR [--max-amount N] [--transfer-fee BPS]` | MPT issuance (XLS-33) |
+| 22 | Build MPT Issuance | `build-mpt-issuance-create --from rADDR [--maximum-amount N] [--transfer-fee BPS]` | MPT issuance (XLS-33) |
 | 23 | Build MPT Authorize | `build-mpt-authorize --from rADDR --mpt-issuance-id HEX [--holder rADDR]` | Authorize MPT holder |
 | 24 | Build Oracle Set | `build-set-oracle --from rADDR --oracle-doc-id N --provider HEX --asset-class HEX --last-update-time EPOCH` | Price oracle (XLS-47) |
 | 25 | Build Credential Create | `build-credential-create --from rISS --subject rHOLDER --credential-type HEX` | DID credential (XLS-70) |
@@ -116,7 +116,7 @@ The `scripts/xrpl_tools.py` provides these XRPL-native commands through `termina
 | 40 | Book Offers | `book-offers TAKER_GETS TAKER_PAYS` | Live DEX orderbook |
 | 41 | Path Find | `path-find rSENDER rDEST AMOUNT CUR:ISSUER` | Cross-currency paths |
 | 42 | EVM Balance | `evm-balance 0xADDR [mainnet|testnet]` | XRP balance on EVM sidechain |
-| 43 | EVM Contract | `evm-contract --from rADDR --bytecode HEX` | Contract deployment JSON |
+| 43 | EVM Contract | `evm-contract --from 0xADDR --bytecode HEX` | Contract deployment JSON |
 | 44 | EVM Bridge | `evm-bridge [mainnet|testnet]` | Sidechain bridge status |
 | 45 | Hooks Bitmask | `hooks-bitmask HOOK [HOOK ...]` | ⚠️ BROKEN — see warning in tool |
 | 46 | Hooks Info | `hooks-info rADDRESS` | Installed hooks on Xahau account |

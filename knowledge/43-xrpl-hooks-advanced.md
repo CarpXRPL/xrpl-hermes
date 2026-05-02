@@ -4,7 +4,7 @@
 
 Hooks are WebAssembly (WASM) programs that execute on the Xahau network (XRPL fork with hooks enabled) in response to transactions. They run **on-ledger** inside rippled validators — no external servers, no gas oracle, deterministic execution.
 
-**Network:** Xahau Mainnet (not XRPL mainnet as of 2025 — pending XLS-40 vote)  
+**Network:** Xahau Mainnet (not XRPL mainnet as of 2025 — mainnet proposal pending)  
 **Language:** C (compiled to WASM with Hooks SDK)  
 **Test Network:** Xahau Testnet, or local Docker: `docker pull xrpldlabs/xrpld-hooks`
 
@@ -515,4 +515,4 @@ remove_hook = {
 ## Related Files
 - `references/xahau-hooks.md` — Xahau hooks fundamentals and network info
 - `knowledge/32-xrpl-hooks-dev.md` — basic hook development walkthrough
-- `knowledge/36-xrpl-xls-standards.md` — XLS-40 hooks standard proposal
+- `knowledge/36-xrpl-xls-standards.md` — XLS standards overview (Hooks mainnet proposal pending)

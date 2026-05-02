@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.3.4 — Pre-Release Audit (2026-05-02)
+
+### 🐛 Accuracy Fixes
+- `knowledge/08-xrpl-mpts.md`: Added separate `MPTokenIssuanceCreate` section (was incorrectly using `MPTokenIssuanceSet` as the creation TX throughout); fixed minting description
+- `knowledge/07-xrpl-clawback.md`: Comparison table "Full balance only" → "Partial supported" (contradicted correct text in the same file)
+- `knowledge/36-xrpl-xls-standards.md`: DID section header was "XLS-60" → corrected to **XLS-40**; Hooks section removed incorrect XLS-40 label
+- `knowledge/37-xrpl-amendments.md`: `AMENDMENT_IDS` dict had "DID (XLS-60)" → **"DID (XLS-40)"**; fixed two table rows with empty Amendment-name cells
+- `knowledge/43-xrpl-hooks-advanced.md`: Removed incorrect "pending XLS-40 vote" claim for Hooks (XLS-40 is DID)
+
+### 🧹 Docs
+- `SKILL.md` tool #22: `--max-amount` → **`--maximum-amount`** (matches actual function parameter)
+- `SKILL.md` / `STANDALONE.md`: `evm-contract --from rADDR` → **`--from 0xADDR`** (EVM needs 0x address)
+- `README.md`: Added ⚠️ BROKEN note to `hooks-bitmask` tool entry (was silently undocumented)
+- `CHANGELOG.md`: Removed copy-pasted Developer Experience bullets from v1.2 section (identical to v1.1)
+
+### ✅ Infrastructure
+- `scripts/xrpl_tools.py`: `book-offers` now retries all failover endpoints (was hardcoded to `ENDPOINTS[0]`)
+- `scripts/xrpl_tools.py`: Removed duplicate `TOOL 12–17` comment labels from escrow/check/paychannel functions
+
+---
+
+## v1.3.3 — Cleanup Pass (2026-04-30)
+
+---
+
 ## v1.3.1 — Critical Bugfix Pass (2026-04-30)
 
 ### 🐛 Crash Fixes
@@ -78,14 +103,6 @@
 - Added CONTRIBUTING.md with clear PR and knowledge file guidelines
 - Added CHANGELOG.md
 - Updated README.md with links to setup.sh, examples/, and CONTRIBUTING.md
-
-### 🛠 Developer Experience
-- Added requirements.txt (xrpl-py, httpx, web3, eth-account)
-- Added setup.sh — one-command install script with verification
-- Added examples/ folder with 3 ready-to-run scripts:
-  - `example-build-payment.py` — XRP payment on testnet
-  - `example-mint-nft.py` — XLS-20 NFT mint on testnet
-  - `example-evm-swap.py` — UniswapV2-style swap simulation on XRPL EVM
 
 ---
 

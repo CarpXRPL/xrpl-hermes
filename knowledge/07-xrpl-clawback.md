@@ -199,7 +199,7 @@ When a `Clawback` transaction executes:
 | Feature | Freeze | Clawback |
 |---|---|---|
 | What happens | Tokens become untransferable | Tokens are returned to issuer |
-| Partial | Can freeze specific trust lines | Full balance only |
+| Partial | Can freeze specific trust lines | Partial supported (excess claws full balance) |
 | Reversible | Yes (unfreeze) | No (irreversible for that balance) |
 | Grandfathering | No | Yes (pre-existing trust lines exempt) |
 | Required flag | `lsfGlobalFreeze` (or per-trust-line) | `lsfAllowTrustLineClawback` |

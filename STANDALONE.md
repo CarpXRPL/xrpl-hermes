@@ -387,7 +387,7 @@ Build a raw contract deployment transaction.
 
 ```bash
 python3 scripts/xrpl_tools.py evm-contract \
-  --from rACCOUNT \
+  --from 0xACCOUNT \
   --bytecode 6080604052...
 ```
 
