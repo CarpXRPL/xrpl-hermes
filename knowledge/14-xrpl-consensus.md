@@ -212,7 +212,7 @@ for amendment_id, details in amendments.items():
 | XChainBridge | Cross-chain bridges | Enabled |
 | AMM | Automated Market Maker | Enabled |
 | NFTokenV1 | NFT support | Enabled |
-| MPTokensV1 | Multi-Purpose Tokens | In voting |
+| MPTokensV1 | Multi-Purpose Tokens | Enabled |
 | Hooks | Smart contract hooks (Xahau) | Not on mainnet |
 | fixReducedOffersV2 | DEX offer fix | Enabled |
 

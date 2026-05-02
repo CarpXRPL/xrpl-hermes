@@ -245,7 +245,7 @@ claw = Clawback(
 ## XLS-33: Multi-Purpose Tokens (MPTs)
 
 **Status:** Enabled Dec 2024  
-**Amendment ID:** `67E4BD1C87F5FE4D32D15C0A98C01B22ABABDE3A1C37D9A7CEA0EF3D4A99D2E5`
+**Amendment ID:** `950AE2EA4654E47F04AA8739C0B214E242097E802FD372D24047A89AB1F5EC38`
 
 ### Why MPTs Over Trust Lines
 | Feature | Trust Lines | MPTs |

@@ -6,7 +6,7 @@
 
 ## Amendment Status
 
-**IMPORTANT: The MPTokensV1 amendment is pending activation on XRPL mainnet.** Check the current XRPL amendment status at [https://xrpl.org/amendments.html](https://xrpl.org/amendments.html) for the latest.
+**IMPORTANT: The MPTokensV1 amendment is enabled on XRPL mainnet.** Check the current XRPL amendment status at [https://xrpl.org/amendments.html](https://xrpl.org/amendments.html) for the latest.
 
 ## MPTokens vs Trust Lines
 
@@ -226,12 +226,12 @@ For projects currently using trust lines and considering MPTokens:
 
 ## Development Status
 
-As the MPTokensV1 amendment is pending activation:
+As the MPTokensV1 amendment is enabled on mainnet:
 
 1. **Follow development**: Watch the XRPL spec repo for updates
 2. **Testnet testing**: When available, experiment on testnet
 3. **Library support**: Check `xrpl.js`, `xrpl-py` for MPToken support
-4. **Implementation**: Be ready to implement when the amendment activates
+4. **Implementation**: Use amendment checks for networks where MPTokensV1 may not be enabled
 
 ## Resources
 
