@@ -35,7 +35,7 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 
 ## 48 Tools — All Ecosystems
 
-### XRPL L1 (32 tools)
+### XRPL L1 (42 tools)
 
 | Tool | Description |
 |------|-------------|
@@ -103,6 +103,7 @@ cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
 | Side Ecosystems (31-35) | 5 files | xrpl.js, Hooks Dev, EVM Dev, AMM Bots, Interop |
 | Advanced (36-45) | 10 files | XLS Standards, Amendments, Minting Ops, NFT Ops, Monitoring, Bot Patterns, Treasury, Hooks Advanced, EVM Advanced, Ecosystem Map |
 | Cross-Chain (46-55) | 10 files | L1 Reference, Wallets/Auth, Evernode, Sidechain Interop, Axelar Bridge, Arweave, TX Ecosystem, Flare FTSO, EVM Sidechain, Xahau Hooks |
+| Community & Compliance (56-59) | 4 files | Telegram Bots, Discord Bots, RLUSD Operations, RWA Tokenization |
 | References (8 files) | 8 files | XRPL L1, EVM, Hooks, Flare, Axelar, Arweave, TX, Wallets |
 
 ## Examples

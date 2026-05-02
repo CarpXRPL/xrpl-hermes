@@ -38,10 +38,12 @@ python3 scripts/xrpl_tools.py account rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh
 
 Output:
 ```
-Account: rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh
-Balance: 1,000,000,000.000000 XRP
-Sequence: 1
-Reserve:  10.000000 XRP base + 2.000000 XRP/object
+Address:     rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh
+Balance:     12,345.678901 XRP
+Reserve:     1.40 XRP (2 objects)
+Spendable:   12,344.278901 XRP
+Sequence:    87
+Flags:       8388608 (lsfDefaultRipple)
 ```
 
 ## 4. Check the Latest Ledger

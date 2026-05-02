@@ -17,9 +17,12 @@ python3 scripts/xrpl_tools.py balance rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
 
 Sample output:
 ```
-Account: rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
-Balance: 25.123456 XRP  |  Seq: 4821
-Reserve: 1.000000 XRP base + 0.200000 XRP/object (5 objects = 2.00 XRP locked)
+Address:     rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
+Balance:     25.123456 XRP
+Reserve:     2.00 XRP (5 objects)
+Spendable:   23.123456 XRP
+Sequence:    4821
+Flags:       0 (none)
 ```
 
 ---
@@ -435,11 +438,10 @@ python3 scripts/xrpl_tools.py flare-price XRP FLR BTC ETH
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `XRPL_PRIVATE_RPC` | (none) | Your private rippled/Clio endpoint |
-| `XRPL_SEED` | (none) | Wallet seed for example scripts |
-| `XRPLSCAN_API_KEY` | (none) | XRPLScan enhanced API access |
-| `XRPL_TO_API_KEY` | (none) | XRPL.to API key |
-| `XRPL_PRIVATE_RPC` | (none) | Private rippled/Clio endpoint URL |
+| `XRPL_PRIVATE_RPC` | (none) | Your private rippled/Clio endpoint URL (takes priority over public failover) |
+| `XRPL_SEED` | (none) | Testnet wallet seed for example scripts |
+| `XRPLSCAN_API_KEY` | (none) | XRPLScan enhanced API access (agent enrichment only) |
+| `XRPL_TO_API_KEY` | (none) | XRPL.to API key (agent enrichment only) |
 
 ---
 
