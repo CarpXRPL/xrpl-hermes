@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
 description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (59 files, 30K+ lines) + 48 working tools covering L1, EVM Sidechain, Xahau Hooks, Flare FTSO, Axelar Bridge, Arweave, Evernode, RLUSD, and RWA tokenization.
-version: 1.3.4
+version: 1.3.5
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"
