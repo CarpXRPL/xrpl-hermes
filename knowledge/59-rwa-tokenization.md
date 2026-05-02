@@ -785,13 +785,13 @@ async def list_rwa_token_for_sale(
 
 ---
 
-## Cross-References
+## Related Files
 
 - `07-xrpl-clawback.md` — Clawback amendment technical details
 - `08-xrpl-mpts.md` — Multi-Purpose Tokens for regulatory issuance
 - `21-xrpl-token-model.md` — Core trustline and token model
-- `24-xrpl-token-deployment.md` — Token deployment workflow
-- `25-xrpl-token-security.md` — Security and audit checklist
+- `24-xrpl-deploy-guide.md` — Token deployment workflow
+- `25-xrpl-audit-security.md` — Security and audit checklist
 - `52-xrpl-l1-reference.md` — Full L1 transaction reference
 - `58-rlusd-operations.md` — RLUSD as payment/settlement currency for RWA income
 - `47-xrpl-arweave-storage.md` — Permanent storage for audit documents

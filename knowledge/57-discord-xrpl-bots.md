@@ -223,3 +223,11 @@ docker run -d -e DISCORD_BOT_TOKEN=... xrpl-discord-bot
 - discord.py docs: https://discordpy.readthedocs.io/
 - Discord developer portal: https://discord.com/developers/applications
 - XRPL WebSocket subscribe: https://xrpl.org/subscribe.html
+
+---
+
+## Related Files
+
+- `knowledge/41-xrpl-bots-patterns.md` — bot architecture patterns
+- `knowledge/56-telegram-xrpl-bots.md` — Telegram bot equivalent
+- `knowledge/53-xrpl-wallets-auth.md` — wallet auth in chat bots

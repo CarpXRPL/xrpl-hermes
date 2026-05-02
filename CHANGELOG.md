@@ -1,5 +1,45 @@
 # Changelog
 
+## v1.3.4 — Pre-Release Audit Round 2 (2026-05-02)
+
+### 🐛 Crash Fixes
+- `build-set-oracle`: Was crashing with an xrpl-py validation traceback when
+  `--price-data` was omitted. Now prints a clear usage hint and exits cleanly.
+- `build-paychannel-claim`: Was rejecting the documented `--balance` flag with
+  `TypeError`. Now accepts `--balance DROPS` and emits it as the canonical
+  `Balance` field on `PaymentChannelClaim`.
+
+### 🐛 Accuracy Fixes (Knowledge)
+- `knowledge/07-xrpl-clawback.md`: `lsfAllowTrustLineClawback` flag value was
+  documented as `0x20000000 / 536870912`. Corrected to `0x80000000 / 2147483648`
+  (matches xrpl.org and xrpl-py `AccountRootFlags`).
+- `knowledge/58-rlusd-operations.md`: Same flag bug — Python sample used
+  `CLAWBACK_FLAG = 0x00800000` while the comment claimed `0x80000000`. Fixed
+  the value, and replaced the truncated `rMxCKbEDwqr76...` placeholder with
+  the live mainnet issuer `rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De`.
+- `knowledge/50-xrpl-evm-sidechain.md`: Testnet chain ID was listed as
+  `1450024` in the network table and the Hardhat config sample. Live RPC
+  reports `1449000` (matches `scripts/xrpl_tools.py`); both occurrences
+  corrected.
+
+### 📚 Knowledge Base Hygiene
+- All 59 knowledge files now end with a `## Related Files` section with
+  topical cross-references (was 10/59 before this pass). Files 46–51 and 59
+  had a `## Cross-References` heading; renamed for consistency.
+
+### 🧹 Docs
+- `STANDALONE.md`: Added missing CLI sections for `build-amm-deposit`,
+  `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid`,
+  `build-signer-list-set`, `build-mpt-issuance-create`, `build-mpt-authorize`,
+  `build-set-oracle`, `build-credential-create/accept/delete`,
+  `build-cross-currency-payment`, and `build-batch`. Now covers all 48 tools.
+- `STANDALONE.md`: `hooks-bitmask` entry now carries the same ⚠️ BROKEN
+  warning that `SKILL.md` and `README.md` already use.
+- `STANDALONE.md` + `SKILL.md`: documented `--balance` on
+  `build-paychannel-claim`.
+
+---
+
 ## v1.3.4 — Pre-Release Audit (2026-05-02)
 
 ### 🐛 Accuracy Fixes

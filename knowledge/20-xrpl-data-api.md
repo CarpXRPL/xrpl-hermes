@@ -480,3 +480,10 @@ async def full_token_profile(currency: str, issuer: str) -> dict:
 | NFT metadata | Bithomp | `/api/v2/nft/{nft_id}` |
 | Validators | XRPSCAN | `/api/v1/validators` |
 | Ledger info | XRPSCAN | `/api/v1/ledger/{index}` |
+
+---
+
+## Related Files
+
+- `knowledge/16-xrpl-clio.md` — Clio history queries
+- `knowledge/18-xrpl-rate-limits.md` — API key tiers and limits

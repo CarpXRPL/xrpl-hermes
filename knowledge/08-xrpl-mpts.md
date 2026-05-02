@@ -238,3 +238,12 @@ As the MPTokensV1 amendment is pending activation:
 - [XLS-33 Specification (originally XLS-70)](https://github.com/XRPLF/XRPL-Standards/discussions/70)
 - [xrpl.org MPToken Docs](https://xrpl.org/docs/concepts/tokens/mptokens)
 - XRPL Dev Blog for amendment status updates
+
+---
+
+## Related Files
+
+- `knowledge/21-xrpl-token-model.md` — MPT vs trust line trade-offs
+- `knowledge/22-xrpl-token-issuance.md` — issuance flow patterns
+- `knowledge/36-xrpl-xls-standards.md` — XLS-33 spec
+- `knowledge/37-xrpl-amendments.md` — MPT amendment status

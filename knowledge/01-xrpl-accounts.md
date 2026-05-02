@@ -316,3 +316,13 @@ A deleted account can be re-created later by sending XRP to its address again �
 | Blob | Arbitrary binary data | Variable |
 | Vector256 | Array of 256-bit hashes | Variable |
 | PathSet | Set of payment paths | Variable |
+
+---
+
+## Related Files
+
+- `knowledge/02-xrpl-payments.md` — sending XRP and tokens
+- `knowledge/03-xrpl-trustlines.md` — trust line setup and freeze flags
+- `knowledge/12-xrpl-multisig.md` — SignerListSet for multi-sig accounts
+- `knowledge/15-xrpl-transaction-format.md` — common tx fields and Sequence
+- `knowledge/25-xrpl-audit-security.md` — account hardening checklist

@@ -535,3 +535,10 @@ asyncio.run(main())
 - When reconciling account 178, treat `tec` results as final ledger entries that consumed fee and sequence.
 - When monitoring endpoint health check 179, compare `validated_ledger.seq` across endpoints.
 - When reading ledger data, prefer validated ledger reads for workflow step 180.
+
+---
+
+## Related Files
+
+- `knowledge/15-xrpl-transaction-format.md` — tx format reference
+- `knowledge/30-xrpl-xrplpy.md` — xrpl-py model classes

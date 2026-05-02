@@ -471,3 +471,10 @@ def get_evr_balance(wallet: Wallet, client: JsonRpcClient) -> float:
 - Recommended to use health check endpoints for the Sashimi worker to monitor
 - Upgrade path: send a new lease tx with updated artifact hash, worker performs rolling update
 - Backup: tenant should store their app image in a registry they control, not rely on host's registry cache
+
+---
+
+## Related Files
+
+- `knowledge/51-xrpl-xahau-hooks.md` — Xahau hook host network
+- `knowledge/17-xrpl-private-node.md` — alternative self-hosting

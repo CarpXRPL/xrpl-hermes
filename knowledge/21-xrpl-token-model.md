@@ -347,3 +347,12 @@ trust_tx = TrustSet(
     flags=0x00020000  # tfSetNoRipple
 )
 ```
+
+---
+
+## Related Files
+
+- `knowledge/03-xrpl-trustlines.md` — trust line mechanics
+- `knowledge/08-xrpl-mpts.md` — Multi-Purpose Token alternative
+- `knowledge/22-xrpl-token-issuance.md` — issuance procedure
+- `knowledge/36-xrpl-xls-standards.md` — MPT XLS-33 spec

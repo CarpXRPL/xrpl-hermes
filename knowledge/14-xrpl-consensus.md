@@ -309,3 +309,11 @@ for v in resp.result["validators"]:
 | Double spend | Deterministic finality within 3-5s |
 | Censorship | ≥ 20% of UNL can block a transaction |
 | Eclipse | Peer diversity + UNL independence |
+
+---
+
+## Related Files
+
+- `knowledge/16-xrpl-clio.md` — Clio non-validating reporting node
+- `knowledge/17-xrpl-private-node.md` — running your own validator
+- `knowledge/37-xrpl-amendments.md` — amendment voting mechanics

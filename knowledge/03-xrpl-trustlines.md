@@ -346,3 +346,13 @@ These are commonly used for:
 - AMM LP tokens
 - Custom token names
 - Any currency code not in the standard 3-letter ISO set
+
+---
+
+## Related Files
+
+- `knowledge/01-xrpl-accounts.md` — account flags affecting trust lines
+- `knowledge/02-xrpl-payments.md` — issued-currency payments
+- `knowledge/07-xrpl-clawback.md` — lsfAllowTrustLineClawback semantics
+- `knowledge/21-xrpl-token-model.md` — IOU vs MPT trade-offs
+- `knowledge/22-xrpl-token-issuance.md` — DefaultRipple and trust authorisation

@@ -441,3 +441,11 @@ Backend fulfills order / grants access
   txblob: "1200002200..."  // pre-built and signed blob to show
 }
 ```
+
+---
+
+## Related Files
+
+- `knowledge/27-xrpl-joey-wallet.md` — Joey developer wallet
+- `knowledge/28-xrpl-privy-auth.md` — Privy embedded wallets
+- `knowledge/53-xrpl-wallets-auth.md` — wallet auth patterns

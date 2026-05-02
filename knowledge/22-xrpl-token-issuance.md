@@ -354,3 +354,13 @@ name = "My Token"
 desc = "The utility token for MyProject"
 icon = "https://mytoken.com/icon.png"
 ```
+
+---
+
+## Related Files
+
+- `knowledge/03-xrpl-trustlines.md` — trust line authorisation
+- `knowledge/07-xrpl-clawback.md` — enabling clawback on the issuer
+- `knowledge/21-xrpl-token-model.md` — issuer model background
+- `knowledge/25-xrpl-audit-security.md` — issuer hardening checklist
+- `knowledge/38-xrpl-minting-ops.md` — operational minting playbook

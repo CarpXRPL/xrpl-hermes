@@ -677,7 +677,7 @@ async def get_xahau_server_info() -> dict:
 
 ---
 
-## Cross-References
+## Related Files
 
 - `50-xrpl-evm-sidechain.md` — Alternative smart contract platform for XRPL
 - `52-xrpl-l1-reference.md` — XRPL L1 transaction types that hooks can intercept

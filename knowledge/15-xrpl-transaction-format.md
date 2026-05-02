@@ -358,3 +358,12 @@ delivered = result["meta"]["delivered_amount"]
 ```
 
 This is a common exploit vector — see security doc 25.
+
+---
+
+## Related Files
+
+- `knowledge/01-xrpl-accounts.md` — Account/Sequence fields
+- `knowledge/02-xrpl-payments.md` — Payment-specific fields
+- `knowledge/25-xrpl-audit-security.md` — LastLedgerSequence and replay protection
+- `knowledge/30-xrpl-xrplpy.md` — xrpl-py serialization layer

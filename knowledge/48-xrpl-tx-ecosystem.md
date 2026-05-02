@@ -523,7 +523,7 @@ async def complete_nft_sale_workflow(
 
 ---
 
-## Cross-References
+## Related Files
 
 - `52-xrpl-l1-reference.md` — XLS-20 NFT transaction types and AMM
 - `50-xrpl-evm-sidechain.md` — EVM Sidechain (TX Bridge connects here)

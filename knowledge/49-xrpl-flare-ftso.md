@@ -627,7 +627,7 @@ async def xrpl_price_monitoring_bot():
 
 ---
 
-## Cross-References
+## Related Files
 
 - `50-xrpl-evm-sidechain.md` — XRPL EVM Sidechain (alternative smart contract platform)
 - `46-xrpl-axelar-bridge.md` — Axelar cross-chain bridge vs Flare's approach

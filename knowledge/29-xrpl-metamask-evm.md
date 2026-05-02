@@ -423,3 +423,11 @@ await xrplClient.request({
   accounts: [BRIDGE_DOOR_ACCOUNT]
 });
 ```
+
+---
+
+## Related Files
+
+- `knowledge/33-xrpl-evm-dev.md` — EVM sidechain development
+- `knowledge/44-xrpl-evm-advanced.md` — advanced EVM ops
+- `knowledge/50-xrpl-evm-sidechain.md` — EVM sidechain reference

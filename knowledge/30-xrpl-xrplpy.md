@@ -485,3 +485,11 @@ hash = tx_signed.get_hash()
 from xrpl.models.requests import SubmitOnly
 resp = client.request(SubmitOnly(tx_blob=blob))
 ```
+
+---
+
+## Related Files
+
+- `knowledge/02-xrpl-payments.md` — Payment building examples
+- `knowledge/15-xrpl-transaction-format.md` — transaction serialization
+- `knowledge/31-xrpl-xrpljs.md` — JavaScript equivalent

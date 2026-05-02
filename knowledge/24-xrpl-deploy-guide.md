@@ -468,3 +468,10 @@ async def health():
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}, 503
 ```
+
+---
+
+## Related Files
+
+- `knowledge/17-xrpl-private-node.md` — production node setup
+- `knowledge/25-xrpl-audit-security.md` — pre-launch audit checklist

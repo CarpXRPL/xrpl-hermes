@@ -398,3 +398,11 @@ Owner reserve per NFTokenPage = 0.2 XRP
 ```
 
 Account must have enough XRP to cover page creation.
+
+---
+
+## Related Files
+
+- `knowledge/06-xrpl-nfts.md` — NFT model overview
+- `knowledge/36-xrpl-xls-standards.md` — XLS-20 spec
+- `knowledge/39-xrpl-nft-ops.md` — ops patterns for NFT collections

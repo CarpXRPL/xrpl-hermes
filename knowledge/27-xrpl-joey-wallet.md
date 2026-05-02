@@ -330,3 +330,11 @@ await window.xrpl.joey.request({
 - Sign requests are shown with full transaction details
 - Users can review and reject before signing
 - For production dApps: combine Joey (dev) with Xaman (end user)
+
+---
+
+## Related Files
+
+- `knowledge/26-xrpl-xaman-deeplink.md` — Xaman for end users
+- `knowledge/28-xrpl-privy-auth.md` — Privy for embedded auth
+- `knowledge/53-xrpl-wallets-auth.md` — wallet auth patterns

@@ -563,7 +563,7 @@ async def get_xrpl_gateway_balance() -> dict:
 
 ---
 
-## Cross-References
+## Related Files
 
 - `50-xrpl-evm-sidechain.md` — XRPL's native EVM sidechain (different from Axelar bridges)
 - `55-xrpl-sidechain-interop.md` — Full sidechain interoperability patterns

@@ -375,3 +375,12 @@ To replace an existing offer, use `OfferSequence` to specify the offer to replac
 ```
 
 This atomically cancels the old offer (at sequence 20) and creates a new one in a single transaction.
+
+---
+
+## Related Files
+
+- `knowledge/02-xrpl-payments.md` — path-find and offer crossing
+- `knowledge/05-xrpl-amm.md` — AMM as continuous liquidity for the order book
+- `knowledge/34-xrpl-amm-bots.md` — market-making bot patterns
+- `knowledge/41-xrpl-bots-patterns.md` — DEX bot architecture

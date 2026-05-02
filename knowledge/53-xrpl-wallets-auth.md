@@ -282,3 +282,11 @@ print(response.json()["result"]["info"]["validated_ledger"])
 - **MetaMask**: Check `eth_chainId` on `https://rpc.xrplevm.org` and reject contract calls on the wrong sidechain network.
 - **Privy**: Authenticate user identity first, then attach XRPL payment intent records to the Privy user id for auditability.
 - **Xaman**: Create a payload on the server, show QR/deep link, then verify `payload_uuidv4` before crediting user state.
+
+---
+
+## Related Files
+
+- `knowledge/26-xrpl-xaman-deeplink.md` — Xaman deep-links
+- `knowledge/27-xrpl-joey-wallet.md` — Joey wallet
+- `knowledge/28-xrpl-privy-auth.md` — Privy embedded auth

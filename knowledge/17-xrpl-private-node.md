@@ -434,3 +434,11 @@ slow_consensus_decrease_percent = 50
 maximum_txn_in_queue = 1000
 maximum_txn_per_account = 10
 ```
+
+---
+
+## Related Files
+
+- `knowledge/16-xrpl-clio.md` — Clio reporting layer
+- `knowledge/18-xrpl-rate-limits.md` — why operators self-host
+- `knowledge/24-xrpl-deploy-guide.md` — production deployment checklist

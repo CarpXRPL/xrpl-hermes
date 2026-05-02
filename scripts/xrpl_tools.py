@@ -21,7 +21,7 @@ Usage:
   python3 xrpl_tools.py build-check-cancel --from rADDR --check-id HEX
   python3 xrpl_tools.py build-paychannel-create --from rADDR --to rADDR --amount DROPS --settle-delay N --public-key HEX [--cancel-after EPOCH]
   python3 xrpl_tools.py build-paychannel-fund --from rADDR --channel-id HEX --amount DROPS
-  python3 xrpl_tools.py build-paychannel-claim --from rADDR --channel-id HEX [--amount DROPS] [--signature HEX] [--public-key HEX]
+  python3 xrpl_tools.py build-paychannel-claim --from rADDR --channel-id HEX [--amount DROPS] [--balance DROPS] [--signature HEX] [--public-key HEX]
   python3 xrpl_tools.py build-set-regular-key --from rADDR [--regular-key rADDR]
   python3 xrpl_tools.py build-account-delete --from rADDR --to rADDR
   python3 xrpl_tools.py build-deposit-preauth --from rADDR --authorize rADDR
@@ -817,10 +817,13 @@ def tool_build_paychannel_fund(frm: str, channel_id: str, amount: str):
 
 # --- TOOL 19: Payment Channel Claim ---
 def tool_build_paychannel_claim(frm: str, channel_id: str, amount: str = None,
-                                 signature: str = None, public_key: str = None):
+                                 balance: str = None, signature: str = None,
+                                 public_key: str = None):
     kwargs = dict(account=frm, channel=channel_id)
     if amount:
         kwargs["amount"] = amount
+    if balance:
+        kwargs["balance"] = balance
     if signature:
         kwargs["signature"] = signature
     if public_key:
@@ -1054,31 +1057,37 @@ def tool_build_set_oracle(frm: str, oracle_doc_id: str, provider: str,
                            asset_class: str, last_update_time: str,
                            price_data: str = None, uri: str = None):
     """Build OracleSet (XLS-47). price_data: BASE/QUOTE:PRICE:SCALE,... (comma-separated). last_update_time is Unix epoch seconds."""
+    if not price_data:
+        print("Error: --price-data is required for OracleSet (XLS-47).")
+        print("Format: BASE/QUOTE:PRICE:SCALE  (comma-separated for multiple feeds)")
+        print("Example: --price-data XRP/USD:50000:6,BTC/USD:65000000:2")
+        return
     price_data_series = []
-    if price_data:
-        for entry in price_data.split(","):
-            entry = entry.strip()
-            parts = entry.split(":")
-            if len(parts) >= 3:
-                pair, price_val, scale = parts[0], parts[1], parts[2]
-                pair_parts = pair.split("/")
-                base_asset = pair_parts[0] if len(pair_parts) >= 1 else pair
-                quote_asset = pair_parts[1] if len(pair_parts) >= 2 else "USD"
-                price_data_series.append(PriceData(
-                    base_asset=base_asset,
-                    quote_asset=quote_asset,
-                    asset_price=int(price_val),
-                    scale=int(scale),
-                ))
+    for entry in price_data.split(","):
+        entry = entry.strip()
+        parts = entry.split(":")
+        if len(parts) >= 3:
+            pair, price_val, scale = parts[0], parts[1], parts[2]
+            pair_parts = pair.split("/")
+            base_asset = pair_parts[0] if len(pair_parts) >= 1 else pair
+            quote_asset = pair_parts[1] if len(pair_parts) >= 2 else "USD"
+            price_data_series.append(PriceData(
+                base_asset=base_asset,
+                quote_asset=quote_asset,
+                asset_price=int(price_val),
+                scale=int(scale),
+            ))
+    if not price_data_series:
+        print("Error: --price-data could not be parsed. Use BASE/QUOTE:PRICE:SCALE format.")
+        return
     kwargs: dict = dict(
         account=frm,
         oracle_document_id=int(oracle_doc_id),
         provider=provider,
         asset_class=asset_class,
         last_update_time=int(last_update_time),
+        price_data_series=price_data_series,
     )
-    if price_data_series:
-        kwargs["price_data_series"] = price_data_series
     if uri:
         kwargs["uri"] = uri
     tx = OracleSet(**kwargs)

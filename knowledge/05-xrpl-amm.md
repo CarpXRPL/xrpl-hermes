@@ -423,3 +423,12 @@ AMM is available on testnet. To test:
 3. Create AMM pool
 4. Test deposits, swaps, and withdrawals
 5. Check pool state with `amm_info`
+
+---
+
+## Related Files
+
+- `knowledge/04-xrpl-dex.md` — DEX order book interaction
+- `knowledge/30-xrpl-xrplpy.md` — xrpl-py AMM transaction builders
+- `knowledge/34-xrpl-amm-bots.md` — AMM rebalancing bots
+- `knowledge/36-xrpl-xls-standards.md` — XLS-30 specification context

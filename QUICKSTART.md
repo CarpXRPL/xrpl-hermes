@@ -21,12 +21,12 @@ uv pip install -r requirements.txt
 python3 scripts/xrpl_tools.py server-info
 ```
 
-Expected output:
+Expected output (numbers will vary; rippled is on the 2.x/3.x line):
 ```
-Version:       2.x.x
+Version:       3.x.x
 Uptime:        12345s
-Ledgers:       0-93xxxxxx
-Last Ledger:   93xxxxxx
+Ledgers:       32570-103xxxxxx
+Last Ledger:   103xxxxxx
 State:         full
 ```
 

@@ -471,3 +471,11 @@ const tx = await contract.mint(to, amount, {
 | Bridge | Separate L2s | Native XRPL bridge |
 | DEX | Uniswap etc | AMM on XRPL L1 |
 | Smart contracts | Full EVM | Full EVM |
+
+---
+
+## Related Files
+
+- `knowledge/29-xrpl-metamask-evm.md` — MetaMask wallet integration
+- `knowledge/44-xrpl-evm-advanced.md` — advanced EVM patterns
+- `knowledge/50-xrpl-evm-sidechain.md` — EVM sidechain reference

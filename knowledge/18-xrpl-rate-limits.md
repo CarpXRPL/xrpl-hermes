@@ -494,3 +494,11 @@ class ResilientClient {
   }
 }
 ```
+
+---
+
+## Related Files
+
+- `knowledge/16-xrpl-clio.md` — Clio request semantics
+- `knowledge/17-xrpl-private-node.md` — removing rate limits with own node
+- `knowledge/20-xrpl-data-api.md` — off-chain rate limits

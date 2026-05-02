@@ -90,7 +90,7 @@ The `scripts/xrpl_tools.py` provides these XRPL-native commands through `termina
 | 14 | Build Check Cancel | `build-check-cancel --from rADDR --check-id HEX` | Cancel a check |
 | 15 | Build PayChannel Create | `build-paychannel-create --from rADDR --to rDST --amount DROPS --settle-delay N --public-key HEX` | Payment channel JSON |
 | 16 | Build PayChannel Fund | `build-paychannel-fund --from rADDR --channel-id HEX --amount DROPS` | Fund existing channel |
-| 17 | Build PayChannel Claim | `build-paychannel-claim --from rADDR --channel-id HEX [--amount DROPS]` | Claim from channel |
+| 17 | Build PayChannel Claim | `build-paychannel-claim --from rADDR --channel-id HEX [--amount DROPS] [--balance DROPS]` | Claim from channel |
 | 18 | Build Set Regular Key | `build-set-regular-key --from rADDR [--regular-key rADDR]` | Set/clear regular key |
 | 19 | Build Account Delete | `build-account-delete --from rADDR --to rDST` | Delete account + sweep XRP |
 | 20 | Build Deposit Preauth | `build-deposit-preauth --from rADDR --authorize rSENDER` | Deposit preauthorization |

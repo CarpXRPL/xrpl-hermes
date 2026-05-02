@@ -189,3 +189,11 @@ docker run -d -e TELEGRAM_BOT_TOKEN=... xrpl-telegram-bot
 - python-telegram-bot docs: https://docs.python-telegram-bot.org/
 - XUMM SDK (payload signing): https://github.com/XRPL-Labs/XUMM-SDK
 - XRPL WebSocket API: https://xrpl.org/websocket-api-tool.html
+
+---
+
+## Related Files
+
+- `knowledge/41-xrpl-bots-patterns.md` — bot architecture patterns
+- `knowledge/57-discord-xrpl-bots.md` — Discord bot equivalent
+- `knowledge/53-xrpl-wallets-auth.md` — wallet auth in chat bots

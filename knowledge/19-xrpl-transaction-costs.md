@@ -332,3 +332,11 @@ async def get_recommended_fee(client, safety_margin: float = 1.5) -> str:
     immediate_fee = max(10, int(open_fee * safety_margin))
     return str(immediate_fee)
 ```
+
+---
+
+## Related Files
+
+- `knowledge/02-xrpl-payments.md` — fees on Payment txs
+- `knowledge/15-xrpl-transaction-format.md` — Fee field encoding
+- `knowledge/25-xrpl-audit-security.md` — fee escalation under load

@@ -239,3 +239,11 @@ print("bridge solvent")
 - Parse XRPL memos as hex; validate the EVM address length (42 chars, 0x prefix); reject malformed payloads before minting.
 - Multi-page deposits (large NFT metadata bundles): use a separate memo per page, keyed by sequence number.
 - Edge case: the same user sends a deposit and a withdrawal for the same asset in the same ledger — buffer both and process deposit first.
+
+---
+
+## Related Files
+
+- `knowledge/35-xrpl-full-interop.md` — full interop overview
+- `knowledge/46-xrpl-axelar-bridge.md` — Axelar bridge
+- `knowledge/50-xrpl-evm-sidechain.md` — XRPL EVM sidechain

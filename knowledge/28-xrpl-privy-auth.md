@@ -358,3 +358,11 @@ const privyConfig = {
 - No single point of failure
 - For maximum security: export private key → self-custody
 - Server-side: always verify Privy auth token before trusting claimed address
+
+---
+
+## Related Files
+
+- `knowledge/26-xrpl-xaman-deeplink.md` — Xaman deep-link signing
+- `knowledge/27-xrpl-joey-wallet.md` — Joey developer wallet
+- `knowledge/53-xrpl-wallets-auth.md` — wallet auth patterns

@@ -5,7 +5,7 @@
 RLUSD is Ripple-issued USD stablecoin on the XRP Ledger. It is designed for regulated financial use cases: cross-border payments, treasury operations, and DeFi — with built-in compliance controls via the Clawback amendment and issuer-managed trust lines.
 
 **Key Properties:**
-- **Issuer:** Ripple (rMxCKbEDwqr76... — verify from official Ripple sources)
+- **Issuer:** Ripple — `rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De` (XRPL mainnet, verify against official Ripple announcements)
 - **Standard:** XRPL issued currency (IOU) with Clawback enabled
 - **Supply control:** Issuer can mint/burn and clawback under regulatory requirements
 - **Compliance:** Travel rule integration, freeze via clawback, KYC-gated trust lines
@@ -142,7 +142,7 @@ def has_clawback_enabled(address: str) -> bool:
     ))
     flags = resp.result["account_data"].get("Flags", 0)
     # lsfAllowTrustLineClawback = 0x80000000 (high 32-bit flag)
-    CLAWBACK_FLAG = 0x00800000
+    CLAWBACK_FLAG = 0x80000000
     return bool(flags & CLAWBACK_FLAG)
 
 print(f"RLUSD issuer clawback enabled: {has_clawback_enabled(RLUSD_ISSUER)}")
@@ -379,6 +379,16 @@ XRPSCAN_API = "https://api.xrpscan.com/api/v1"
 XRPL_RPC = "https://xrplcluster.com"
 XRPL_WS = "wss://xrplcluster.com"
 
-# RLUSD issuer (verify from official Ripple sources)
-RLUSD_ISSUER = "rMxCKbEDwqr76..."  # UPDATE with verified address
+# RLUSD issuer on XRPL mainnet (Ripple official). Currency code: 524C555344000000000000000000000000000000
+RLUSD_ISSUER = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
 ```
+
+---
+
+## Related Files
+
+- `knowledge/03-xrpl-trustlines.md` — trust line + freeze flags
+- `knowledge/07-xrpl-clawback.md` — regulatory clawback semantics
+- `knowledge/25-xrpl-audit-security.md` — compliance audit checklist
+- `knowledge/42-xrpl-treasury.md` — treasury monitoring patterns
+- `knowledge/59-rwa-tokenization.md` — RWA tokenization framework

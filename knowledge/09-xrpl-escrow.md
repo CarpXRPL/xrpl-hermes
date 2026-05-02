@@ -382,3 +382,11 @@ Escrows and payment channels serve different but complementary roles:
 | Partial claims | No (all-or-nothing) | Yes (incremental claims) |
 | Conditions | Crypto-conditions | Public key signature |
 | Use case | Atomic swaps, one-time releases | Streaming, recurring payments |
+
+---
+
+## Related Files
+
+- `knowledge/02-xrpl-payments.md` — Payment vs Escrow trade-offs
+- `knowledge/10-xrpl-checks.md` — deferred payment alternative
+- `knowledge/11-xrpl-payment-channels.md` — off-ledger micropayment channels

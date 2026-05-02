@@ -330,3 +330,11 @@ async def safe_clio_request(method, params):
 | NFT history | Native | Limited |
 | AMM queries | Native | Native |
 | Subscription | Proxied | Native |
+
+---
+
+## Related Files
+
+- `knowledge/17-xrpl-private-node.md` — self-hosted Clio + rippled
+- `knowledge/18-xrpl-rate-limits.md` — public node throttling
+- `knowledge/20-xrpl-data-api.md` — third-party data sources

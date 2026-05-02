@@ -340,3 +340,13 @@ For XRP payments, `delivered_amount` is a string of drops. For token payments, i
   "InvoiceID": "2B3E4F5E6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B2C"
 }
 ```
+
+---
+
+## Related Files
+
+- `knowledge/01-xrpl-accounts.md` — sender/receiver account fundamentals
+- `knowledge/03-xrpl-trustlines.md` — token payments and rippling
+- `knowledge/04-xrpl-dex.md` — cross-currency payments via DEX
+- `knowledge/19-xrpl-transaction-costs.md` — fee + reserve mechanics
+- `knowledge/52-xrpl-l1-reference.md` — Payment field reference

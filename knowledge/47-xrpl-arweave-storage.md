@@ -662,7 +662,7 @@ async def estimate_xrpl_nft_collection_storage(
 
 ---
 
-## Cross-References
+## Related Files
 
 - `54-xrpl-evernode-hosting.md` — Evernode decentralized hosting on XRPL using Arweave
 - `52-xrpl-l1-reference.md` — XLS-20 NFT minting reference

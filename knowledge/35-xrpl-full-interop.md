@@ -509,3 +509,13 @@ Recommended Stack:
 | Polygon | 137 | EVM |
 | Arbitrum One | 42161 | EVM L2 |
 | Base | 8453 | EVM L2 |
+
+---
+
+## Related Files
+
+- `knowledge/33-xrpl-evm-dev.md` — EVM development
+- `knowledge/44-xrpl-evm-advanced.md` — advanced cross-VM patterns
+- `knowledge/46-xrpl-axelar-bridge.md` — Axelar GMP bridges
+- `knowledge/50-xrpl-evm-sidechain.md` — XRPL EVM sidechain
+- `knowledge/55-xrpl-sidechain-interop.md` — sidechain interop patterns

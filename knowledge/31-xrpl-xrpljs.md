@@ -966,3 +966,9 @@ console.log('DID Document:', didDoc);
 
 **Note:** these features require their respective amendments to be enabled on the network. Check `feature` RPC or `server_info.amendment_blocked`.
 
+---
+
+## Related Files
+
+- `knowledge/30-xrpl-xrplpy.md` — Python equivalent
+- `knowledge/41-xrpl-bots-patterns.md` — bot patterns in JavaScript

@@ -28,7 +28,7 @@ To enable clawback, an account must set the `lsfAllowTrustLineClawback` flag usi
 
 | Flag Name | Hex Value | Decimal |
 |---|---|---|
-| `lsfAllowTrustLineClawback` | 0x20000000 | 536870912 |
+| `lsfAllowTrustLineClawback` | 0x80000000 | 2147483648 |
 
 ## The Clawback Transaction
 
@@ -254,3 +254,14 @@ Virtual Asset Service Providers (VASPs) may need:
 Check the `Flags` field:
 - If `Flags & 536870912` is non-zero, clawback is enabled
 - If not, clawback is disabled
+
+---
+
+## Related Files
+
+- `knowledge/03-xrpl-trustlines.md` — trust line lifecycle
+- `knowledge/21-xrpl-token-model.md` — issuance model context
+- `knowledge/22-xrpl-token-issuance.md` — issuer setup ordering with clawback
+- `knowledge/25-xrpl-audit-security.md` — compliance audit considerations
+- `knowledge/36-xrpl-xls-standards.md` — XLS-39 Clawback spec
+- `knowledge/58-rlusd-operations.md` — regulated stablecoin clawback example

@@ -284,3 +284,11 @@ For streaming or high-frequency payments, prefer payment channels. For occasiona
 3. **Cancel promptly**: If you no longer want a check to be cashed, cancel it immediately
 4. **Check IDs**: Store or compute Check IDs for efficient lookup
 5. **Token checks**: Ensure destination has the appropriate trust line before creating
+
+---
+
+## Related Files
+
+- `knowledge/02-xrpl-payments.md` — direct payment alternative
+- `knowledge/09-xrpl-escrow.md` — time-locked alternative
+- `knowledge/11-xrpl-payment-channels.md` — streaming payments

@@ -535,3 +535,11 @@ result = simulate_amm_swap(
 print(f"Expected output: {result['token_out']:.4f} tokens")
 print(f"Price impact: {result['price_impact_pct']:.3f}%")
 ```
+
+---
+
+## Related Files
+
+- `knowledge/04-xrpl-dex.md` — DEX order-book interaction
+- `knowledge/05-xrpl-amm.md` — AMM mechanics
+- `knowledge/41-xrpl-bots-patterns.md` — general bot architecture

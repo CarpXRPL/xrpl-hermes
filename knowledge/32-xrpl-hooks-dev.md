@@ -464,3 +464,10 @@ Fee for hook execution:
 - Xahau testnet explorer: `https://explorer.testnet.xahau.network`
 - Xahau mainnet: `wss://xahau.network`
 - Testnet: `wss://hooks-testnet-v3.xrpl-labs.com`
+
+---
+
+## Related Files
+
+- `knowledge/43-xrpl-hooks-advanced.md` — advanced hook patterns
+- `knowledge/51-xrpl-xahau-hooks.md` — Xahau hook deployment

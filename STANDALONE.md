@@ -207,6 +207,178 @@ python3 scripts/xrpl_tools.py build-amm-create \
 
 ---
 
+### `build-amm-deposit`
+Deposit into an AMM pool. `--mode` is `two-asset` (default), `single-asset`, or `lp-token`.
+
+```bash
+python3 scripts/xrpl_tools.py build-amm-deposit \
+  --from rACCOUNT \
+  --asset1 XRP --asset2 USD:rISSUER \
+  --amount1 XRP:1000000 --amount2 USD:rISSUER:100
+```
+
+---
+
+### `build-amm-withdraw`
+Withdraw from an AMM pool. `--mode` is `two-asset`, `single-asset`, `lp-token`, or `withdraw-all`.
+
+```bash
+python3 scripts/xrpl_tools.py build-amm-withdraw \
+  --from rACCOUNT \
+  --asset1 XRP --asset2 USD:rISSUER \
+  --amount1 XRP:500000
+```
+
+---
+
+### `build-amm-vote`
+Vote on the AMM trading fee (0–1000 = 0–1%).
+
+```bash
+python3 scripts/xrpl_tools.py build-amm-vote \
+  --from rACCOUNT \
+  --asset1 XRP --asset2 USD:rISSUER \
+  --trading-fee 600
+```
+
+---
+
+### `build-amm-bid`
+Bid for the 24-hour AMM auction slot (fee discount).
+
+```bash
+python3 scripts/xrpl_tools.py build-amm-bid \
+  --from rACCOUNT \
+  --asset1 XRP --asset2 USD:rISSUER \
+  --bid-min LPT:rAMMPOOL:50
+```
+
+---
+
+## L1 — Multi-sig
+
+### `build-signer-list-set`
+Configure a SignerList for multi-sig accounts. Comma-separated `rADDR:WEIGHT` pairs.
+
+```bash
+python3 scripts/xrpl_tools.py build-signer-list-set \
+  --from rACCOUNT \
+  --quorum 2 \
+  --signers rA:1,rB:1,rC:1
+```
+
+---
+
+## L1 — MPT (XLS-33)
+
+### `build-mpt-issuance-create`
+Create a Multi-Purpose Token issuance. Auto-sets `tfMPTCanTransfer` if `--transfer-fee` is given.
+
+```bash
+python3 scripts/xrpl_tools.py build-mpt-issuance-create \
+  --from rISSUER \
+  --maximum-amount 1000000000000000 \
+  --asset-scale 6 \
+  --transfer-fee 200
+```
+
+---
+
+### `build-mpt-authorize`
+Authorize an MPT holder. Issuers pass `--holder rADDR`; holders omit it (self-auth).
+
+```bash
+python3 scripts/xrpl_tools.py build-mpt-authorize \
+  --from rISSUER \
+  --mpt-issuance-id 00000001ABCDEF... \
+  --holder rHOLDER
+```
+
+---
+
+## L1 — Oracle (XLS-47)
+
+### `build-set-oracle`
+Publish a price oracle update. `--price-data` is a comma-separated list of `BASE/QUOTE:PRICE:SCALE`.
+
+```bash
+python3 scripts/xrpl_tools.py build-set-oracle \
+  --from rORACLE \
+  --oracle-doc-id 1 \
+  --provider 5052494345 \
+  --asset-class 554e434c \
+  --last-update-time 2000000000 \
+  --price-data XRP/USD:50000:6,BTC/USD:65000000:2
+```
+
+---
+
+## L1 — Credentials (XLS-70)
+
+### `build-credential-create`
+Issuer creates a credential for a subject. `--credential-type` is hex-encoded.
+
+```bash
+python3 scripts/xrpl_tools.py build-credential-create \
+  --from rISSUER \
+  --subject rHOLDER \
+  --credential-type 4B5943
+```
+
+---
+
+### `build-credential-accept`
+Subject accepts a credential issued to them.
+
+```bash
+python3 scripts/xrpl_tools.py build-credential-accept \
+  --from rHOLDER \
+  --issuer rISSUER \
+  --credential-type 4B5943
+```
+
+---
+
+### `build-credential-delete`
+Either party can delete an existing credential.
+
+```bash
+python3 scripts/xrpl_tools.py build-credential-delete \
+  --from rISSUER \
+  --credential-type 4B5943 \
+  --subject rHOLDER
+```
+
+---
+
+## L1 — Cross-Currency Payments
+
+### `build-cross-currency-payment`
+Build a Payment that spends one asset and delivers another via path-finding.
+
+```bash
+python3 scripts/xrpl_tools.py build-cross-currency-payment \
+  --from rSENDER --to rDEST \
+  --deliver USD:rISSUER:100 \
+  --send-max XRP:5000000
+```
+
+---
+
+## L1 — Batch (XLS-56)
+
+### `build-batch`
+Wrap 2–8 inner transactions in a Batch. Inner txs are JSON dicts with their canonical XRPL field names.
+
+```bash
+python3 scripts/xrpl_tools.py build-batch --from rACCOUNT --inner-txs '[
+  {"TransactionType":"Payment","Account":"rACCOUNT","Destination":"rA","Amount":"1000"},
+  {"TransactionType":"Payment","Account":"rACCOUNT","Destination":"rB","Amount":"2000"}
+]'
+```
+
+---
+
 ## L1 — Escrow
 
 ### `build-escrow-create`
@@ -319,9 +491,14 @@ python3 scripts/xrpl_tools.py build-paychannel-claim \
   --from rACCOUNT \
   --channel-id ABC123... \
   --amount 2000000 \
+  --balance 2000000 \
   --signature 3045... \
   --public-key ED...
 ```
+
+`--balance` is the cumulative XRP delivered through the channel after this
+claim is processed (not the per-claim amount). Required when the receiver
+posts the claim to the ledger.
 
 ---
 
@@ -406,10 +583,15 @@ python3 scripts/xrpl_tools.py evm-bridge testnet
 ## Hooks (Xahau)
 
 ### `hooks-bitmask`
-Compute the hook parameter bitmask for one or more hook names.
+⚠️ **BROKEN** — Xahau `HookOn` is a 256-bit bitmap indexed by transaction-type
+ID, not named events. This tool currently only emits a warning so a developer
+isn't misled into shipping a broken hook config. Do not rely on it. See
+`knowledge/51-xrpl-xahau-hooks.md` and the upstream
+[Xahau hooks docs](https://xrpl-hooks.readthedocs.io/) for the real spec.
 
 ```bash
 python3 scripts/xrpl_tools.py hooks-bitmask Payment OfferCreate
+# prints a warning; produces no usable bitmask
 ```
 
 ---

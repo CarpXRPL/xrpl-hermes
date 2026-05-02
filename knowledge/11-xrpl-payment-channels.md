@@ -345,3 +345,11 @@ async def streaming_api_client(state: StreamState, num_requests: int):
 - Set `CancelAfter` to prevent indefinitely locked funds
 - Monitor channel balance vs amount funded
 - Use `SettleDelay` long enough for recipient to claim before payer closes
+
+---
+
+## Related Files
+
+- `knowledge/09-xrpl-escrow.md` — alternative for time-locked release
+- `knowledge/10-xrpl-checks.md` — alternative for one-shot deferred payment
+- `knowledge/41-xrpl-bots-patterns.md` — channel monitoring bot patterns

@@ -351,3 +351,12 @@ required_reserve = 10 + (2 × N_signers_in_list)
 | `tefBAD_QUORUM` | Submitted signatures don't meet quorum |
 | `tefNOT_MULTI_SIGNING` | Signers array order incorrect |
 | `terNO_ACCOUNT` | A signer account doesn't exist on ledger |
+
+---
+
+## Related Files
+
+- `knowledge/01-xrpl-accounts.md` — account flags governing multi-sig
+- `knowledge/15-xrpl-transaction-format.md` — Signers field encoding
+- `knowledge/25-xrpl-audit-security.md` — key-management hardening
+- `knowledge/37-xrpl-amendments.md` — ExpandedSignerList amendment

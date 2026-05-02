@@ -65,7 +65,7 @@ The XRPL EVM Sidechain is an Ethereum Virtual Machine (EVM) compatible sidechain
 
 | Property | Mainnet | Testnet |
 |----------|---------|---------|
-| Chain ID | 1440000 | 1450024 |
+| Chain ID | 1440000 | 1449000 |
 | RPC URL | https://rpc.xrplevm.org | https://rpc.testnet.xrplevm.org |
 | Block Explorer | https://evm-sidechain.xrpl.org | https://testnet-explorer.xrplevm.org |
 | Gas Token | wXRP | test-wXRP |
@@ -366,7 +366,7 @@ module.exports = {
     },
     xrplEVMTestnet: {
       url: "https://rpc.testnet.xrplevm.org",
-      chainId: 1450024,
+      chainId: 1449000,
       accounts: [process.env.PRIVATE_KEY]
     }
   },
@@ -659,7 +659,7 @@ The federated model differs from Axelar (permissionless validator set). This is 
 
 ---
 
-## Cross-References
+## Related Files
 
 - `52-xrpl-l1-reference.md` — XRPL L1 for originating the bridge deposit
 - `53-xrpl-wallets-auth.md` — MetaMask setup for EVM Sidechain

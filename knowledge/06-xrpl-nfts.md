@@ -362,3 +362,11 @@ Popular XRPL NFT marketplaces that you can interact with programmatically:
 - **Mynth**: NFT + token marketplace
 
 All are built on the same XLS-20 protocol and can be interacted with directly via the base layer transactions described above.
+
+---
+
+## Related Files
+
+- `knowledge/23-xrpl-nft-minting.md` — minting workflows and metadata
+- `knowledge/36-xrpl-xls-standards.md` — XLS-20 NFT spec
+- `knowledge/39-xrpl-nft-ops.md` — operational NFT patterns

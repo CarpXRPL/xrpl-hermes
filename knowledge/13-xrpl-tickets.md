@@ -333,3 +333,11 @@ async def airdrop(recipients: list, amount: int):
 | `temINVALID` | TicketSequence and Sequence both set |
 | `tefNO_TICKET` | Ticket doesn't exist or already used |
 | `temBAD_SEQUENCE` | Sequence != 0 when using TicketSequence |
+
+---
+
+## Related Files
+
+- `knowledge/02-xrpl-payments.md` — parallel payment submission
+- `knowledge/15-xrpl-transaction-format.md` — TicketSequence vs Sequence
+- `knowledge/41-xrpl-bots-patterns.md` — high-throughput bot ticket pools

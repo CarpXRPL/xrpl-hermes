@@ -453,3 +453,12 @@ class SecureXRPLSubmitter:
 - [ ] Firewall restricts admin ports to VPN only
 - [ ] Dependency audits: `pip audit` / `npm audit`
 - [ ] `LastLedgerSequence` set on all transactions
+
+---
+
+## Related Files
+
+- `knowledge/01-xrpl-accounts.md` — account-level hardening
+- `knowledge/12-xrpl-multisig.md` — multi-sig as a control
+- `knowledge/15-xrpl-transaction-format.md` — tx-level safety fields
+- `knowledge/22-xrpl-token-issuance.md` — issuer-side audit items
