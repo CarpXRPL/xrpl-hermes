@@ -22,6 +22,22 @@
 - Verified XRPL EVM RPC requires `Content-Type: application/json`; with the
   header, `eth_chainId` reports `0x15f900` (`1440000`).
 
+### Continuation Re-Verification (2026-05-02)
+- All 16 query tools and all 32 build tools re-executed against live mainnet
+  with the documented argument syntax. Every command produced valid JSON and
+  no traceback (verification table appended to PR notes).
+- `tx-info` confirmed against a fresh validated-ledger payment hash; `nft-info`
+  confirmed against an `NFTokenMint` discovered in the same ledger.
+- `evm-balance`, `evm-bridge`: live `https://rpc.xrplevm.org` returns
+  `eth_blockNumber` and `eth_chainId 0x15f900` (1440000) — chain ID unchanged.
+- `flare-price`: both upstream feed URLs in `tool_flare_price` are still
+  reachable but currently 404 / empty; tool returns `{"Prices":{...:null},
+  "FeedCount":0}` (valid JSON, graceful degradation — no code change made
+  per audit rule "fix only crashes / invalid JSON").
+- STANDALONE.md examples spot-checked: `build-payment` `--cur/--iss`,
+  `build-amm-bid --bid-min`, `account_objects [type]`, and `ledger INDEX`
+  all run as documented.
+
 ---
 
 ## v1.3.4 — Pre-Release Audit Round 2 (2026-05-02)
