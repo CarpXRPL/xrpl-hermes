@@ -161,6 +161,14 @@ def json_out(obj):
     """Print JSON and return it."""
     print(json.dumps(obj, indent=2, default=str))
 
+def usage_out(command: str, usage: str):
+    """Emit script-friendly usage errors without traceback noise."""
+    json_out({
+        "Error": "UsageError",
+        "Command": command,
+        "Usage": usage,
+    })
+
 def note_out(message: str):
     """Print human notes to stderr. Suppress with XRPL_TOOLS_QUIET=1 for scriptable output."""
     if not os.environ.get("XRPL_TOOLS_QUIET"):
@@ -542,7 +550,7 @@ def main():
     dispatcher = {
         "account": lambda: tool_account(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: account rADDRESS"),
         "balance": lambda: tool_account(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: balance rADDRESS"),
-        "trustlines": lambda: tool_trustlines(sys.argv[2], sys.argv[3] if len(sys.argv) >= 4 else None),
+        "trustlines": lambda: tool_trustlines(sys.argv[2], sys.argv[3] if len(sys.argv) >= 4 else None) if len(sys.argv) >= 3 else usage_out("trustlines", "trustlines rADDRESS [CURRENCY]"),
         "account_objects": lambda: tool_account_objects(sys.argv[2], sys.argv[3] if len(sys.argv) >= 4 else None) if len(sys.argv) >= 3 else print("Usage: account_objects rADDRESS [type]"),
         "build-payment": lambda: _dispatch_build(3, tool_build_payment),
         "build-trustset": lambda: _dispatch_build(2, tool_build_trustset),
@@ -568,7 +576,7 @@ def main():
         "nft-info": lambda: tool_nft_info(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: nft-info NFT_ID"),
         "book-offers": lambda: tool_book_offers(sys.argv[2], sys.argv[3]) if len(sys.argv) >= 4 else print("Usage: book-offers TAKER_GETS TAKER_PAYS"),
         "path-find": lambda: _dispatch_path_find(),
-        "evm-balance": lambda: tool_evm_balance(sys.argv[2], sys.argv[3] if len(sys.argv) >= 4 else "mainnet"),
+        "evm-balance": lambda: tool_evm_balance(sys.argv[2], sys.argv[3] if len(sys.argv) >= 4 else "mainnet") if len(sys.argv) >= 3 else usage_out("evm-balance", "evm-balance 0xADDRESS [mainnet|testnet]"),
         "evm-contract": lambda: _dispatch_build(2, tool_evm_contract),
         "evm-bridge": lambda: tool_evm_bridge(sys.argv[2] if len(sys.argv) >= 3 else "mainnet"),
         "hooks-bitmask": lambda: tool_hooks_bitmask(*sys.argv[2:]),
