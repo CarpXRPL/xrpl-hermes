@@ -252,7 +252,7 @@ Virtual Asset Service Providers (VASPs) may need:
 ```
 
 Check the `Flags` field:
-- If `Flags & 536870912` is non-zero, clawback is enabled
+- If `Flags & 2147483648` is non-zero, clawback is enabled
 - If not, clawback is disabled
 
 ---

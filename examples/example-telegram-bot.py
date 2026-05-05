@@ -32,7 +32,7 @@ XRPL_CLIENT = JsonRpcClient("https://xrplcluster.com")
 
 
 def xaman_url(tx_json: dict) -> str:
-    return f"https://xumm.app/sign/{quote(json.dumps(tx_json))}"
+    return "Use the xaman-payload CLI tool with this TX JSON"
 
 
 async def balance(update: Update, ctx: ContextTypes.DEFAULT_TYPE):

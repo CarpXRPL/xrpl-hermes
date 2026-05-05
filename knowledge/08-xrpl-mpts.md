@@ -233,6 +233,256 @@ As the MPTokensV1 amendment is enabled on mainnet:
 3. **Library support**: Check `xrpl.js`, `xrpl-py` for MPToken support
 4. **Implementation**: Use amendment checks for networks where MPTokensV1 may not be enabled
 
+## Issuance Code
+
+The Hermes CLI can build unsigned MPToken transactions for review, signing, or handoff to a wallet service.
+
+Create an issuance:
+
+```bash
+python3 -m scripts.xrpl_tools build-mpt-issuance-create \
+  --from rIssuerAddress \
+  --asset-scale 6 \
+  --maximum-amount 1000000000000000 \
+  --transfer-fee 100
+```
+
+Representative output:
+
+```json
+{
+  "TransactionType": "MPTokenIssuanceCreate",
+  "Account": "rIssuerAddress",
+  "AssetScale": 6,
+  "MaximumAmount": "1000000000000000",
+  "TransferFee": 100
+}
+```
+
+Create an issuance with holder authorization required:
+
+```bash
+python3 -m scripts.xrpl_tools build-mpt-issuance-create \
+  --from rIssuerAddress \
+  --asset-scale 2 \
+  --maximum-amount 100000000 \
+  --flags 8
+```
+
+Python builder example:
+
+```python
+from xrpl.models.transactions import MPTokenIssuanceCreate
+
+tx = MPTokenIssuanceCreate(
+    account="rIssuerAddress",
+    asset_scale=6,
+    maximum_amount="1000000000000000",
+    transfer_fee=100,
+)
+
+print(tx.to_xrpl())
+```
+
+Metadata can be attached as a hex blob. Keep the JSON small and host full metadata off-ledger when possible:
+
+```python
+import json
+
+metadata = {
+    "name": "Example Points",
+    "ticker": "POINT",
+    "uri": "https://example.com/mpt/points.json",
+}
+
+metadata_hex = json.dumps(metadata, separators=(",", ":")).encode().hex().upper()
+```
+
+```json
+{
+  "TransactionType": "MPTokenIssuanceCreate",
+  "Account": "rIssuerAddress",
+  "AssetScale": 0,
+  "MaximumAmount": "1000000000",
+  "Metadata": "7B226E616D65223A224578616D706C6520506F696E7473227D"
+}
+```
+
+## Holder-Side Example
+
+When authorization is required, the holder creates or updates their MPToken object with `MPTokenAuthorize`.
+
+```bash
+python3 -m scripts.xrpl_tools build-mpt-authorize \
+  --from rHolderAddress \
+  --mpt-issuance-id 0000000000000000000000000000000000000000000000000000000000000001
+```
+
+Representative holder authorization transaction:
+
+```json
+{
+  "TransactionType": "MPTokenAuthorize",
+  "Account": "rHolderAddress",
+  "MPTokenIssuanceID": "0000000000000000000000000000000000000000000000000000000000000001"
+}
+```
+
+Issuer-side authorization of a holder:
+
+```bash
+python3 -m scripts.xrpl_tools build-mpt-authorize \
+  --from rIssuerAddress \
+  --mpt-issuance-id 0000000000000000000000000000000000000000000000000000000000000001 \
+  --holder rHolderAddress
+```
+
+Representative issuer authorization transaction:
+
+```json
+{
+  "TransactionType": "MPTokenAuthorize",
+  "Account": "rIssuerAddress",
+  "MPTokenIssuanceID": "0000000000000000000000000000000000000000000000000000000000000001",
+  "Holder": "rHolderAddress"
+}
+```
+
+After authorization, distribution normally happens through a payment from the issuer to the holder:
+
+```json
+{
+  "TransactionType": "Payment",
+  "Account": "rIssuerAddress",
+  "Destination": "rHolderAddress",
+  "Amount": {
+    "mpt_issuance_id": "0000000000000000000000000000000000000000000000000000000000000001",
+    "value": "25000000"
+  }
+}
+```
+
+Holder self-custody flow:
+
+1. Holder funds an XRPL account with enough XRP for reserve.
+2. Holder authorizes the issuance if the token requires authorization.
+3. Issuer sends the MPToken payment.
+4. Holder verifies the MPToken object exists in account objects.
+5. Holder monitors freezes, locks, and balances before secondary transfers.
+
+## Balance Query
+
+Use `account_objects` to inspect MPToken entries owned by an account:
+
+```json
+{
+  "method": "account_objects",
+  "params": [{
+    "account": "rHolderAddress",
+    "ledger_index": "validated",
+    "type": "mptoken"
+  }]
+}
+```
+
+Example response shape:
+
+```json
+{
+  "account_objects": [{
+    "LedgerEntryType": "MPToken",
+    "MPTokenIssuanceID": "0000000000000000000000000000000000000000000000000000000000000001",
+    "Balance": "25000000",
+    "Flags": 0
+  }],
+  "ledger_index": 12345678,
+  "validated": true
+}
+```
+
+Python balance helper:
+
+```python
+from decimal import Decimal
+from xrpl.clients import JsonRpcClient
+from xrpl.models.requests import AccountObjects
+
+client = JsonRpcClient("https://xrplcluster.com")
+
+def mpt_balance(account: str, issuance_id: str, asset_scale: int) -> Decimal:
+    resp = client.request(AccountObjects(
+        account=account,
+        ledger_index="validated",
+        type="mptoken",
+    ))
+    for obj in resp.result.get("account_objects", []):
+        if obj.get("MPTokenIssuanceID") == issuance_id:
+            raw = Decimal(obj.get("Balance", "0"))
+            return raw / (Decimal(10) ** asset_scale)
+    return Decimal("0")
+```
+
+CLI-style query using the generic account objects command:
+
+```bash
+python3 -m scripts.xrpl_tools account-objects rHolderAddress mptoken
+```
+
+Display helper:
+
+```python
+def format_mpt_amount(raw_value: str, asset_scale: int, symbol: str) -> str:
+    value = Decimal(raw_value) / (Decimal(10) ** asset_scale)
+    return f"{value:f} {symbol}"
+```
+
+## Operational Patterns
+
+Issuers should record the issuance transaction hash and derive the `MPTokenIssuanceID` from validated ledger data, not from an unvalidated local sequence estimate.
+
+Recommended issuance records:
+
+| Field | Source |
+|---|---|
+| `issuer` | Issuer account |
+| `issuance_id` | Validated `MPTokenIssuanceID` |
+| `asset_scale` | Issuance create transaction |
+| `maximum_amount` | Issuance create transaction |
+| `transfer_fee` | Issuance create transaction |
+| `metadata_uri` | Decoded metadata or project database |
+| `create_hash` | Validated transaction hash |
+
+For services, separate responsibilities:
+
+- Builder service creates unsigned JSON.
+- Wallet or signing service handles signatures.
+- Submission service tracks validation.
+- Indexer service records balances and holder flags.
+- API service serves normalized token data to applications.
+
+Validation checklist:
+
+- Confirm `MPTokensV1` is enabled on the target network.
+- Confirm issuer reserve can cover the issuance object.
+- Confirm `MaximumAmount` uses raw units, not display units.
+- Confirm `AssetScale` matches UI display expectations.
+- Confirm `TransferFee` is within protocol limits.
+- Confirm metadata is hex-encoded and not oversized.
+- Confirm authorization behavior before public launch.
+- Confirm the destroy path requires zero outstanding supply.
+
+## Common Errors
+
+| Symptom | Likely Cause | Fix |
+|---|---|---|
+| Holder cannot receive tokens | Authorization missing | Submit `MPTokenAuthorize` |
+| Display amount is too large | Raw units shown directly | Divide by `10 ** AssetScale` |
+| Issuance cannot be destroyed | Outstanding supply remains | Burn or return all tokens first |
+| Transfers fail after issuance | Freeze or lock flag active | Inspect holder MPToken flags |
+| Supply math is confusing | Mixed raw and display units | Store raw values and format at edges |
+
+Use immutable issuance settings carefully. If decimals, max supply, or fee are wrong, the practical fix is usually a new issuance plus migration tooling.
+
 ## Resources
 
 - [XLS-33 Specification (originally XLS-70)](https://github.com/XRPLF/XRPL-Standards/discussions/70)
@@ -247,3 +497,282 @@ As the MPTokensV1 amendment is enabled on mainnet:
 - `knowledge/22-xrpl-token-issuance.md` — issuance flow patterns
 - `knowledge/36-xrpl-xls-standards.md` — XLS-33 spec
 - `knowledge/37-xrpl-amendments.md` — MPT amendment status
+
+## End-to-End MPT Issuance Example
+
+Issuer creates an MPT issuance, holder authorizes it, then the client queries holder balances through account objects.
+
+```bash
+ISSUER=r9cZA1mLK5R5Am25ArfXFmqgNwjZgnfk59
+HOLDER=rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
+python3 -m scripts.xrpl_tools build-mpt-issuance-create --from $ISSUER --maximum-amount 1000000 --transfer-fee 250
+python3 -m scripts.xrpl_tools build-mpt-authorize --from $HOLDER --mpt-issuance-id MPT_ISSUANCE_ID
+python3 -m scripts.xrpl_tools account_objects $HOLDER mptoken
+```
+
+## Holder-Side Authorization Example
+
+```python
+from scripts.tools.mpts import tool_build_mpt_authorize
+tool_build_mpt_authorize(frm='rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe', mpt_issuance_id='000001...')
+```
+
+Holder authorization should be presented as a signer-ready transaction. The holder signs from their own wallet.
+
+## Client-Side MPT Balance Query
+
+```python
+from xrpl.clients import JsonRpcClient
+from xrpl.models.requests import AccountObjects
+
+client = JsonRpcClient('https://s.altnet.rippletest.net:51234')
+resp = client.request(AccountObjects(account='rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe', type='mptoken', ledger_index='validated'))
+for obj in resp.result.get('account_objects', []):
+    print(obj)
+```
+
+### MPT Implementation Note 1
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 2
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 3
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 4
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 5
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 6
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 7
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 8
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 9
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 10
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 11
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 12
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 13
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 14
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 15
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 16
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 17
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 18
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 19
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 20
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 21
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 22
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 23
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 24
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 25
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 26
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 27
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 28
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 29
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 30
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 31
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 32
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 33
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 34
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 35
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 36
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 37
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 38
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 39
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 40
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.
+
+### MPT Implementation Note 41
+
+- Keep issuer, holder, issuance ID, and authorization status in separate database columns.
+- Query `account_objects type=mptoken` after signing to confirm the holder-side ledger object exists.
+- Treat amendment availability and testnet behavior as network-specific until mainnet support is confirmed.

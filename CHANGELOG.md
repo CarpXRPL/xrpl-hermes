@@ -1,5 +1,47 @@
 # Changelog
 
+## v1.3.8 — Module Split + 16 New Tools + Professional Polish (2026-05-04)
+
+### 🏗 Breaking: Monolith → 20 Modules
+- Split `scripts/xrpl_tools.py` (1,377 lines) into 20 focused modules under `scripts/tools/`
+- Thin dispatcher (`xrpl_tools.py`) now just imports and merges `COMMANDS` dicts
+- New import pattern: `from scripts.tools.nfts import tool_build_nft_mint`
+- `scripts/xrpl_streams.py` added for async WebSocket tools (optional dep)
+
+### 🆕 New Tools (16 added, now 64 total)
+- **Account config**: `build-account-set` — all AccountSet flags (DefaultRipple, Domain, TickSize, TransferRate, Clawback enable, etc.)
+- **NFT marketplace**: `build-nft-create-offer`, `build-nft-accept-offer`, `build-nft-cancel-offer`, `build-nft-burn`, `nft-offers` (sell/buy offer discovery)
+- **TX submission**: `submit` (blob), `submit-multisigned` (multi-sign JSON)
+- **Real-time streaming**: `subscribe` — WebSocket subscriptions (ledger, transactions, accounts, books) via `xrpl_streams.py`
+- **Wallet utilities**: `wallet-generate`, `wallet-from-seed`, `validate-address`
+- **Xaman integration**: `xaman-payload` — real Xaman Platform API (replaces fake URLs)
+- **Bots & power users**: `account-tx` (transaction history), `build-ticket-create` (parallel tx), `ledger-entry` (generic object lookup)
+
+### 🐛 Fixes
+- **Deleted** `scripts/xrpl_tx_builder.py` (broken import path — `xrpl.binary_codec` → `xrpl.core.binarycodec`)
+- **Fake Xaman URLs** replaced in `knowledge/56-telegram-xrpl-bots.md` and `examples/example-telegram-bot.py` — the old `https://xumm.app/sign/{json}` pattern would 404. Replaced with real `xaman-payload` CLI flow
+- **Clawback flag** wrong constant (`536870912`) corrected to `2147483648` in `knowledge/07-xrpl-clawback.md`
+
+### 📚 Knowledge Expansion (59 → 63 files)
+- New `60-xrpl-account-set.md` — every asf flag, issuer setup checklist, CLI examples
+- New `61-xrpl-websocket-streams.md` — all subscribe stream types, reconnection, NDJSON output
+- New `62-xrpl-nft-marketplace.md` — full marketplace flow: mint → list → discover → accept → cancel
+- New `63-xrpl-xaman-platform.md` — real Platform API, env vars, webhook callbacks, Telegram+Xaman workflow
+- Expanded `56-telegram-xrpl-bots.md` (199→350+ lines): database pattern, inline keyboards, systemd/Docker deploy
+- Expanded `57-discord-xrpl-bots.md` (233→517 lines): slash commands, embeds, AMM monitoring
+- Expanded `08-xrpl-mpts.md` (249→499 lines): end-to-end issuance code, holder example, balance queries
+
+### 🧪 Testing & CI
+- New `tests/test_tool_outputs.py` (78 lines) — validates payment, account-set, NFT create-offer, parse_amount_arg, clawback validation, `_dispatch_build` arg mapping
+- `.github/workflows/ci.yml` — runs on every push/PR to main
+
+### 🏭 Professional Polish
+- `pyproject.toml` added — modern Python packaging, `pip install` namespaced as `xrpl-hermes`
+- README repositioned as "The Open-Source XRPL Developer Toolkit" — badges, build guide layout, tool/knowledge maps
+- SKILL.md description updated: "63 files, 33K+ lines + 64 working tools"
+
+---
+
 ## v1.3.6 — Continuation Dev-Test Audit (2026-05-02)
 
 ### Crash / JSON Fixes

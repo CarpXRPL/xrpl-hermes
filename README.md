@@ -1,131 +1,86 @@
-# ☤ xrpl-hermes
+# ☤ xrpl-hermes — The Open-Source XRPL Developer Toolkit
 
-**The open-source, all-in-one XRPL ecosystem toolkit for Hermes agents.**
+Build real XRPL applications with 63 knowledge files, 64 CLI commands, and signer-ready transaction JSON for XRPL L1, NFTs, AMMs, issued tokens, MPTs, Xaman, Xahau Hooks, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
 
-**59 knowledge files + 48 working tools** covering **XRPL L1, EVM Sidechain, Xahau Hooks, Flare FTSO, Axelar Bridge, and Arweave**
+[![GitHub stars](https://img.shields.io/github/stars/CarpXRPL/xrpl-hermes?style=social)](https://github.com/CarpXRPL/xrpl-hermes)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+[![CI](https://github.com/CarpXRPL/xrpl-hermes/actions/workflows/ci.yml/badge.svg)](https://github.com/CarpXRPL/xrpl-hermes/actions/workflows/ci.yml)
+
+## What You Can Build
+
+| Build | Example |
+|---|---|
+| Token Launch | Configure issuer flags, domain, transfer rate, trust lines, and mintable supply. |
+| NFT Marketplace | Mint NFTs, create sell offers, discover offers, accept offers, cancel stale offers, and burn inventory. |
+| Trading Bot | Monitor books, path-find payments, place DEX offers, and react to AMM liquidity changes. |
+| Telegram Monitor | Watch accounts, stream ledger events, and send Xaman signing requests to users. |
+| Multisig Treasury | Build signer lists, tickets, batch transactions, and submit multisigned blobs. |
+| Cross-Chain dApp | Combine XRPL L1 with EVM Sidechain, Axelar Bridge, Flare FTSO, and Arweave metadata. |
 
 ## Quick Start
 
 ```bash
-# One-command setup
-bash setup.sh
-
-# Or manually
-pip install -r requirements.txt
-
-# Run a query
-python3 scripts/xrpl_tools.py ledger
-
-# Check an account
-python3 scripts/xrpl_tools.py account rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
-
-# Build a transaction
-python3 scripts/xrpl_tools.py build-payment --from rADDR --to rADDR --amount 10000000
+pip install -r requirements.txt && python3 -m scripts.xrpl_tools ledger
 ```
+
+Useful first commands:
+
+```bash
+python3 -m scripts.xrpl_tools server-info
+python3 -m scripts.xrpl_tools account rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
+python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000000
+```
+
+## Tool Table
+
+64 commands are split across about 20 Python modules in `scripts/tools/`.
+
+| Ecosystem | Count | Commands |
+|---|---:|---|
+| XRPL L1 core and ops | 42 | `account`, `balance`, `account_objects`, `account-tx`, `trustlines`, `build-payment`, `build-trustset`, `build-offer`, `book-offers`, `path-find`, `ledger`, `ledger-entry`, `server-info`, `tx-info`, `decode`, `submit`, `submit-multisigned`, `build-account-set`, `build-account-delete`, `build-set-regular-key`, `build-deposit-preauth`, `build-signer-list-set`, `build-ticket-create`, `build-escrow-create`, `build-escrow-finish`, `build-escrow-cancel`, `build-check-create`, `build-check-cash`, `build-check-cancel`, `build-paychannel-create`, `build-paychannel-fund`, `build-paychannel-claim`, `build-clawback`, `build-cross-currency-payment`, `build-batch`, `build-set-oracle`, `build-credential-create`, `build-credential-accept`, `build-credential-delete`, `build-mpt-issuance-create`, `build-mpt-authorize`, `subscribe` |
+| NFT marketplace | 7 | `nft-info`, `nft-offers`, `build-nft-mint`, `build-nft-create-offer`, `build-nft-accept-offer`, `build-nft-cancel-offer`, `build-nft-burn` |
+| AMM liquidity | 5 | `build-amm-create`, `build-amm-deposit`, `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid` |
+| EVM Sidechain | 3 | `evm-balance`, `evm-contract`, `evm-bridge` |
+| Xahau Hooks | 2 | `hooks-bitmask`, `hooks-info` |
+| Flare | 1 | `flare-price` |
+| Wallet utils | 3 | `wallet-generate`, `wallet-from-seed`, `validate-address` |
+| Xaman Platform | 1 | `xaman-payload` |
+
+## Knowledge Map
+
+| Range | Topics |
+|---|---|
+| `01`-`15` | XRPL accounts, payments, trust lines, DEX, AMM, NFTs, clawback, MPTs, escrow, checks, channels, multisig, tickets, consensus, transaction format |
+| `16`-`25` | Clio, private nodes, rate limits, costs, Data API, token model, issuance, NFT minting, deployment, security |
+| `26`-`35` | Xaman, wallets, Privy, MetaMask, xrpl-py, xrpl.js, Hooks, EVM, AMM bots, interop |
+| `36`-`45` | XLS standards, amendments, minting ops, NFT ops, monitoring, bot patterns, treasury, advanced hooks/EVM, ecosystem map |
+| `46`-`55` | Axelar, Arweave, TX ecosystem, Flare, EVM Sidechain, Xahau, L1 reference, wallet auth, Evernode, sidechain interop |
+| `56`-`63` | Telegram bots, Discord bots, RLUSD, RWA tokenization, AccountSet flags, WebSocket streams, NFT marketplaces, Xaman Platform |
 
 ## Hermes Agent Installation
 
 ```bash
-# Copy to your Hermes skills directory
-cp -r xrpl-hermes ~/.hermes/skills/xrpl/xrpl-hermes
+git clone https://github.com/CarpXRPL/xrpl-hermes.git
+cd xrpl-hermes
+pip install -r requirements.txt
 
-# Load the skill in chat:
-# > activate xrpl-hermes
+# Copy into a Hermes/Codex skills directory if your agent runtime uses local skills.
+cp -r . ~/.hermes/skills/xrpl/xrpl-hermes
 ```
 
-## 48 Tools — All Ecosystems
+Activate with:
 
-### XRPL L1 (42 tools)
-
-| Tool | Description |
-|------|-------------|
-| `account` | Account info, balance, flags, sequence |
-| `balance` | Account balance (alias) |
-| `trustlines` | All trust lines for an address |
-| `account_objects` | All objects (checks, offers, escrows, NFTs) |
-| `build-payment` | Payment transaction JSON |
-| `build-trustset` | Trust line setup JSON |
-| `build-offer` | DEX order JSON |
-| `build-nft-mint` | NFT mint JSON |
-| `build-amm-create` | AMM pool creation |
-| `build-clawback` | Issuer clawback transaction |
-| `build-cross-currency-payment` | Path-finding cross-currency payment |
-| `build-escrow-create/finish/cancel` | Escrow management |
-| `build-check-create/cash/cancel` | Check management |
-| `build-paychannel-create/fund/claim` | Payment channels |
-| `build-amm-deposit/withdraw/vote/bid` | AMM LP operations |
-| `build-set-regular-key` | Key management |
-| `build-account-delete` | Account deletion |
-| `build-deposit-preauth` | Deposit preauthorization |
-| `build-signer-list-set` | Multisig signer list |
-| `build-mpt-issuance-create` | MPT issuance (XLS-33) |
-| `build-mpt-authorize` | MPT holder authorization |
-| `build-set-oracle` | Price oracle (XLS-47) |
-| `build-credential-create/accept/delete` | DID credentials (XLS-70) |
-| `build-batch` | Batch transactions (XLS-56) |
-| `decode` | Decode signed transaction blobs |
-| `tx-info` | Transaction lookup |
-| `ledger` | Ledger state |
-| `server-info` | Node information |
-| `nft-info` | NFT metadata |
-| `book-offers` | DEX orderbook depth |
-| `path-find` | Payment path discovery |
-
-### EVM Sidechain (3 tools)
-
-| Tool | Description |
-|------|-------------|
-| `evm-balance` | Query XRP balance on EVM sidechain |
-| `evm-contract` | Build contract deployment JSON |
-| `evm-bridge` | Check bridge status |
-
-### Xahau Hooks (2 tools)
-
-| Tool | Description |
-|------|-------------|
-| `hooks-bitmask` | ⚠️ BROKEN — HookOn bitmap spec not implemented; outputs warning only |
-| `hooks-info` | Query installed hooks on Xahau |
-
-### Flare / Price Feeds (1 tool)
-
-| Tool | Description |
-|------|-------------|
-| `flare-price` | Live XRP, BTC, ETH price feeds |
-
-## 59 Knowledge Files
-
-| Layer | Files | Topics |
-|-------|-------|--------|
-| XRPL L1 Core (01-15) | 15 files | Accounts, Payments, Trustlines, DEX, AMM, NFTs, Clawback, MPTs, Escrow, Checks, Payment Channels, Multisig, Tickets, Consensus, Transaction Format |
-| Infrastructure (16-20) | 5 files | Clio, Private Nodes, Rate Limits, Tx Costs, Data APIs |
-| Token Operations (21-25) | 5 files | Token Model, Issuance, NFT Minting, Deployment, Security |
-| Wallets (26-30) | 5 files | Xaman, Joey, Privy, MetaMask, xrpl-py |
-| Side Ecosystems (31-35) | 5 files | xrpl.js, Hooks Dev, EVM Dev, AMM Bots, Interop |
-| Advanced (36-45) | 10 files | XLS Standards, Amendments, Minting Ops, NFT Ops, Monitoring, Bot Patterns, Treasury, Hooks Advanced, EVM Advanced, Ecosystem Map |
-| Cross-Chain (46-55) | 10 files | L1 Reference, Wallets/Auth, Evernode, Sidechain Interop, Axelar Bridge, Arweave, TX Ecosystem, Flare FTSO, EVM Sidechain, Xahau Hooks |
-| Community & Compliance (56-59) | 4 files | Telegram Bots, Discord Bots, RLUSD Operations, RWA Tokenization |
-| References (8 files) | 8 files | XRPL L1, EVM, Hooks, Flare, Axelar, Arweave, TX, Wallets |
-
-## Examples
-
-Ready-to-run scripts in `examples/`:
-
-- [`example-build-payment.py`](examples/example-build-payment.py) — Send XRP on testnet
-- [`example-mint-nft.py`](examples/example-mint-nft.py) — Mint an XLS-20 NFT on testnet
-- [`example-evm-swap.py`](examples/example-evm-swap.py) — Simulate a swap on XRPL EVM sidechain
+```text
+activate xrpl-hermes
+```
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to add knowledge, improve tools, or fix docs.
+Use the existing module pattern in `scripts/tools/`: each module exposes a `COMMANDS` dict and emits JSON through shared helpers. Add or update focused pytest coverage in `tests/` when changing command output.
 
-## Changelog
-
-See [`CHANGELOG.md`](CHANGELOG.md) for release history.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 
-MIT — free for everyone. Use it, fork it, build with it.
-
-## GitHub
-
-https://github.com/CarpXRPL/xrpl-hermes
+MIT. Free to use, fork, and build with.
