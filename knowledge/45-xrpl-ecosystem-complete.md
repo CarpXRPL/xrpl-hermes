@@ -26,7 +26,7 @@
 | Gateway | Classic Address | Currencies | Reputation | Notes |
 |---------|----------------|------------|------------|-------|
 | **Bitstamp** | `rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B` | USD, EUR, GBP, BTC, ETH | 10+ years | Most trusted; used in most DEX pairs |
-| **GateHub** | `rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh` | USD, EUR, BTC | 8+ years | Multi-currency; KYC required |
+| **GateHub** | `rH8G4N6xzgZGz7cB2yjp5L5cMZCKYms9q3` | USD, EUR, BTC | 8+ years | Multi-currency; KYC required |
 | **GateHub (5th)** | `rB9zqP39p8uVr4VqKcTRvPtsaRxzPjrXh4` | USD, EUR | Established | Backup gateway; same KYC |
 | **Sologenic** | `rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz` | SOLO, tokenized stocks | 3+ years | First tokenized-assets DEX |
 | **Stably** | `rMH4UxPrbuMa1spCBR98hLLyNJp4d8p4tM` | USDS (stablecoin) | 2+ years | US-regulated stablecoin |

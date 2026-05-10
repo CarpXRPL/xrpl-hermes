@@ -6,7 +6,7 @@ from ._shared import (
 import re
 
 def tool_build_clawback(frm: str, destination: str, currency: str,
-                         amount: str, issuer: str = None, memo: str = None):
+                         amount: str, memo: str = None):
     try:
         amt_val = float(amount)
         if amt_val <= 0:

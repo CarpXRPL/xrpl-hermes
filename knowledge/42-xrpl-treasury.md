@@ -482,7 +482,7 @@ def treasury_report(client, wallets: dict[str, str]) -> dict:
         # XRP balance
         acc = client.request(AccountInfo(account=address, ledger_index="validated"))
         drops = int(acc.result["account_data"]["Balance"])
-        reserve = int(acc.result["account_data"].get("OwnerCount", 0)) * 2 + 10
+        reserve = int(acc.result["account_data"].get("OwnerCount", 0)) * 0.2 + 1
         wallet_data["xrp_balance"] = drops / 1e6
         wallet_data["xrp_available"] = (drops / 1e6) - reserve
 

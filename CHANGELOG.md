@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.3.9 — Polish Pass: Clawback, Docs, CI, Deps, Debloat (2026-05-09)
+
+### Fixed
+- Removed dead `issuer` parameter from `tool_build_clawback` (was silently ignored — per XLS-39, `--from` IS the issuer)
+- Fixed stale XRPL reserve formula in `42-xrpl-treasury.md` (was `2 XRP/obj + 10 XRP base`, now `0.2 + 1`)
+- Fixed wrong GateHub address in `45-xrpl-ecosystem-complete.md` (was genesis account `rHb9CJA`, now `rH8G4N6`)
+- De-bloated `56-telegram-xrpl-bots.md` — removed 43x copy-paste repeated sections, replaced with 5 real production patterns (webhook, auth, keyboards, conversations, rate limiting)
+- De-bloated `57-discord-xrpl-bots.md` — removed 41x copy-paste repeated sections, replaced with 5 real production patterns (slash commands, views, embeds, error handling, guild config)
+- Fixed AMM example issuer in `57-discord-xrpl-bots.md` (was genesis account, now Bitstamp `rvYAfWj5`)
+- Fixed SECURITY.md: accurately described local seed-handling with CLI warning (replaced absolute "NEVER handles seeds" wording)
+- Fixed CI workflow: now runs `pytest -q` + build-payment smoke test (was only `server-info`)
+- Fixed pyproject.toml: 59→63 knowledge files, aligned deps with requirements.txt, added `[project.scripts]` entry point
+- Deleted stale `scripts/xrpl_tools.py.bak`
+
+---
+
 ## v1.3.8 — Module Split + 16 New Tools + Professional Polish (2026-05-04)
 
 ### 🏗 Breaking: Monolith → 20 Modules

@@ -7,5 +7,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
-      - run: pip install -r requirements.txt
-      - run: python3 -m scripts.xrpl_tools server-info
+      - run: pip install -r requirements.txt pytest
+      - run: pytest -q
+      - run: python3 -m scripts.xrpl_tools build-payment --from rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe --to rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh --amount 1000000

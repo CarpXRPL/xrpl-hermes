@@ -116,7 +116,7 @@ import asyncio
 import websockets
 import json
 
-AMM_ASSET1_ISSUER = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"
+AMM_ASSET1_ISSUER = "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
 ALERT_CHANNEL_ID = 123456789  # your Discord channel ID
 LARGE_TRADE_XRP = 10000  # alert if trade > 10,000 XRP
 
@@ -550,248 +550,22 @@ embed = discord.Embed(title='XRPL Error', description='The stream reconnected an
 embed.add_field(name='Action', value='No user action needed')
 ```
 
-### Discord Production Pattern 1
+### 1. Slash Commands & Autocomplete
 
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
+Use discord.app_commands with @app_commands.command() decorators. Register via tree.sync(). Add @app_commands.autocomplete for wallet address lookups from a guild-specific database. Guild-specific command sync with tree.copy_global_to(guild=discord.Object(id=GUILD_ID)).
 
-### Discord Production Pattern 2
+### 2. Persistent Views & Buttons
 
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
+Use discord.ui.View with discord.ui.Button for interactive components like refresh, paginate transaction history, or confirm destructive actions. Buttons survive bot restarts if the view has a custom_id. Use @discord.ui.button(label="Refresh", style=discord.ButtonStyle.primary, custom_id="refresh_bal").
 
-### Discord Production Pattern 3
+### 3. Ephemeral vs Public Embeds
 
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
+Use ephemeral=True for: account setup, private balance queries, error details. Use public embeds for: channel-wide alerts, AMM events, shared market data. Never leak wallet addresses in public embeds unless the user explicitly shares them.
 
-### Discord Production Pattern 4
+### 4. Error Handling & Embeds
 
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
+Catch common failures (rate limits, missing permissions, API timeouts). Use discord.Embed(color=0xff5555) for error embeds with a clear Action field. Log errors to a dedicated #logs channel or file. Handle discord.Forbidden gracefully (bot lacks permissions in channel).
 
-### Discord Production Pattern 5
+### 5. Guild Configuration
 
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 6
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 7
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 8
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 9
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 10
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 11
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 12
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 13
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 14
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 15
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 16
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 17
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 18
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 19
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 20
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 21
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 22
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 23
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 24
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 25
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 26
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 27
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 28
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 29
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 30
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 31
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 32
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 33
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 34
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 35
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 36
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 37
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 38
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 39
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 40
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
-
-### Discord Production Pattern 41
-
-- Use ephemeral responses for account setup and public embeds for channel alerts.
-- Store guild ID, channel ID, user ID, watched address, and notification type separately.
-- Batch high-volume AMM and DEX events so channels do not get flooded.
+Store per-guild settings (watchlist addresses, alert channel IDs, notification preferences) in a database. Provide /config command group for guild admins. Use a config dict per guild_id with defaults that can be overridden.

@@ -1,8 +1,12 @@
 # Security Policy
 
-## Private Keys
+## Private Keys & Seeds
 
-This tool NEVER stores, transmits, or requests your private keys/seeds. All transaction building happens client-side. Signing requires your own wallet (Xaman, Crossmark, or xrpl-py with your own seed).
+This project's build-* commands generate **unsigned JSON** client-side — no keys needed.
+
+The optional `wallet-generate` and `wallet-from-seed` commands are **local developer utilities** that create or derive wallets entirely on your machine. They do not transmit seeds anywhere.
+
+⚠️ **CLI arguments can be captured in shell history or process listings.** Never pass production seeds as command-line arguments. For production, use `wallet-from-seed` in an interactive script that reads from an env var or file, or sign transactions externally with Xaman/Crossmark.
 
 ## API Keys
 
