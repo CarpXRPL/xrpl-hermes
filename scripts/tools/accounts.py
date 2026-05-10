@@ -155,7 +155,7 @@ def tool_account_tx(address: str, limit: int = 20, ledger_min: int = -1, ledger_
             "Account": address,
             "Count": len(txs),
             "Transactions": [{
-                "Hash": (t.get("tx") or t.get("tx_json") or {}).get("hash"),
+                "Hash": t.get("hash") or (t.get("tx") or t.get("tx_json") or {}).get("hash"),
                 "Type": (t.get("tx") or t.get("tx_json") or {}).get("TransactionType"),
                 "Result": t.get("meta", {}).get("TransactionResult"),
                 "LedgerIndex": t.get("ledger_index"),

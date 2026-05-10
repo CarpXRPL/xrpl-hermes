@@ -75,7 +75,7 @@ def tool_build_amm_bid(frm: str, asset1: str, asset2: str,
     json_tx_out(tx)
 
 COMMANDS = {
-    "build-amm-create": lambda: _dispatch_build(4, tool_build_amm_create),
+    "build-amm-create": lambda: _dispatch_build(3, tool_build_amm_create),
     "build-amm-deposit": lambda: _dispatch_build(3, tool_build_amm_deposit),
     "build-amm-withdraw": lambda: _dispatch_build(3, tool_build_amm_withdraw),
     "build-amm-vote": lambda: _dispatch_build(4, tool_build_amm_vote),

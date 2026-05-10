@@ -21,13 +21,15 @@ uv pip install -r requirements.txt
 python3 scripts/xrpl_tools.py server-info
 ```
 
-Expected output (numbers will vary; rippled is on the 2.x/3.x line):
-```
-Version:       3.x.x
-Uptime:        12345s
-Ledgers:       32570-103xxxxxx
-Last Ledger:   103xxxxxx
-State:         full
+Expected output (JSON; numbers will vary; rippled is on the 2.x/3.x line):
+```json
+{
+  "BuildVersion": "3.1.x",
+  "Uptime": 123456,
+  "CompleteLedgers": "32570-104xxxxxx",
+  "ValidatedLedger": {"seq": 104125000, "reserve_base_xrp": 1, "reserve_inc_xrp": 0.2, ...},
+  "ServerState": "full"
+}
 ```
 
 ## 3. Query an Account (no wallet needed)
@@ -36,14 +38,19 @@ State:         full
 python3 scripts/xrpl_tools.py account rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh
 ```
 
-Output:
-```
-Address:     rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh
-Balance:     12,345.678901 XRP
-Reserve:     1.40 XRP (2 objects)
-Spendable:   12,344.278901 XRP
-Sequence:    87
-Flags:       8388608 (lsfDefaultRipple)
+Output (JSON):
+```json
+{
+  "Account": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+  "BalanceDrops": "56760604151",
+  "BalanceXRP": "56760.604151",
+  "ReserveXRP": "1.2",
+  "OwnerCount": 1,
+  "SpendableXRP": "56759.404151",
+  "Sequence": 44196,
+  "Flags": 1703936,
+  "FlagDescriptions": ["lsfDisableMasterKey", "lsfDisallowXRP", "lsfRequireDestTag"]
+}
 ```
 
 ## 4. Check the Latest Ledger

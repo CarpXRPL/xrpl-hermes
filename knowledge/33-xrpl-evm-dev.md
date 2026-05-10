@@ -2,7 +2,7 @@
 
 ## Overview
 
-The XRPL EVM Sidechain is a fully EVM-compatible blockchain connected to the XRPL mainnet via a decentralized bridge. Deploy Solidity contracts, use standard Ethereum tooling, and access XRPL liquidity through the bridge. Chain ID: **1440000** (mainnet), **1450024** (testnet).
+The XRPL EVM Sidechain is a fully EVM-compatible blockchain connected to the XRPL mainnet via a decentralized bridge. Deploy Solidity contracts, use standard Ethereum tooling, and access XRPL liquidity through the bridge. Chain ID: **1440000** (mainnet), **1449000** (testnet).
 
 ---
 
@@ -21,7 +21,7 @@ Native token:  XRP (18 decimals on EVM side)
 ### Testnet
 
 ```
-Chain ID:      1450024
+Chain ID:      1449000
 RPC:           https://rpc.testnet.xrplevm.org
 Faucet:        https://bridge.testnet.xrpl.org
 Explorer:      https://evm-sidechain.testnet.xrpl.org
@@ -80,7 +80,7 @@ const config: HardhatUserConfig = {
     },
     xrpl_evm_testnet: {
       url: "https://rpc.testnet.xrplevm.org",
-      chainId: 1450024,
+      chainId: 1449000,
       accounts: [process.env.PRIVATE_KEY!]
     },
     hardhat: {

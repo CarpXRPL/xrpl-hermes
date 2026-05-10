@@ -6,7 +6,7 @@ The XRPL EVM Sidechain is an EVM-compatible blockchain that settles periodically
 
 | Parameter | Value |
 |-----------|-------|
-| Chain ID | 1440000 (mainnet) / 1450024 (testnet) |
+| Chain ID | 1440000 (mainnet) / 1449000 (testnet) |
 | Native token | wXRP (18 decimals) |
 | Block time | ~3.5 seconds |
 | Consensus | IBFT 2.0 (Istanbul BFT) |
@@ -71,7 +71,7 @@ module.exports = {
     },
     xrpl_testnet: {
       url: "https://rpc.testnet.xrplevm.org/",
-      chainId: 1450024,
+      chainId: 1449000,
       accounts: [process.env.PRIVATE_KEY],
     },
   },
@@ -81,7 +81,7 @@ module.exports = {
     },
     customChains: [{
       network: "xrpl_devnet",
-      chainId: 1450024,
+      chainId: 1449000,
       urls: {
         apiURL: "https://evm-sidechain.xrpl.org/api",
         browserURL: "https://evm-sidechain.xrpl.org",
@@ -503,7 +503,7 @@ tx = contract.functions.transfer(
     "0xRecipient...",
     w3.to_wei(100, "ether"),
 ).build_transaction({
-    "chainId": 1450024,
+    "chainId": 1449000,
     "gas": 100_000,
     "gasPrice": w3.to_wei(10, "gwei"),
     "nonce": nonce,

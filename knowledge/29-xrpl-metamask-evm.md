@@ -42,7 +42,7 @@ async function addXRPLNetwork() {
 
 ```
 Primary:  https://rpc.xrplevm.org
-Testnet:  https://rpc.testnet.xrplevm.org (Chain ID: 1450024)
+Testnet:  https://rpc.testnet.xrplevm.org (Chain ID: 1449000)
 ```
 
 ---
@@ -108,7 +108,7 @@ module.exports = {
     },
     xrpl_evm_testnet: {
       url: 'https://rpc.testnet.xrplevm.org',
-      chainId: 1450024,
+      chainId: 1449000,
       accounts: [process.env.PRIVATE_KEY],
     }
   },

@@ -28,17 +28,36 @@ async def _stream(streams, accounts, books, duration):
         except Exception:
             continue
 
-def tool_subscribe(streams="ledger", accounts="", books="", duration="0"):
+def tool_subscribe(streams="ledger", accounts="", books="", duration="0", count=None):
     s = [x for x in streams.split(",") if x]
     a = [x for x in accounts.split(",") if x]
     b = []
-    asyncio.run(_stream(s, a, b, int(duration)))
+    # --count N is an alias for duration when interpreted as max messages;
+    # for simplicity treat it the same as duration seconds if duration not set.
+    if count is not None and (duration in (None, "", "0")):
+        duration = count
+    asyncio.run(_stream(s, a, b, int(duration or 0)))
+
+_VALID_KWARGS = {"streams", "accounts", "books", "duration", "count"}
 
 def _dispatch_subscribe():
     kwargs = {}
-    for i in range(2, len(sys.argv) - 1, 2):
-        k = sys.argv[i].lstrip("--").replace("-", "_")
-        kwargs[k] = sys.argv[i + 1]
+    i = 2
+    while i < len(sys.argv):
+        tok = sys.argv[i]
+        if tok.startswith("--") and i + 1 < len(sys.argv):
+            k = tok.lstrip("-").replace("-", "_")
+            if k in _VALID_KWARGS:
+                kwargs[k] = sys.argv[i + 1]
+            i += 2
+        elif "=" in tok:
+            k, v = tok.split("=", 1)
+            k = k.replace("-", "_")
+            if k in _VALID_KWARGS:
+                kwargs[k] = v
+            i += 1
+        else:
+            i += 1
     tool_subscribe(**kwargs)
 
 COMMANDS = {"subscribe": _dispatch_subscribe}

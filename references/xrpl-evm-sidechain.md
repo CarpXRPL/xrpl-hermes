@@ -35,7 +35,7 @@ RLUSD)      Witness / Federator
 4. XRP/tokens released to user's L1 account
 
 ### EVM Sidechain Specifics
-- **Chain ID**: 1440000 (mainnet), 1450024 (testnet)
+- **Chain ID**: 1440000 (mainnet), 1449000 (testnet)
 - **RPC**: Public RPC endpoints available
 - **Block Time**: 3-5 seconds
 - **Gas Token**: wXRP (wrapped XRP)

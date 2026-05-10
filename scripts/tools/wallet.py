@@ -15,7 +15,11 @@ def tool_wallet_generate(algorithm: str = "ed25519"):
 
 def tool_wallet_from_seed(seed: str):
     from xrpl.wallet import Wallet
-    w = Wallet.from_seed(seed)
+    try:
+        w = Wallet.from_seed(seed)
+    except Exception as e:
+        json_out({"Error": "InvalidSeed", "Message": str(e)})
+        return
     json_out({"Address": w.classic_address, "PublicKey": w.public_key})
 
 def tool_validate_address(addr: str):

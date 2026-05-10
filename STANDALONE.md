@@ -1,6 +1,6 @@
 # XRPL-Hermes — Complete CLI Reference
 
-All 48 tools available via `python3 scripts/xrpl_tools.py <command> [args]`.
+All 64 tools available via `python3 scripts/xrpl_tools.py <command> [args]`.
 
 ---
 

@@ -45,6 +45,11 @@ def tool_tx_info(tx_hash: str):
         json_out({"Error": "TxError", "Message": str(e), "Transaction": tx_hash})
         return
     data = resp.result
+    if data.get("error"):
+        json_out({"Error": data.get("error"),
+                  "Message": data.get("error_message", "no message"),
+                  "Hash": tx_hash})
+        return
     tx_json = data.get("tx_json", data)
     status = data.get("meta", {}).get("TransactionResult", "?")
     tx_type = tx_json.get("TransactionType", "?")

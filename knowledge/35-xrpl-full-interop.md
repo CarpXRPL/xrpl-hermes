@@ -47,7 +47,7 @@ Wallets:    Xaman, Joey, Bifrost, Crossmark
 
 ```
 Network:    Ethereum-compatible EVM
-Chain ID:   1440000 (mainnet), 1450024 (testnet)
+Chain ID:   1440000 (mainnet), 1449000 (testnet)
 RPC:        https://rpc.xrplevm.org
 Explorer:   https://evm-sidechain.xrpl.org
 Native:     XRP (18 decimal places on EVM)
@@ -500,7 +500,7 @@ Recommended Stack:
 | XRPL Mainnet | N/A (not EVM) | XRPL |
 | XRPL Testnet | N/A | XRPL |
 | XRPL EVM Sidechain | 1440000 | EVM |
-| XRPL EVM Testnet | 1450024 | EVM |
+| XRPL EVM Testnet | 1449000 | EVM |
 | Xahau Mainnet | 21337 | XRPL fork |
 | Xahau Testnet | 21338 | XRPL fork |
 | Flare | 14 | EVM |

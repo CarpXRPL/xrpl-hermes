@@ -33,3 +33,6 @@ Thumbs.db
 *.zip
 *.tar.gz
 *.tgz
+*.codex-*
+.audit-prompt.md
+.pytest_cache/

@@ -1,5 +1,27 @@
 # Changelog
 
+## v1.3.10 — Final Dev-Test Audit (2026-05-09)
+
+### 🐛 Crash / JSON Fixes
+- `scripts/tools/wallet.py`: `wallet-from-seed` no longer leaks a Python traceback on an invalid seed — now emits clean `{"Error":"InvalidSeed"}` JSON.
+- `scripts/xrpl_streams.py`: `subscribe` now correctly parses both documented forms (`streams=ledger,transactions` and `--streams ledger,transactions`) and the optional `--count` alias for `--duration`. Was crashing with `TypeError: unexpected keyword argument 'streams=ledger,transactions'`.
+- `scripts/tools/ledger.py`: `tx-info` now emits a clean `{"Error":"txnNotFound", ...}` JSON when the lookup fails instead of returning a row of `"?"` placeholders.
+
+### 🐛 Accuracy Fixes
+- `scripts/tools/accounts.py`: `account-tx` now resolves the transaction hash from the API v2 top-level `hash` field (xrpl-py 4.x format). Previously every entry returned `"Hash": null`.
+- `scripts/tools/amm.py`: `build-amm-create` now requires only the 3 mandatory args (`--from`, `--amount1`, `--amount2`) — `--fee` keeps its default of 600. The min-pairs check was incorrectly set to 4 and rejected the documented usage.
+
+### 🐛 Knowledge Base Fixes
+- XRPL EVM **testnet** chain ID corrected from stale `1450024` to live `1449000` in `knowledge/29-xrpl-metamask-evm.md`, `33-xrpl-evm-dev.md`, `35-xrpl-full-interop.md`, `44-xrpl-evm-advanced.md`, and `references/xrpl-evm-sidechain.md`. Confirmed live via `eth_chainId` against `https://rpc.testnet.xrplevm.org` (`0x161c28` = 1,449,000). The dispatcher in `scripts/tools/evm.py` already used `1449000`; only the docs were stale.
+
+### 🧹 Doc / Packaging
+- `STANDALONE.md`: header "All 48 tools" → "All 64 tools" (matched dispatcher).
+- `LIMITATIONS.md`: "48+ tools, 59+ knowledge files" → "64 tools, 63 knowledge files" (matches actual repo).
+- `QUICKSTART.md`: replaced stale flat-text sample outputs for `server-info` and `account` with the real JSON shape the CLI emits today.
+- `pyproject.toml`: bumped version `1.3.8` → `1.3.9`; replaced bogus `setuptools.backends._legacy:_Backend` build-backend with the canonical `setuptools.build_meta`.
+
+---
+
 ## v1.3.9 — Polish Pass: Clawback, Docs, CI, Deps, Debloat (2026-05-09)
 
 ### Fixed
