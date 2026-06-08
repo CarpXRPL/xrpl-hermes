@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.3.11 — Amendment sync + public release hardening (2026-06-08)
+
+- Added live amendment commands: `amendments`, `amendment`, and `amendment-status`.
+- Re-verified XRPL mainnet amendment state against live `feature` RPC and XRPL.org Known Amendments.
+- Updated `knowledge/37-xrpl-amendments.md` with current status for AMMClawback, MPTokensV1, DID, Credentials, PriceOracle, TokenEscrow, PermissionedDEX, XRPFees, Batch, PermissionDelegation, XChainBridge, DynamicMPT, LendingProtocol, and SingleAssetVault.
+- Added live amendment warnings to MPT, Credential, Oracle, and Batch builders. Batch is supported by current servers but not enabled on XRPL mainnet, so the builder now warns that payloads are build-only unless targeting another network.
+- Replaced broken/null `flare-price` endpoint behavior with an honest CoinGecko fallback. Output now labels the source clearly and does not claim direct FTSO proof.
+- Added `scripts/dev_test_matrix.py` and generated `AUDIT-tool-matrix.md`; all 67 registered commands passed the safe dev-test matrix.
+- Humanized README and updated public positioning around open-source XRPL builder infrastructure, signer-ready JSON, and verified amendment status.
+
+---
+
 ## v1.3.10 — Final Dev-Test Audit (2026-05-09)
 
 ### 🐛 Crash / JSON Fixes
@@ -76,7 +88,7 @@
 ### 🏭 Professional Polish
 - `pyproject.toml` added — modern Python packaging, `pip install` namespaced as `xrpl-hermes`
 - README repositioned as "The Open-Source XRPL Developer Toolkit" — badges, build guide layout, tool/knowledge maps
-- SKILL.md description updated: "63 files, 33K+ lines + 64 working tools"
+- SKILL.md description updated: "63 files, 33K+ lines + 67 working tools"
 
 ---
 

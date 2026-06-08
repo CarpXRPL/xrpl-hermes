@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Oracle Set tool (XLS-47)."""
 from ._shared import (
-    json_out, note_out, json_tx_out, _dispatch_build,
+    json_out, note_out, json_tx_out, _dispatch_build, warn_if_amendment_not_enabled,
     OracleSet, PriceData,
 )
 
 def tool_build_set_oracle(frm: str, oracle_doc_id: str, provider: str,
                            asset_class: str, last_update_time: str,
                            price_data: str = None, uri: str = None):
+    warn_if_amendment_not_enabled("PriceOracle")
     if not price_data:
         print("Error: --price-data is required for OracleSet (XLS-47).")
         print("Format: BASE/QUOTE:PRICE:SCALE  (comma-separated for multiple feeds)")

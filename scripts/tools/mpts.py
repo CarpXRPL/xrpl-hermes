@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """MPT (Multi-Purpose Token) tools."""
 from ._shared import (
-    note_out, json_tx_out, _dispatch_build,
+    note_out, json_tx_out, _dispatch_build, warn_if_amendment_not_enabled,
     MPTokenIssuanceCreate, MPTokenAuthorize,
 )
 
 def tool_build_mpt_issuance_create(frm: str, asset_scale: str = None,
                                     maximum_amount: str = None, transfer_fee: str = None,
                                     flags: str = None):
+    warn_if_amendment_not_enabled("MPTokensV1")
     kwargs: dict = dict(account=frm)
     if asset_scale is not None: kwargs["asset_scale"] = int(asset_scale)
     if maximum_amount is not None: kwargs["maximum_amount"] = maximum_amount
@@ -24,6 +25,7 @@ def tool_build_mpt_issuance_create(frm: str, asset_scale: str = None,
 
 def tool_build_mpt_authorize(frm: str, mpt_issuance_id: str, holder: str = None,
                               flags: str = None):
+    warn_if_amendment_not_enabled("MPTokensV1")
     kwargs: dict = dict(account=frm, mptoken_issuance_id=mpt_issuance_id)
     if holder: kwargs["holder"] = holder
     if flags is not None: kwargs["flags"] = int(flags)

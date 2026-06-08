@@ -140,29 +140,43 @@ def wait_for_amendment(client, amendment_name: str, timeout_s: int = 300) -> boo
 |-----------|------|---------|
 | **AMM (XLS-30)** | 2023-10-24 | Automated Market Maker pools (constant product formula) |
 | **fixAMMOverflowOffer** | 2023-12 | Fix overflow in AMM offer crossing math |
-| **XChainBridge (XLS-38)** | 2024-Q1 | Cross-chain bridge for XRP and IOU assets |
+| **XChainBridge (XLS-38)** | Supported, not enabled on mainnet as of 2026-06-08 | Native XRPL bridge amendment; do not confuse with the XRPL EVM sidechain bridge |
 
-### 2024–2025
-| Amendment | Date | Purpose |
-|-----------|------|---------|
-| **fixAMMv1_1** | 2024-Q2 | Fix AMM trading fee precision, LP token math |
-| **MPT (XLS-33)** | 2024-12 | Multi-Purpose Tokens: compact on-ledger fungible tokens |
-| **fixAMMv1_2** | 2025-Q1 | Additional AMM edge case corrections |
-| **DID (XLS-40)** | 2025-Q1 | W3C Decentralized Identifiers on XRPL (DIDSet/DIDDelete) |
-| **ExpandedSignerList** | 2025-Q2 | Increase max signers in SignerList from 8 to 32 |
-| **Credentials (XLS-70)** | 2025-Q2 | On-chain verifiable credentials for DepositPreauth |
+### 2024–2026 live-status update
+
+The table below is not a hand-written guess. It was refreshed from live XRPL mainnet `feature` RPC (`https://s1.ripple.com:51234`) and checked against XRPL.org Known Amendments during the 2026-06-08 release audit. Re-run `python3 scripts/xrpl_tools.py amendments` before publishing any future release.
+
+| Amendment / Feature | Mainnet status | Feature ID | Builder impact |
+|-----------|------|---------|---------|
+| **AMMClawback** | Enabled | `726F944886BCDF7433203787E93DD9AA87FAB74DFE3AF4785BA03BEFC97ADA1F` | Tokens with clawback enabled can be used in AMMs; tooling may build AMM + clawback flows. |
+| **fixAMMClawbackRounding** | Enabled | `5E9586DB3D765B4C5794658FB6BB385071E9838DF4016027E6E26820C8526724` | AMM/clawback accounting fixes are live. |
+| **fixAMMv1_1 / v1_2 / v1_3** | Enabled | `35291ADD...`, `1E7ED950...`, `7CA70A76...` | AMM tooling should assume current mainnet behavior, not early AMM launch behavior. |
+| **MPTokensV1 (XLS-33)** | Enabled | `950AE2EA4654E47F04AA8739C0B214E242097E802FD372D24047A89AB1F5EC38` | MPT builders are mainnet-relevant. Check live status before building. |
+| **DID (XLS-40)** | Enabled | `DB432C3A09D9D5DFC7859F39AE5FF767ABC59AED0A9FB441E83B814D8946C109` | DIDSet/DIDDelete are mainnet concepts; add tools only after validating transaction model support. |
+| **Credentials** | Enabled | `1CB67D082CF7D9102412D34258CEDB400E659352D3B207348889297A6D90F5EF` | Credential builders are mainnet-relevant and now live-gated by XRPL-Hermes. |
+| **PriceOracle** | Enabled | `96FD2F293A519AE1DB6F8BED23E4AD9119342DA7CB6BAFD00953D16C54205D8B` | OracleSet builder is mainnet-relevant and live-gated. |
+| **fixPriceOracleOrder** | Enabled | `FF2D1E13CF6D22427111B967BD504917F63A900CECD320D6FD3AC9FA90344631` | PriceOracle ordering fix is live. |
+| **TokenEscrow** | Enabled | `138B968F25822EFBF54C00F97031221C47B1EAB8321D93C7C2AEAF85F04EC5DF` | Token escrow is live; add builder coverage before claiming full support. |
+| **fixTokenEscrowV1** | Enabled | `32B8614321F7E070419115ABEAB1742EA20F3E3AF34432B5E2F474F8083260DC` | TokenEscrow fix is live. |
+| **PermissionedDEX** | Enabled | `677E401A423E3708363A36BA8B3A7D019D21AC5ABD00387BDBEA6BDE4C91247E` | Permissioned DEX is live; tooling/docs need a dedicated workflow before public claims. |
+| **PermissionedDomains** | Enabled | `A730EB18A9D4BB52502C898589558B4CCEB4BE10044500EE5581137A2E80E849` | Permissioned domain primitives are live. |
+| **XRPFees** | Enabled | `93E516234E35E08CA689FA33A6D38E103881F8DCB53023F728C307AA89D515A7` | Fee docs should use current XRP fee behavior. |
+| **Batch** | Supported, not enabled | `894646DD5284E97DECFE6674A6D6152686791C4A95F8C132CCA9BAF9E5812FB6` | XRPL-Hermes may build Batch JSON, but must warn it is build-only for mainnet. |
+| **PermissionDelegation** | Supported, not enabled | `AE6AB9028EEB7299EBB03C7CBCC3F2A4F5FBE00EA28B8223AA3118A0B436C1C5` | Do not document as production mainnet functionality. |
+| **XChainBridge** | Supported, not enabled | `C98D98EE9616ACD36E81FDEB8D41D349BF5F1B41DD64A0ABC1FE9AA5EA267E9C` | XRPL L1 XChainBridge is not a mainnet builder path; XRPL EVM bridge docs must stay separate. |
+| **DynamicMPT / LendingProtocol / SingleAssetVault** | Supported, not enabled | see live `amendments` tool | Research/devnet only unless status changes. |
 
 ---
 
-## Pending / In-Development
+## Pending / Not Mainnet-Enabled
 
-| Amendment | Stage | Purpose |
+| Feature | Stage from live mainnet check | Purpose |
 |-----------|-------|---------|
-| **Hooks** | Draft | WebAssembly smart hooks (live on Xahau, pending mainnet) |
-| **XLS-56 (Batch)** | Draft | Group up to 8 transactions into a single submission |
-| **Remit** | In Voting | Combined payment + memo + destination tag in one tx |
-| **PriceOracle** | In Voting | Native on-ledger price oracle aggregation |
-| **fixEmptyDID** | Patch | Prevent empty DID documents from being stored |
+| **Hooks on XRPL L1** | Not an enabled XRPL mainnet amendment | WebAssembly smart hooks are live on Xahau, not XRPL L1 mainnet. Keep Xahau workflows separate. |
+| **Batch** | Supported by servers, not enabled | Group transactions into one submission. XRPL-Hermes builders must emit build-only warnings. |
+| **PermissionDelegation** | Supported by servers, not enabled | Delegated account permissions; do not use for production mainnet claims yet. |
+| **XChainBridge** | Supported by servers, not enabled | Native XRPL bridge amendment is not mainnet-enabled. Do not confuse with XRPL EVM sidechain bridge tooling. |
+| **DynamicMPT / LendingProtocol / SingleAssetVault** | Supported by servers, not enabled | Treat as research/devnet until enabled. |
 
 ---
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Batch transaction tool (XLS-56)."""
 from ._shared import (
-    json_out, note_out, json_tx_out, _dispatch_build,
+    json_out, note_out, json_tx_out, _dispatch_build, warn_if_amendment_not_enabled,
     Payment, TrustSet, OfferCreate, NFTokenMint, NFTokenCreateOffer,
     AMMCreate, AMMDeposit, AMMWithdraw, AMMVote, AMMBid,
     Clawback, AccountSet, SignerListSet,
@@ -17,6 +17,7 @@ from ._shared import (
 import json as json_mod
 
 def tool_build_batch(frm: str, inner_txs: str = None, flags: str = None, txns: str = None):
+    warn_if_amendment_not_enabled("Batch")
     inner_txs = inner_txs or txns
     try:
         raw_txs = json_mod.loads(inner_txs)

@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any, List
 from urllib.parse import quote
 from datetime import datetime, timezone
 from decimal import Decimal
+import time
 
 # --- xrpl-py imports (with helpful error) ---
 try:
@@ -189,6 +190,124 @@ def _parse_build_kwargs(keys: list) -> dict:
         if k in keys:
             kwargs[k] = v
     return kwargs
+
+_AMENDMENT_CACHE = {"ts": 0.0, "data": None}
+
+AMENDMENT_ENDPOINTS = [
+    "https://s1.ripple.com:51234",
+    "https://s2.ripple.com:51234",
+]
+
+FEATURE_ALIASES = {
+    "MPT": "MPTokensV1",
+    "MPTS": "MPTokensV1",
+    "MPTokenIssuanceCreate": "MPTokensV1",
+    "MPTokenAuthorize": "MPTokensV1",
+    "Oracle": "PriceOracle",
+    "OracleSet": "PriceOracle",
+    "Batch": "Batch",
+    "Credentials": "Credentials",
+    "CredentialCreate": "Credentials",
+    "CredentialAccept": "Credentials",
+    "CredentialDelete": "Credentials",
+    "AMMClawback": "AMMClawback",
+    "DID": "DID",
+    "XRPFees": "XRPFees",
+}
+
+
+def _fetch_features() -> Dict[str, Any]:
+    """Fetch live amendment/feature status from public XRPL mainnet nodes."""
+    now = time.time()
+    if _AMENDMENT_CACHE["data"] is not None and now - _AMENDMENT_CACHE["ts"] < 300:
+        return _AMENDMENT_CACHE["data"]
+    last_err = None
+    for ep in AMENDMENT_ENDPOINTS:
+        try:
+            import httpx
+            resp = httpx.post(ep, json={"method": "feature", "params": [{}]}, timeout=20)
+            payload = resp.json()
+            features = payload.get("result", {}).get("features", {})
+            if features:
+                data = {"endpoint": ep, "features": features, "fetched_at": datetime.now(timezone.utc).isoformat()}
+                _AMENDMENT_CACHE["data"] = data
+                _AMENDMENT_CACHE["ts"] = now
+                return data
+        except Exception as e:
+            last_err = e
+    raise RuntimeError(f"Could not fetch XRPL amendment status: {last_err}")
+
+
+def list_amendments() -> Dict[str, Any]:
+    data = _fetch_features()
+    buckets = {"enabled": [], "supported_not_enabled": [], "vetoed": [], "unsupported": []}
+    for fid, feat in data["features"].items():
+        rec = {
+            "name": feat.get("name") or fid,
+            "id": fid,
+            "enabled": bool(feat.get("enabled")),
+            "supported": bool(feat.get("supported")),
+            "vetoed": bool(feat.get("vetoed")),
+        }
+        if rec["enabled"]:
+            buckets["enabled"].append(rec)
+        elif rec["vetoed"]:
+            buckets["vetoed"].append(rec)
+        elif rec["supported"]:
+            buckets["supported_not_enabled"].append(rec)
+        else:
+            buckets["unsupported"].append(rec)
+    for key in buckets:
+        buckets[key] = sorted(buckets[key], key=lambda x: x["name"].lower())
+    return {
+        "Network": "XRPL Mainnet",
+        "Endpoint": data["endpoint"],
+        "FetchedAt": data["fetched_at"],
+        "Counts": {k: len(v) for k, v in buckets.items()},
+        **buckets,
+    }
+
+
+def get_amendment_status(name_or_id: str) -> Dict[str, Any]:
+    wanted = FEATURE_ALIASES.get(name_or_id, name_or_id).lower()
+    data = _fetch_features()
+    for fid, feat in data["features"].items():
+        name = feat.get("name") or fid
+        if wanted in (name.lower(), fid.lower()) or wanted == fid.lower()[:16]:
+            return {
+                "Network": "XRPL Mainnet",
+                "Endpoint": data["endpoint"],
+                "FetchedAt": data["fetched_at"],
+                "Name": name,
+                "ID": fid,
+                "Enabled": bool(feat.get("enabled")),
+                "Supported": bool(feat.get("supported")),
+                "Vetoed": bool(feat.get("vetoed")),
+            }
+    return {"Error": "UnknownAmendment", "Query": name_or_id}
+
+
+def warn_if_amendment_not_enabled(feature_name: str):
+    """Emit an honest warning for amendment-dependent builders.
+
+    Builder commands still output JSON because teams may target devnet/testnet or
+    prepare payloads ahead of activation. The warning prevents accidental
+    mainnet claims when a feature is only supported/in voting.
+    """
+    status = get_amendment_status(feature_name)
+    if status.get("Error"):
+        note_out(f"# Amendment check: {feature_name} not found on live mainnet feature list. Treat output as build-only until verified.")
+        return status
+    if not status.get("Enabled"):
+        note_out(
+            f"# WARNING: {status['Name']} is not enabled on XRPL mainnet "
+            f"(supported={status.get('Supported')}, vetoed={status.get('Vetoed')}). "
+            "This payload is build-only unless you are targeting a network where the amendment is active."
+        )
+    else:
+        note_out(f"# Amendment check: {status['Name']} is enabled on XRPL mainnet.")
+    return status
+
 
 def _dispatch_build(min_pairs: int, fn):
     kwargs = {}

@@ -35,4 +35,7 @@ Thumbs.db
 *.tgz
 *.codex-*
 .audit-prompt.md
+.codex-smoke.md
+.codex-spec.md
+.codex-audit.md
 .pytest_cache/

@@ -10,7 +10,7 @@ xrpl-hermes is a KNOWLEDGE + TOOLKIT, not a runtime or hosting platform.
 - ❌ Not a hosted API — use XRPSCAN or xrpl.to for that
 
 ## What this IS
-- ✅ 64 tools for building XRPL transactions
+- ✅ 67 tools for building XRPL transactions, checking live amendments, and querying ecosystem context
 - ✅ 63 knowledge files covering the full XRPL ecosystem
 - ✅ Reference implementations and patterns
 - ✅ CLI-first, works in any environment

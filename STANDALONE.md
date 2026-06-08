@@ -1,6 +1,6 @@
 # XRPL-Hermes — Complete CLI Reference
 
-All 64 tools available via `python3 scripts/xrpl_tools.py <command> [args]`.
+All 67 tools available via `python3 scripts/xrpl_tools.py <command> [args]`.
 
 ---
 
@@ -70,6 +70,20 @@ Show connected node info: version, ledger, uptime, load.
 ```bash
 python3 scripts/xrpl_tools.py server-info
 ```
+
+---
+
+### `amendments`, `amendment`, `amendment-status`
+Query live XRPL mainnet amendment state from public nodes. Use this before relying on newer transaction types.
+
+```bash
+python3 scripts/xrpl_tools.py amendments
+python3 scripts/xrpl_tools.py amendments MPTokensV1
+python3 scripts/xrpl_tools.py amendment Batch
+python3 scripts/xrpl_tools.py amendment-status AMMClawback
+```
+
+`Batch`, `PermissionDelegation`, `XChainBridge`, `DynamicMPT`, `LendingProtocol`, and `SingleAssetVault` are currently supported by servers but not enabled on XRPL mainnet. Builders must treat those as build-only/devnet until live status changes.
 
 ---
 
