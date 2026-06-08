@@ -524,7 +524,7 @@ print(f"Test seed: {test_wallet.seed}")
 - `references/xrpl-l1.md` — L1 fundamentals
 - `references/xrpl-evm-sidechain.md` — EVM sidechain architecture
 - `references/xahau-hooks.md` — Xahau and Hooks
-- `references/flare-ftso.md` — Flare FTSO price feeds
+- `references/flare-ftso.md` — Flare FTSO reference material; CLI price helper uses a clearly labeled public fallback unless direct on-chain FTSO access is added
 - `references/axelar-bridge.md` — Axelar cross-chain messaging
 - `references/arweave-storage.md` — Arweave permanent storage
 - `knowledge/36-xrpl-xls-standards.md` — XLS standard specifications

@@ -27,8 +27,8 @@
 - XRPL EVM **testnet** chain ID corrected from stale `1450024` to live `1449000` in `knowledge/29-xrpl-metamask-evm.md`, `33-xrpl-evm-dev.md`, `35-xrpl-full-interop.md`, `44-xrpl-evm-advanced.md`, and `references/xrpl-evm-sidechain.md`. Confirmed live via `eth_chainId` against `https://rpc.testnet.xrplevm.org` (`0x161c28` = 1,449,000). The dispatcher in `scripts/tools/evm.py` already used `1449000`; only the docs were stale.
 
 ### 🧹 Doc / Packaging
-- `STANDALONE.md`: header "All 48 tools" → "All 64 tools" (matched dispatcher).
-- `LIMITATIONS.md`: "48+ tools, 59+ knowledge files" → "64 tools, 63 knowledge files" (matches actual repo).
+- `STANDALONE.md`: header updated from the old 48-tool wording to the then-current 64-tool dispatcher count.
+- `LIMITATIONS.md`: old "48+ tools, 59+ knowledge files" wording updated to the then-current 64-tool / 63-file count.
 - `QUICKSTART.md`: replaced stale flat-text sample outputs for `server-info` and `account` with the real JSON shape the CLI emits today.
 - `pyproject.toml`: bumped version `1.3.8` → `1.3.9`; replaced bogus `setuptools.backends._legacy:_Backend` build-backend with the canonical `setuptools.build_meta`.
 
@@ -110,7 +110,7 @@
 - `STANDALONE.md`: Updated account sample output and `hooks-bitmask` wording to
   match JSON output.
 - `SKILL.md`: Reordered the 48-tool table to match the dispatcher exactly.
-- Verified README counts against the repo: 59 knowledge files and 48 CLI tools.
+- Verified README counts against the repo for that release.
 - Verified XRPL EVM RPC requires `Content-Type: application/json`; with the
   header, `eth_chainId` reports `0x15f900` (`1440000`).
 
@@ -155,7 +155,7 @@
   corrected.
 
 ### 📚 Knowledge Base Hygiene
-- All 59 knowledge files now end with a `## Related Files` section with
+- All knowledge files in that release ended with a `## Related Files` section with
   topical cross-references (was 10/59 before this pass). Files 46–51 and 59
   had a `## Cross-References` heading; renamed for consistency.
 
@@ -164,7 +164,7 @@
   `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid`,
   `build-signer-list-set`, `build-mpt-issuance-create`, `build-mpt-authorize`,
   `build-set-oracle`, `build-credential-create/accept/delete`,
-  `build-cross-currency-payment`, and `build-batch`. Now covers all 48 tools.
+  `build-cross-currency-payment`, and `build-batch`. Covered the full dispatcher at that release.
 - `STANDALONE.md`: `hooks-bitmask` entry now carries the same ⚠️ BROKEN
   warning that `SKILL.md` and `README.md` already use.
 - `STANDALONE.md` + `SKILL.md`: documented `--balance` on
@@ -223,7 +223,7 @@
 - `nft-info`: Fixed `PUBLIC_ENDPOINTS`→`ENDPOINTS` (undefined variable crash)
 - `evm-balance` docs: rADDR→0xADDRESS
 - `evm-bridge`: Per-network Chain IDs + error handling
-- SKILL.md tool table regenerated from real dispatcher (48 tools)
+- SKILL.md tool table regenerated from the real dispatcher count at that release
 
 ---
 
