@@ -54,7 +54,8 @@ def tool_evm_bridge(network: str = "mainnet"):
         observed_cid = None
     json_out({"Network": network, "LatestBlock": block, "RPC": url,
               "ConfiguredChainID": cid, "ObservedChainID": observed_cid,
-              "Bridge": "L1-EVM federated bridge active", "RawChainID": chain_resp})
+              "Bridge": "XRPL L1 <-> EVM bridging is Axelar-based; verify current gateway/contract details at docs.xrplevm.org",
+              "RawChainID": chain_resp})
 
 COMMANDS = {
     "evm-balance": lambda: tool_evm_balance(sys.argv[2], sys.argv[3] if len(sys.argv) >= 4 else "mainnet") if len(sys.argv) >= 3 else usage_out("evm-balance", "evm-balance 0xADDRESS [mainnet|testnet]"),

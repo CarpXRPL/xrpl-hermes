@@ -58,6 +58,19 @@ python3 -m scripts.xrpl_tools account rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
 python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000000
 ```
 
+## Documentation
+
+| Guide | For |
+|---|---|
+| [`QUICKSTART.md`](QUICKSTART.md) | Install and first commands in 5 minutes |
+| [`docs/BEGINNERS.md`](docs/BEGINNERS.md) | New to XRPL and agent CLIs — concepts, safety, first session |
+| [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Ecosystem workflow index — commands, knowledge, and honest coverage labels per ecosystem |
+| [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
+| [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
+| [`STANDALONE.md`](STANDALONE.md) | Complete CLI reference for all 67 commands |
+| [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
+| [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
+
 ## Command coverage
 
 67 commands are split across focused Python modules in `scripts/tools/`.

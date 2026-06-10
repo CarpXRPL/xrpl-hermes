@@ -1,0 +1,118 @@
+# MCP Client Guide — Claude Code, Cursor, Codex, Hermes, and any MCP client
+
+`scripts/mcp_server.py` is a stdio MCP server written in stdlib-only Python (no extra dependencies beyond the repo's own requirements for the commands it runs). Point any MCP-capable client at it and the agent gets the full toolkit.
+
+## The four tools every client gets
+
+| Tool | What it does |
+|---|---|
+| `xrpl_list_commands` | Lists all 67 CLI commands by name |
+| `xrpl_run` | Runs one command with CLI-style args (e.g. `command="account"`, `args=["rADDR"]`) |
+| `xrpl_knowledge_index` | Lists the 65 knowledge files and 11 reference cards with titles |
+| `xrpl_knowledge` | Reads one knowledge/reference file (sandboxed to `knowledge/` and `references/`) |
+
+Design properties worth knowing before you wire it up:
+
+- **Subprocess isolation.** Each `xrpl_run` call executes in a child process with a 90-second timeout, so a crashing or hanging command never takes down the server.
+- **No secrets, ever.** The server has no tool that accepts a seed or key. Builders return signer-ready JSON for external signing.
+- **Knowledge reads are sandboxed.** `xrpl_knowledge` rejects paths outside `knowledge/` and `references/` (covered by tests).
+- **Live-network commands need the repo's Python deps.** `xrpl_list_commands`, `xrpl_knowledge_index`, and `xrpl_knowledge` work even without `xrpl-py` installed; `xrpl_run` needs `pip install -r requirements.txt` done once in the Python that runs the server.
+
+In all examples below, replace `/path/to/xrpl-hermes` with your actual clone path. If you installed the repo's dependencies into a virtualenv, use that venv's Python (e.g. `/path/to/xrpl-hermes/.venv/bin/python3`) as the command.
+
+## Claude Code
+
+```bash
+claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
+```
+
+Verify inside a session: `/mcp` should show `xrpl-hermes` connected with the four tools. Then ask something like *"check whether the Batch amendment is enabled on XRPL mainnet"* — the agent should call `xrpl_run` with `command="amendment"`.
+
+## Cursor
+
+Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
+
+```json
+{
+  "mcpServers": {
+    "xrpl-hermes": {
+      "command": "python3",
+      "args": ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+    }
+  }
+}
+```
+
+Enable the server under Cursor Settings → MCP.
+
+## Codex CLI
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.xrpl-hermes]
+command = "python3"
+args = ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+```
+
+## Claude Desktop
+
+Add the same JSON block as Cursor's to `claude_desktop_config.json` (Settings → Developer → Edit Config), then restart the app.
+
+## Hermes Agent
+
+Hermes loads xrpl-hermes natively as a skill — the MCP server is optional there:
+
+```bash
+mkdir -p ~/.hermes/skills
+cp -r xrpl-hermes ~/.hermes/skills/xrpl-hermes
+```
+
+Activate with `activate xrpl-hermes`. The skill prompt (`SKILL.md`) gives the agent the same commands via the terminal plus the knowledge-citation and freshness rules. If your Hermes setup prefers MCP, the generic stdio config below works too.
+
+## Any other MCP client
+
+The server speaks standard JSON-RPC 2.0 over stdio (protocol version `2025-06-18`). Generic config shape:
+
+```json
+{
+  "mcpServers": {
+    "xrpl-hermes": {
+      "command": "python3",
+      "args": ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+    }
+  }
+}
+```
+
+No environment variables are required. Optional ones (`XRPL_PRIVATE_RPC` for your own node, `XUMM_API_KEY`/`XUMM_API_SECRET` for `xaman-payload`) can be passed through your client's `env` block.
+
+## Smoke test without any client
+
+You can drive the server by hand to confirm it works:
+
+```bash
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"smoke","version":"0"}}}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"xrpl_run","arguments":{"command":"ledger","args":[]}}}' \
+  | python3 scripts/mcp_server.py
+```
+
+You should see three JSON-RPC responses; the third contains live validated-ledger data.
+
+## Prompting patterns that work well
+
+- *"Use xrpl_knowledge_index, read the AMM file, then build an AMMDeposit for …"* — knowledge first, then build; this matches how the skill is designed to be used.
+- *"Check the live amendment status before using any post-2024 transaction type."* — the builders do this themselves for MPT/Credential/Oracle/Batch, but saying it keeps the agent honest for everything else.
+- *"Produce a token intelligence report for CODE:rISSUER following knowledge/64."* — forces the ≥5-live-datapoints, confidence-scored, missing-data-listed report format.
+
+## Troubleshooting
+
+| Symptom | Cause / fix |
+|---|---|
+| `xrpl_run` returns `dispatcher unavailable: …` | The Python running the server can't import `xrpl-py`. Run `pip install -r requirements.txt` with that same Python, or point the client at your venv's `python3`. |
+| Knowledge tools work but commands fail | Same as above — knowledge needs no deps, commands do. |
+| `command timed out after 90s` | Public endpoint slow or unreachable; retry, or set `XRPL_PRIVATE_RPC` to your own rippled/Clio. |
+| Client shows no tools | Check the path in your config is absolute and the file is executable by `python3`. Run the smoke test above outside the client. |
+| `xaman-payload` returns `MissingCredentials` | Expected without `XUMM_API_KEY`/`XUMM_API_SECRET`; get free keys at apps.xumm.dev or sign the JSON manually in Xaman's Developer tab. |

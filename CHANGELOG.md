@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.5.0 — Professional docs release: onboarding, MCP clients, workflow index — FABLE 5 Audited (2026-06-10)
+
+Documentation release closing the gaps between a working toolkit and a serious open-source release. No tool behavior changes except one stale-string fix.
+
+### Added
+- `docs/BEGINNERS.md` — "new to XRPL and agent CLIs" guide: the five concepts that matter (reserves, drops, trust lines, signing split, amendments), the no-seeds-in-prompts rule up front, a zero-risk read-only first session, testnet practice path, and a glossary.
+- `docs/DEVELOPERS.md` — advanced guide: repo architecture (thin dispatcher + `scripts/tools/` module registry + `_shared.py` failover), safety invariants, add-a-command checklist, MCP server internals (stdio JSON-RPC, subprocess isolation, command allowlist, knowledge sandbox), two-layer testing model with the dev-test matrix pass criteria documented, and the release flow (three version-bump locations).
+- `docs/MCP-CLIENTS.md` — per-client MCP setup for Claude Code, Cursor, Codex CLI, Claude Desktop, Hermes, and generic stdio clients; a no-client smoke test; prompting patterns; troubleshooting table.
+- `docs/WORKFLOWS.md` — ecosystem workflow index for XRPL L1, issued tokens, NFTs, AMMs, MPTs, amendments, Xaman, Xahau/Hooks, Flare, Axelar, Arweave, XRPL EVM, bots, and self-hosted nodes — each labeled honestly as live-commands, build-only, or knowledge+references, with a roadmap of the real gaps (Axelar/Arweave commands, `hooks-bitmask` reimplementation, `amm_info`, on-chain FTSO reads).
+- README "Documentation" index table linking all guides.
+- `SECURITY.md` plain-English rules section: no secrets in the toolkit, no seeds in prompts/agent chats ever, signer-ready JSON only.
+- `LIMITATIONS.md` honest-coverage notes (Axelar/Arweave docs-only, Flare price fallback labeling, `hooks-bitmask` disabled).
+
+### Fixed
+- `evm-bridge` output still claimed "L1-EVM federated bridge active" — stale devnet-era wording the v1.4.4 pass scrubbed from the docs; now states bridging is Axelar-based and points at docs.xrplevm.org for current gateway details.
+- `CONTRIBUTING.md` described the pre-refactor architecture ("tools live in scripts/xrpl_tools.py"); now documents the `scripts/tools/` module pattern, the dev-check commands, and the correct next knowledge-file number.
+
+### Verified
+- Pytest suite and MCP stdio smoke test green; live `ledger` query through the CLI path; dev-test matrix regenerated 67/67 PASS (committed).
+
 ## v1.4.5 — Dev-test matrix correctness pass — FABLE 5 Audited (2026-06-10)
 
 Repo coherence and currentness audit. Versions, counts (65 knowledge files, 11 references, 67 commands), CLI docs, MCP docs, and reference cards all verified in agreement; live probes re-confirmed current ledger and EVM facts.

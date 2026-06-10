@@ -15,3 +15,9 @@ xrpl-hermes is a KNOWLEDGE + TOOLKIT, not a runtime or hosting platform.
 - ✅ An MCP server so any agent (Hermes, OpenClaw, Claude Code, Cursor) can use all of the above
 - ✅ Reference implementations and patterns
 - ✅ CLI-first, works in any environment
+
+## Honest coverage notes
+- Axelar and Arweave are covered by knowledge files and reference cards only — no CLI commands execute bridges or uploads. See the per-ecosystem labels in `docs/WORKFLOWS.md`.
+- `flare-price` uses a public price API fallback and is labeled as such — it is not on-chain FTSO proof.
+- `hooks-bitmask` is intentionally disabled (emits a warning) until a correct 256-bit `HookOn` implementation lands.
+- Never put a seed in a prompt, chat, or CLI argument. Builders emit unsigned, signer-ready JSON only — see `SECURITY.md`.

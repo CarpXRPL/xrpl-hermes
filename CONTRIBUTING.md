@@ -6,17 +6,24 @@ Thanks for helping build the definitive XRPL knowledge base. ☤
 
 ### 1. Add Knowledge Files
 
-New files go in `knowledge/` with the next available number:
+New files go in `knowledge/` with the next available number (currently `66`):
 
 ```
-knowledge/60-xrpl-your-topic.md
+knowledge/66-xrpl-your-topic.md
 ```
 
 File format: standard markdown with a `# Title` header and practical Python/Solidity code examples. Use real public endpoints (xrplcluster.com, xrpl.to). Keep internal API keys out.
 
 ### 2. Improve Tools
 
-The CLI tools live in `scripts/xrpl_tools.py`. Each tool is a function registered in the dispatcher dict. Add new tools following the existing pattern.
+Tool logic lives in domain modules under `scripts/tools/` — each module exports a `COMMANDS` dict that the thin dispatcher `scripts/xrpl_tools.py` merges. To add a command: implement it in the right module using the `_shared.py` helpers, add a safe invocation to `scripts/dev_test_matrix.py`, add pytest coverage, and document it in `STANDALONE.md`. Full walkthrough: [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md).
+
+Before opening a PR, run:
+
+```bash
+python3 -m pytest -q
+python3 scripts/dev_test_matrix.py
+```
 
 ### 3. Fix a Bug or Docs Error
 

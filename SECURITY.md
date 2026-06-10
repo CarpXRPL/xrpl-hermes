@@ -1,5 +1,11 @@
 # Security Policy
 
+## The rules, in plain English
+
+1. **No secrets in this toolkit.** Nothing here needs your seed or private key, and nothing here asks for one. If a fork or wrapper of this project asks for a seed, treat it as hostile.
+2. **No seeds in prompts.** Never paste a seed, secret key, or mnemonic into an AI chat, agent prompt, or MCP tool call. Agents using xrpl-hermes research and build — they must never hold signing power.
+3. **Signer-ready JSON only.** Transaction builders emit unsigned JSON. You review it and sign it in your own wallet (Xaman, Crossmark, hardware-backed signer). The `submit` command is for advanced users with *already-signed* blobs only.
+
 ## Private Keys & Seeds
 
 This project's build-* commands generate **unsigned JSON** client-side — no keys needed.
