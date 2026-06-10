@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.4.3 — Knowledge freshness and depth pass — FABLE 5 Audited (2026-06-10)
+
+Research pass against live ledger state and official public docs (xrpl.org amendment status via live `feature` lookups, docs.xrplevm.org, docs.xaman.dev, chainlist).
+
+### Added
+- `knowledge/64-token-intelligence-reports.md` — full live-data methodology for token intelligence: gathering checklist (issuer flags, domain TOML verification, trust lines, obligations, AMM/DEX liquidity depth, transfer rate, recent activity), evidence-cited risk-flag catalog, High/Medium/Low confidence scoring (no trade recommendation at Low), and a report template with a mandatory missing-data section.
+- `knowledge/65-agent-freshness-and-source-policy.md` — stable-vs-stale fact taxonomy, verification ladder (ledger > official docs > repo > claims), [live]/[docs]/[repo]/[claimed] phrasing discipline, date-stamping rules, endpoint-failure handling, and citation requirements.
+- `references/token-intelligence.md` quick card (references now 11 files).
+- SKILL.md freshness core rule ("read the knowledge file, then verify with live tools or official docs before answering"), Agent Discipline knowledge group (64–65), routing-table rows, and counts updated to 65 files.
+- README "Staying current" note.
+
+### Fixed — stale ecosystem facts (verified 2026-06-10)
+- **Dead EVM explorer URLs**: `evm-sidechain.xrpl.org` (does not resolve) replaced with `https://explorer.xrplevm.org` / `https://explorer.testnet.xrplevm.org` (both live, HTTP 200) in `knowledge/50` and `references/xrpl-evm-sidechain.md`.
+- **Devnet-era EVM facts** in the same files: gas token corrected wXRP → native XRP (bridged via Axelar); consensus corrected "authority round-robin federators" → CometBFT PoS (Cosmos SDK chain, mainnet live 2025-06-30); summary table date-stamped.
+- `references/amendments.md` snapshot refreshed from 13 live `amendment` lookups and date-stamped: TokenEscrow and PermissionedDEX added to the enabled list; Batch, PermissionDelegation, XChainBridge, DynamicMPT, LendingProtocol, SingleAssetVault re-confirmed not enabled.
+- `scripts/mcp_server.py` tool description no longer hardcodes the knowledge-file count.
+
+### Verified, no change needed
+- `knowledge/37-xrpl-amendments.md` matches live mainnet state for all 13 amendments checked.
+- RLUSD issuer, EVM chain IDs (1440000/1449000), RPC URLs, Xaman payload API endpoint (`xumm.app/api/v1/platform/payload`) and payload flow per docs.xaman.dev.
+
+---
+
 ## v1.4.2 — Ledger-correctness audit: currency codes, issuers, bot hygiene — FABLE 5 Audited (2026-06-10)
 
 Second professional audit pass focused on on-ledger correctness, signing hygiene, and bot-readiness.

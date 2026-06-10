@@ -36,11 +36,11 @@ RLUSD)      Witness / Federator
 
 ### EVM Sidechain Specifics
 - **Chain ID**: 1440000 (mainnet), 1449000 (testnet)
-- **RPC**: Public RPC endpoints available
-- **Block Time**: 3-5 seconds
-- **Gas Token**: wXRP (wrapped XRP)
-- **Consensus**: Authority round-robin (federators)
-- **Explorer**: Block explorer at evm-sidechain-explorer.xrpl.org
+- **RPC**: https://rpc.xrplevm.org (mainnet), https://rpc.testnet.xrplevm.org (testnet)
+- **Block Time**: ~4 seconds
+- **Gas Token**: XRP (native, bridged via Axelar)
+- **Consensus**: CometBFT PoS (Cosmos SDK chain; mainnet live since 2025-06-30)
+- **Explorer**: https://explorer.xrplevm.org (testnet: https://explorer.testnet.xrplevm.org) — verified 2026-06-10
 
 ### Key Contracts
 - Bridge contract: Manages deposits/withdrawals between chains

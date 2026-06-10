@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xrpl-hermes", "version": "1.4.2"}
+SERVER_INFO = {"name": "xrpl-hermes", "version": "1.4.3"}
 RUN_TIMEOUT_SECONDS = 90
 
 _KNOWLEDGE_DIRS = ("knowledge", "references")
@@ -112,7 +112,7 @@ TOOLS = [
     },
     {
         "name": "xrpl_knowledge_index",
-        "description": "List the XRPL knowledge base (63 files) and references with titles. "
+        "description": "List the XRPL knowledge base and reference cards with titles. "
                        "Read the relevant file with xrpl_knowledge before building.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },

@@ -16,7 +16,7 @@ python3 -m scripts.xrpl_tools amendment MPTokensV1  # one amendment's status
 A transaction type that depends on a non-enabled amendment fails on mainnet even though current servers *support* it. The MPT, Credential, Oracle, and Batch builders in this repo already check live status and warn; for anything else, run `amendment NAME` before building.
 
 ## Status snapshot (verify live — this ages)
-As of the last audit: `Batch`, `PermissionDelegation`, `XChainBridge`, `DynamicMPT`, `LendingProtocol`, and `SingleAssetVault` were supported by servers but **not enabled** on mainnet (build-only / other networks). `MPTokensV1`, `AMMClawback`, `Credentials`, `PriceOracle`, and `Clawback` were enabled.
+Checked live 2026-06-10 via `amendment NAME` against mainnet: **enabled** — `MPTokensV1`, `AMMClawback`, `Credentials`, `PriceOracle`, `Clawback`, `TokenEscrow`, `PermissionedDEX`. **Supported but not enabled** (build-only on mainnet) — `Batch`, `PermissionDelegation`, `XChainBridge`, `DynamicMPT`, `LendingProtocol`, `SingleAssetVault`.
 
 ## Deeper material in `knowledge/37-xrpl-amendments.md`
 - Chronological catalog of every enabled amendment since 2016

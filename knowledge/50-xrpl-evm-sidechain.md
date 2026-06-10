@@ -67,10 +67,12 @@ The XRPL EVM Sidechain is an Ethereum Virtual Machine (EVM) compatible sidechain
 |----------|---------|---------|
 | Chain ID | 1440000 | 1449000 |
 | RPC URL | https://rpc.xrplevm.org | https://rpc.testnet.xrplevm.org |
-| Block Explorer | https://evm-sidechain.xrpl.org | https://testnet-explorer.xrplevm.org |
-| Gas Token | wXRP | test-wXRP |
-| Block Time | 3-5 seconds | 3-5 seconds |
-| Consensus | Authority round-robin | Authority round-robin |
+| Block Explorer | https://explorer.xrplevm.org | https://explorer.testnet.xrplevm.org |
+| Gas Token | XRP (native, bridged via Axelar) | test XRP |
+| Block Time | ~4 seconds | ~4 seconds |
+| Consensus | CometBFT PoS (Cosmos SDK chain) | CometBFT PoS |
+
+*Verified 2026-06-10 against docs.xrplevm.org and live explorer probes; mainnet launched 2025-06-30. Re-check the official docs before relying on endpoints — see `knowledge/65-agent-freshness-and-source-policy.md`.*
 | EVM Version | London | London |
 
 ---
@@ -134,7 +136,7 @@ def deploy_erc20(private_key: str, name: str, symbol: str, initial_supply: int) 
         "tx_hash": tx_hash.hex(),
         "block": receipt["blockNumber"],
         "gas_used": receipt["gasUsed"],
-        "explorer": f"https://evm-sidechain.xrpl.org/tx/{tx_hash.hex()}"
+        "explorer": f"https://explorer.xrplevm.org/tx/{tx_hash.hex()}"
     }
 ```
 
@@ -379,8 +381,8 @@ module.exports = {
         network: "xrplEVM",
         chainId: 1440000,
         urls: {
-          apiURL: "https://evm-sidechain.xrpl.org/api",
-          browserURL: "https://evm-sidechain.xrpl.org"
+          apiURL: "https://explorer.xrplevm.org/api",
+          browserURL: "https://explorer.xrplevm.org"
         }
       }
     ]
@@ -484,8 +486,8 @@ forge verify-contract \
 | Endpoint | Description |
 |----------|-------------|
 | `https://rpc.xrplevm.org` | JSON-RPC endpoint (ETH compatible) |
-| `https://evm-sidechain.xrpl.org` | Block explorer UI |
-| `https://evm-sidechain.xrpl.org/api` | Explorer REST API |
+| `https://explorer.xrplevm.org` | Block explorer UI |
+| `https://explorer.xrplevm.org/api` | Explorer REST API |
 | `wss://rpc.xrplevm.org/ws/ws` | WebSocket endpoint |
 
 ```python
@@ -516,7 +518,7 @@ async def get_evm_sidechain_info() -> dict:
         "chain_id": chain_id,
         "latest_block": block,
         "gas_price_gwei": gas_price_wei / 10**9,
-        "explorer": "https://evm-sidechain.xrpl.org"
+        "explorer": "https://explorer.xrplevm.org"
     }
 
 async def get_account_balance_evm(address: str) -> dict:
@@ -651,7 +653,7 @@ The federated model differs from Axelar (permissionless validator set). This is 
 ## Resources
 
 - XRPL EVM Sidechain docs: https://docs.xrplevm.org
-- Block explorer: https://evm-sidechain.xrpl.org
+- Block explorer: https://explorer.xrplevm.org
 - RPC endpoint: https://rpc.xrplevm.org
 - Bridge UI: https://bridge.xrpl.org
 - Testnet faucet: https://bridge.testnet.xrpl.org (XRPL EVM Sidechain testnet)

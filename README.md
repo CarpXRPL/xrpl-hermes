@@ -1,6 +1,8 @@
 # ☤ xrpl-hermes
 
-Open-source XRPL tooling for AI agents and Python users. It combines a 63-file XRPL knowledge base with 67 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 67 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+
+**Staying current:** xrpl-hermes ships with markdown knowledge, but agents are instructed to verify live ledger state and current official docs before making claims (`knowledge/65-agent-freshness-and-source-policy.md`). Stale-able facts in the knowledge base are date-stamped where they appear.
 
 [![GitHub stars](https://img.shields.io/github/stars/CarpXRPL/xrpl-hermes?style=social)](https://github.com/CarpXRPL/xrpl-hermes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
