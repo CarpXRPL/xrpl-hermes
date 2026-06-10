@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.4.5 — Dev-test matrix correctness pass — FABLE 5 Audited (2026-06-10)
+
+Repo coherence and currentness audit. Versions, counts (65 knowledge files, 11 references, 67 commands), CLI docs, MCP docs, and reference cards all verified in agreement; live probes re-confirmed current ledger and EVM facts.
+
+### Fixed
+- `scripts/dev_test_matrix.py` now runs the CLI with `sys.executable` instead of a bare `python3`, so the matrix works inside virtualenvs (previously every command failed with "xrpl-py missing" under a venv).
+- Three matrix invocations exercised builders with invalid arguments and still counted as PASS: `build-amm-withdraw` used a nonexistent `--amount` flag (now `--amount1 XRP:500000`), `build-credential-delete` omitted the required `--subject`/`--issuer`, and `build-set-oracle` used a `--last-update-time` before the Ripple epoch. All three now produce real signer-ready JSON in the matrix.
+- Matrix pass criterion tightened: any `build-*` command whose output contains an `"Error"` payload is now a FAIL, so broken builder invocations can no longer hide behind exit code 0. Read-side not-found responses (`nft-info`, `tx-info`) and credential-less `xaman-payload` remain legitimate PASSes.
+- `scripts/mcp_server.py` docstring no longer hardcodes a stale "63-file" knowledge count.
+- README knowledge map now includes the `64`-`65` row (token intelligence reports, agent freshness and source policy), matching the 65-file claim.
+
+### Verified (live, 2026-06-10)
+- `Batch`, `PermissionDelegation`, `XChainBridge`, `DynamicMPT`, `LendingProtocol`, `SingleAssetVault` still supported-but-not-enabled on XRPL mainnet; `TokenEscrow` and `PermissionedDEX` enabled — matches `STANDALONE.md` and `references/amendments.md`.
+- `rpc.xrplevm.org` returned `eth_chainId = 0x15f900` (1440000); `explorer.xrplevm.org` and `docs.xrplevm.org` HTTP 200.
+- Public node `server-info` reports rippled 3.1.3, matching QUICKSTART's expected-output wording.
+- Full matrix regenerated under the stricter criteria: 67/67 PASS. Pytest: 11 passed.
+
 ## v1.4.4 — EVM sidechain coherence pass — FABLE 5 Audited (2026-06-10)
 
 Focused repo-coherence pass started by Claude Code/Fable 5 and completed after the Claude session hit its quota limit.

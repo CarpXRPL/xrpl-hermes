@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-TOOL = ["python3", "scripts/xrpl_tools.py"]
+TOOL = [sys.executable, "scripts/xrpl_tools.py"]
 R = "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe"
 GENESIS = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"
 BITSTAMP = "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
@@ -40,7 +40,7 @@ TESTS = {
     "build-amm-create": ["build-amm-create", "--from", R, "--amount1", "XRP:1000000", "--amount2", f"USD:{BITSTAMP}:1", "--fee", "500"],
     "build-amm-deposit": ["build-amm-deposit", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount", "1000000"],
     "build-amm-vote": ["build-amm-vote", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--trading-fee", "500"],
-    "build-amm-withdraw": ["build-amm-withdraw", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount", "1000000"],
+    "build-amm-withdraw": ["build-amm-withdraw", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount1", "XRP:500000"],
     "build-batch": ["build-batch", "--from", R, "--inner-txs", json.dumps([
         {"TransactionType":"Payment","Account":R,"Destination":GENESIS,"Amount":"1"},
         {"TransactionType":"Payment","Account":R,"Destination":GENESIS,"Amount":"1"},
@@ -51,7 +51,7 @@ TESTS = {
     "build-clawback": ["build-clawback", "--from", R, "--destination", GENESIS, "--currency", "USD", "--amount", "1"],
     "build-credential-accept": ["build-credential-accept", "--from", R, "--issuer", GENESIS, "--credential-type", "4B5943"],
     "build-credential-create": ["build-credential-create", "--from", R, "--subject", GENESIS, "--credential-type", "4B5943"],
-    "build-credential-delete": ["build-credential-delete", "--from", R, "--credential-type", "4B5943"],
+    "build-credential-delete": ["build-credential-delete", "--from", R, "--subject", GENESIS, "--credential-type", "4B5943"],
     "build-cross-currency-payment": ["build-cross-currency-payment", "--from", R, "--to", GENESIS, "--deliver", f"USD:{BITSTAMP}:1", "--send-max", "XRP:1000000"],
     "build-deposit-preauth": ["build-deposit-preauth", "--from", R, "--authorize", GENESIS],
     "build-escrow-cancel": ["build-escrow-cancel", "--from", R, "--owner", GENESIS, "--offer-sequence", "1"],
@@ -69,7 +69,7 @@ TESTS = {
     "build-paychannel-create": ["build-paychannel-create", "--from", R, "--to", GENESIS, "--amount", "1", "--settle-delay", "60", "--public-key", "ED" + "0"*64],
     "build-paychannel-fund": ["build-paychannel-fund", "--from", R, "--channel-id", CHANNEL, "--amount", "1"],
     "build-payment": ["build-payment", "--from", R, "--to", GENESIS, "--amount", "1"],
-    "build-set-oracle": ["build-set-oracle", "--from", R, "--oracle-doc-id", "1", "--provider", "5852504C", "--asset-class", "63757272656e6379", "--last-update-time", "789000000", "--price-data", "XRP/USD:1150000:6"],
+    "build-set-oracle": ["build-set-oracle", "--from", R, "--oracle-doc-id", "1", "--provider", "5852504C", "--asset-class", "63757272656e6379", "--last-update-time", "2000000000", "--price-data", "XRP/USD:1150000:6"],
     "build-set-regular-key": ["build-set-regular-key", "--from", R, "--regular-key", GENESIS],
     "build-signer-list-set": ["build-signer-list-set", "--from", R, "--quorum", "1", "--signers", f"{GENESIS}:1"],
     "build-ticket-create": ["build-ticket-create", "--from", R, "--count", "1"],
@@ -121,7 +121,8 @@ for name in commands:
     code, seconds, sample = run(cmd)
     dangerous_ok = name in {"submit", "submit-multisigned", "wallet-from-seed"} and (code in (0, 1) or "Usage" in sample or "Need" in sample or "Error" in sample)
     long_ok = name == "subscribe" and code == "timeout"
-    ok = (code == 0 or dangerous_ok or long_ok) and "Traceback" not in sample
+    builder_error = name.startswith("build-") and '"Error"' in sample
+    ok = (code == 0 or dangerous_ok or long_ok) and "Traceback" not in sample and not builder_error
     rows.append({"command": name, "argv": " ".join(shlex.quote(x) for x in cmd), "exit": code, "seconds": seconds, "status": "PASS" if ok else "FAIL", "sample": sample})
 
 passed = sum(1 for r in rows if r["status"] == "PASS")

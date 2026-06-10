@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
 description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (65 files, 33K+ lines) + 67 working tools + MCP server covering L1, EVM Sidechain, Xahau Hooks, Flare price context, Axelar Bridge, Arweave, Evernode, RLUSD, RWA tokenization, token intelligence, and live amendment checks. The open-source XRPL agent stack — self-hosted, keys stay yours.
-version: 1.4.4
+version: 1.4.5
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"

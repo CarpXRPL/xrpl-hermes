@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """xrpl-hermes MCP server — stdio transport, stdlib only.
 
-Exposes the 67-command dispatcher and the 63-file knowledge base to any
+Exposes the 67-command dispatcher and the full knowledge base to any
 MCP client (Claude Code, OpenClaw, Cursor, etc.):
 
     claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xrpl-hermes", "version": "1.4.4"}
+SERVER_INFO = {"name": "xrpl-hermes", "version": "1.4.5"}
 RUN_TIMEOUT_SECONDS = 90
 
 _KNOWLEDGE_DIRS = ("knowledge", "references")
