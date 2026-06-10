@@ -6,6 +6,7 @@ RLUSD is Ripple-issued USD stablecoin on the XRP Ledger. It is designed for regu
 
 **Key Properties:**
 - **Issuer:** Ripple — `rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De` (XRPL mainnet, verify against official Ripple announcements)
+- **Currency code:** `524C555344000000000000000000000000000000` — "RLUSD" is 5 characters, so the 160-bit hex form is **required** in every transaction and API field. Explorers display it as "RLUSD", but the ledger never accepts the 5-letter literal.
 - **Standard:** XRPL issued currency (IOU) with Clawback enabled
 - **Supply control:** Issuer can mint/burn and clawback under regulatory requirements
 - **Compliance:** Travel rule integration, freeze via clawback, KYC-gated trust lines
@@ -38,6 +39,8 @@ from xrpl.transaction import submit_and_wait
 from xrpl.utils import xrp_to_drops
 
 RLUSD_ISSUER = os.environ["RLUSD_ISSUER"]  # Ripple RLUSD issuer
+# "RLUSD" is 5 chars — XRPL requires the 160-bit hex currency code on-ledger
+RLUSD_CUR = "524C555344000000000000000000000000000000"
 XRPL_RPC = "https://xrplcluster.com"
 client = JsonRpcClient(XRPL_RPC)
 
@@ -46,7 +49,7 @@ def trust_rlusd(user_wallet: Wallet, limit: str = "1000000") -> dict:
     tx = TrustSet(
         account=user_wallet.classic_address,
         limit_amount={
-            "currency": "RLUSD",
+            "currency": RLUSD_CUR,
             "issuer": RLUSD_ISSUER,
             "value": limit
         }
@@ -60,7 +63,7 @@ def issue_rlusd(issuer_wallet: Wallet, destination: str, amount: str) -> dict:
         account=issuer_wallet.classic_address,
         destination=destination,
         amount={
-            "currency": "RLUSD",
+            "currency": RLUSD_CUR,
             "issuer": RLUSD_ISSUER,
             "value": amount
         }
@@ -109,7 +112,7 @@ def rlusd_payment_with_travel_rule(
         account=wallet.classic_address,
         destination=destination,
         amount={
-            "currency": "RLUSD",
+            "currency": RLUSD_CUR,
             "issuer": RLUSD_ISSUER,
             "value": amount
         },
@@ -157,7 +160,7 @@ The issuer can claw back RLUSD from a specific holder when required by regulatio
 python3 scripts/xrpl_tools.py build-clawback \
   --account rIssuerAddress \
   --destination rHolderAddress \
-  --currency RLUSD \
+  --currency 524C555344000000000000000000000000000000 \
   --issuer rIssuerAddress \
   --amount 1000
 ```
@@ -174,7 +177,7 @@ def clawback_rlusd(
     tx = Clawback(
         account=issuer_wallet.classic_address,
         amount={
-            "currency": "RLUSD",
+            "currency": RLUSD_CUR,
             "issuer": RLUSD_ISSUER,
             "value": amount
         },
@@ -214,7 +217,7 @@ def safe_clawback_rlusd(
     ))
     rlusd_balance = 0.0
     for line in lines.result.get("lines", []):
-        if line["currency"] == "RLUSD" and line["account"] == RLUSD_ISSUER:
+        if line["currency"] == RLUSD_CUR and line["account"] == RLUSD_ISSUER:
             rlusd_balance = float(line["balance"])
             break
 
@@ -227,7 +230,7 @@ def safe_clawback_rlusd(
     tx = Clawback(
         account=issuer_wallet.classic_address,
         amount={
-            "currency": "RLUSD",
+            "currency": RLUSD_CUR,
             "issuer": RLUSD_ISSUER,
             "value": str(claw_amount)
         },
@@ -265,10 +268,11 @@ async def get_rlusd_supply() -> dict:
             f"https://api.xrpscan.com/api/v1/account/{RLUSD_ISSUER}/obligations"
         )
         data = resp.json()
-        rlusd = data.get("RLUSD", {})
+        # explorers may key obligations by the hex code or the decoded name
+        rlusd = data.get(RLUSD_CUR) or data.get("RLUSD") or {}
         return {
             "supply": rlusd.get("value", "0"),
-            "currency": "RLUSD",
+            "currency": "RLUSD",  # display label; on-ledger code is RLUSD_CUR
             "issuer": RLUSD_ISSUER,
             "source": "XRPSCAN"
         }
@@ -282,7 +286,7 @@ async def get_top_rlusd_holders(limit: int = 20) -> list:
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             f"https://api.xrpscan.com/api/v1/asset/holders",
-            params={"currency": "RLUSD", "issuer": RLUSD_ISSUER, "limit": limit}
+            params={"currency": RLUSD_CUR, "issuer": RLUSD_ISSUER, "limit": limit}
         )
         return resp.json().get("holders", [])
 ```
@@ -310,7 +314,7 @@ async def monitor_rlusd_transactions(
                 tx = msg.get("transaction", {})
                 if tx.get("TransactionType") == "Payment":
                     amount = tx.get("Amount", {})
-                    if isinstance(amount, dict) and amount.get("currency") == "RLUSD":
+                    if isinstance(amount, dict) and amount.get("currency") == RLUSD_CUR:
                         value = float(amount.get("value", 0))
                         if value >= min_amount:
                             alert = {

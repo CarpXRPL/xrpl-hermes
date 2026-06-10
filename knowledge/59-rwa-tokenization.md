@@ -706,7 +706,9 @@ async def list_rwa_token_for_sale(
     Price in RLUSD. Requires buyer to have authorized trustline.
     """
     rlusd_total = str(round(float(token_amount) * price_rlusd_per_token, 6))
-    rlusd_issuer = "rMxCKbEDwqr76QuheSkemd63ovSYkPFBCV"
+    rlusd_issuer = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"  # Ripple RLUSD issuer (verify on-ledger)
+    # "RLUSD" is 5 chars — the ledger requires the 160-bit hex currency code
+    rlusd_cur = "524C555344000000000000000000000000000000"
 
     async with AsyncJsonRpcClient(XRPL_RPC) as client:
         from xrpl.asyncio.transaction import submit_and_wait
@@ -718,7 +720,7 @@ async def list_rwa_token_for_sale(
                 "value": token_amount,
             },
             taker_pays={
-                "currency": "RLUSD",
+                "currency": rlusd_cur,
                 "issuer": rlusd_issuer,
                 "value": rlusd_total,
             },

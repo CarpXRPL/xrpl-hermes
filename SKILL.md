@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
 description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (63 files, 33K+ lines) + 67 working tools + MCP server covering L1, EVM Sidechain, Xahau Hooks, Flare price context, Axelar Bridge, Arweave, Evernode, RLUSD, RWA tokenization, and live amendment checks. The open-source XRPL agent stack — self-hosted, keys stay yours.
-version: 1.4.0
+version: 1.4.1
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"
@@ -44,7 +44,7 @@ Full access to `./knowledge/` and `./references/`. Always read the most relevant
 | **7. Advanced & Ecosystem** (36-45) | 10 files | XLS Standards, Amendments, Minting Ops, NFT Ops, Monitoring, Bot Patterns, Treasury, Hooks Advanced, EVM Advanced, Ecosystem Map |
 | **8. Cross-Chain & Infrastructure** (46-55) | 10 files | Axelar Bridge, Arweave, TX Ecosystem, Flare FTSO, EVM Sidechain, Xahau Hooks (v3+URITokens+B2M), L1 Reference, Wallets Auth, Evernode, Sidechain Interop |
 | **9. Community & Compliance** (56-63) | 8 files | Telegram Bots (56), Discord Bots (57), RLUSD Operations (58), RWA Tokenization (59), AccountSet (60), WebSocket Streams (61), NFT Marketplace (62), Xaman Platform (63) |
-| **10. References** (8 files) | 8 files | XRPL L1, EVM, Hooks, Flare, Axelar, Arweave, TX, Wallets |
+| **10. References** (10 files) | 10 files | Quick-reference cards: XRPL L1, EVM, Hooks, Flare, Axelar, Arweave, TX, Wallets, RLUSD, Amendments. Depth lives in `knowledge/` — load a card first, then the deep file it points to. |
 
 ### Key Knowledge Files for Common Tasks
 

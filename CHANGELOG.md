@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.4.1 — Neutral positioning + RLUSD accuracy fixes — FABLE 5 Audited (2026-06-09)
+
+### Fixed
+- **RLUSD currency code:** 13 code samples in `knowledge/58-rlusd-operations.md` and `59-rwa-tokenization.md` used the literal `"RLUSD"`, which xrpl-py rejects and which never matches ledger responses ("RLUSD" is 5 characters; the ledger requires the 160-bit hex code `524C555344000000000000000000000000000000`). All on-ledger usages now use the hex constant; monitoring comparisons fixed; the doc's CLI example fixed.
+- **Wrong RLUSD issuer address** in `knowledge/59-rwa-tokenization.md` (`rMxCKbEDwqr76QuheSkemd63ovSYkPFBCV` — invalid). Corrected to `rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De`, verified live on-ledger (domain ripple.com, lsfDefaultRipple + lsfDisableMasterKey).
+
+### Changed
+- README "Run your own XRPL agent": removed the feature-comparison table against hosted platforms. The project is positioned as the open-source, self-hosted option — not a pitch against anyone.
+
+### Added
+- `references/rlusd.md` and `references/amendments.md` quick-reference cards (condensed from knowledge files 58 and 37), bringing references to 10 files. `SKILL.md` now explains the card → deep-file reading pattern.
+
+---
+
 ## v1.4.0 — MCP server + hosted-agent parity — FABLE 5 Audited (2026-06-09)
 
 Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatcher commands verified registered, live mainnet smoke tests green (`server-info` against rippled 3.1.3, `amendment MPTokensV1` → Enabled).

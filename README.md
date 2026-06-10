@@ -16,19 +16,16 @@ xrpl-hermes is a practical builder kit. It does not ask for wallet seeds, it doe
 3. build signer-ready JSON,
 4. let the user sign with their own wallet or signing stack.
 
-## An open-source alternative to hosted XRPL agents
+## Run your own XRPL agent
 
-Hosted XRPL agent platforms like [XRPLClaw](https://xrplclaw.com) proved the demand: an agent pre-trained on XRPL, Xahau, the EVM Sidechain, Flare, and friends, that can launch tokens, deploy sites, and run bots. xrpl-hermes is the same idea as an open-source stack you run yourself — no shade intended, just an option. Bring your own agent runtime (Hermes Agent, OpenClaw, Claude Code, Cursor — anything that speaks MCP), and everything else is here:
+XRPL-native agents — pre-trained on the ledger, able to launch tokens, deploy sites, and run bots — exist today as hosted platforms such as [XRPLClaw](https://xrplclaw.com). xrpl-hermes is not a pitch against any of them. It is the open-source path for people who want to run that kind of agent themselves:
 
-| | Hosted (e.g. XRPLClaw) | xrpl-hermes (self-hosted) |
-|---|---|---|
-| Knowledge base | 45 files | 63 files (33K+ lines) |
-| Agent tools | 29 MCP tools | 67 commands, all exposed over MCP |
-| Cost | one-time fee + inference credits | free, MIT — you pay only your own model usage |
-| Where it runs | their cloud container | your machine, your VPS, your node |
-| Keys | managed in their container | never leave your wallet — builders emit signer-ready JSON only |
-| Wallet flows | Xaman, Joey, MetaMask, Privy | same four, documented end-to-end in the knowledge base |
-| Improves over time | saves tasks as skills | same — flows in `skills/`, plus Hermes `skill_manage` |
+- **Bring your own runtime.** Works as a Hermes Agent skill, or in OpenClaw, Claude Code, Cursor, and anything else that speaks MCP.
+- **Bring your own infrastructure.** Your machine, your VPS, or your own rippled/Clio node — public endpoints work out of the box.
+- **Keys stay yours.** Builders emit signer-ready JSON for your wallet; nothing here asks for or stores a seed.
+- **MIT licensed.** Use it, fork it, ship it inside your own product.
+
+If a hosted platform fits you better, use it — this repo exists so that self-hosting is a real option, not a compromise.
 
 ## What you can build
 
