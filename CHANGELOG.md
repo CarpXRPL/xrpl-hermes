@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.4.2 — Ledger-correctness audit: currency codes, issuers, bot hygiene — FABLE 5 Audited (2026-06-10)
+
+Second professional audit pass focused on on-ledger correctness, signing hygiene, and bot-readiness.
+
+### Fixed — currency codes (4+ chars require 160-bit hex)
+- **SOLO** examples in `knowledge/30-xrpl-xrplpy.md` and `45-xrpl-ecosystem-complete.md` used the invalid 4-char literal; now use `534F4C4F00000000000000000000000000000000`.
+- **USDC** issuance sample in `knowledge/38-xrpl-minting-ops.md` used the invalid 4-char literal; now routed through the file's own `currency_to_hex()` helper.
+- Generic `"TOKEN"` / `"REWARD"` placeholders in tx samples (`knowledge/36`, `38`, `references/xrpl-l1.md`) replaced with valid 3-char codes (`TKN`, `RWD`) plus hex-requirement notes; corrected a wrong padding comment ("16 chars" → 5 ASCII bytes zero-padded to 20).
+- Remaining `--currency RLUSD` / `--cur RLUSD` CLI lines in `knowledge/58` workflow steps now use the RLUSD hex code; trust-line grep updated to match on-ledger output.
+
+### Fixed — issuer addresses
+- Wrong SOLO issuer `rHZwvHEs56GCmHupwjA4RY7oPA3EoAJWuN` in `knowledge/30` and `20` (verified live: no domain, no issuer flags) replaced with the Sologenic issuer `rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz` (verified live: domain sologenic.com, lsfDefaultRipple, lsfDisableMasterKey). Bitstamp issuer in `knowledge/45` verified live and kept.
+
+### Fixed — references/xrpl-l1.md Clawback card
+- `Amount.issuer` now correctly documents the **holder**, not the issuer.
+- Removed a nonexistent "clawback within 86400 ledgers (~48h)" time-window claim.
+- Corrected precondition: `asfAllowTrustLineClawback` can only be enabled while the issuer has no trust lines, and is permanent; clawback is blocked by `asfNoFreeze`.
+- Corrected NFT `TransferFee` units comment (0.001% units, max 50000 = 50%).
+
+### Improved — signing hygiene & bot readiness
+- `knowledge/46-xrpl-axelar-bridge.md`: hardcoded seed placeholder replaced with the env-var pattern.
+- `knowledge/41-xrpl-bots-patterns.md`: `XRPLBot` now documents secret sourcing (env/secrets manager only) and when to prefer signer-ready JSON handoff over a hot wallet.
+- `skills/amm-bot-flow.md`: bot loop now defaults to `PAPER_MODE = True`; added a 9-stage go-live checklist (detection → enrichment → scoring → paper → dry-run → review → live → sell integrity → position tracking).
+- `SKILL.md`: added "no fake data" core rule (live tools or explicitly *unavailable* with the failed endpoint named), Token Intelligence Rules (≥5 concrete live data points + confidence + missing-data list before any buy/snipe call), and paper-mode-first bot guidance.
+
+---
+
 ## v1.4.1 — Neutral positioning + RLUSD accuracy fixes — FABLE 5 Audited (2026-06-09)
 
 ### Fixed

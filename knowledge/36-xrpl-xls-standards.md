@@ -226,7 +226,7 @@ enable_clawback = AccountSet(
 claw = Clawback(
     account="rIssuer...",
     amount=IssuedCurrencyAmount(
-        currency="TOKEN",
+        currency="TKN",        # 3-char demo code; 4+ chars need 160-bit hex
         issuer="rHolder...",   # NOTE: issuer field = the HOLDER for clawback
         value="1000",          # Amount to claw back
     ),

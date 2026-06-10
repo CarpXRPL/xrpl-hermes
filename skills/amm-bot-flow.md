@@ -169,6 +169,7 @@ import time
 
 POLL_INTERVAL = 4  # seconds (one ledger)
 MIN_SPREAD = 0.002  # 0.2% net
+PAPER_MODE = True   # default: log decisions, never submit — flip only after the go-live checklist
 
 while True:
     try:
@@ -187,13 +188,31 @@ while True:
 
         if arb["profitable"] and abs(arb["net_spread_after_fee"]) > MIN_SPREAD:
             print(f"Arb found: {arb['direction']}, spread={arb['net_spread_after_fee']:.4f}")
-            # Build and sign transaction here
-            execute_arbitrage(arb)
+            if PAPER_MODE:
+                log_paper_trade(arb)        # record the would-be trade with timestamp + prices
+            else:
+                execute_arbitrage(arb)      # builds unsigned JSON; signing stays in the user's stack
 
     except Exception as e:
         print(f"Bot error: {e}")
     time.sleep(POLL_INTERVAL)
 ```
+
+---
+
+## Go-Live Checklist (paper mode → live)
+
+Bots start in paper mode and stay there until each stage below is proven, in order:
+
+1. **Detection** — pool/orderbook reads return live data; on endpoint failure the bot logs *data unavailable + which endpoint* instead of acting on stale numbers.
+2. **Enrichment** — issuer flags, transfer rate, freeze/clawback status of every traded asset checked (`account`, `trustlines` tools).
+3. **Scoring** — spread math validated against at least a day of recorded paper decisions; no decision is made from fabricated or assumed values.
+4. **Paper decisions** — paper P&L over a meaningful sample is positive after fees and transfer rates.
+5. **Dry-run transactions** — `build-*` commands produce valid signer-ready JSON for the exact trades the paper log chose (build only, never submit).
+6. **Review** — a human reviews the paper log and the dry-run JSON.
+7. **Live execution** — smallest viable size first; signing happens in the user's wallet or signing stack, never with a seed embedded in the bot.
+8. **Sell integrity** — the exit path (offer placement, cancellation, partial fills) is tested before size increases.
+9. **Position tracking** — balances and open offers are re-read from the ledger each cycle (`account_objects rBOT offer`), not assumed from local state.
 
 ---
 

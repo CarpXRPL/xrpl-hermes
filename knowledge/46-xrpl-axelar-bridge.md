@@ -142,8 +142,9 @@ def bridge_xrp_to_evm(
         "axelar_tracking": f"https://axelarscan.io/transfer/{result.result['hash']}"
     }
 
-# Usage
-wallet = Wallet.from_seed("sYOURSEEDHERE")
+# Usage — never hardcode a seed; load it from the environment or a secrets manager
+import os
+wallet = Wallet.from_seed(os.environ["XRPL_WALLET_SEED"])  # testnet seed for experiments
 result = bridge_xrp_to_evm(
     wallet=wallet,
     destination_chain="ethereum",

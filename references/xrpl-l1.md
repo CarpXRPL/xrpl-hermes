@@ -143,7 +143,7 @@ XLS-30 amendment. Create AMM pools between any two assets on XRPL.
   "Account": "rProvider",
   "Amount": "1000000",  // XRP amount
   "Amount2": {
-    "currency": "TOKEN",
+    "currency": "TKN",  // 3-char demo; 4+ char codes require 160-bit hex
     "issuer": "rIssuer",
     "value": "100"
   },
@@ -171,7 +171,7 @@ Bid on the auction slot for reduced trading fees.
   "Account": "rIssuer",
   "NFTokenTaxon": 0,
   "Issuer": "rIssuer",  // if different from Account
-  "TransferFee": 5000,  // royalty in 1/1000 (5%)
+  "TransferFee": 5000,  // royalty in units of 0.001% — 5000 = 5%, max 50000 (50%)
   "Flags": 8,  // 1=burnable, 2=onlyXRP, 4=trustlines, 8=transferable
   "URI": "ipfs://..."  // metadata URI (max 256 bytes)
 }
@@ -183,21 +183,22 @@ Bid on the auction slot for reduced trading fees.
 
 ### Clawback (XLS-39)
 Allows token issuers to claw back tokens from holders. Requires:
-- Issuer account sets `lsfAllowTrustLineClawback` flag (permanent, cannot be unset)
-- Only works on trust lines created AFTER the amendment
-- Clawback runs within 86400 ledgers (~48h) of the trust line being created
+- Issuer enables `asfAllowTrustLineClawback` via AccountSet — only possible while the account has **no trust lines yet**, and the flag is permanent once set
+- Cannot claw back more than the holder's balance; clawback is blocked if `asfNoFreeze` is set
 
 ```json
 {
   "TransactionType": "Clawback",
   "Account": "rIssuer",
   "Amount": {
-    "currency": "TOKEN",
-    "issuer": "rIssuer",
+    "currency": "TKN",     // 3-char demo; 4+ chars require 160-bit hex
+    "issuer": "rHolder",   // for Clawback, Amount.issuer is the HOLDER being clawed from
     "value": "1000"
   }
 }
 ```
+
+Details: `knowledge/07-xrpl-clawback.md`.
 
 ### MPTokens (XLS-33)
 Multi-Purpose Tokens — next-gen token standard replacing IOUs:

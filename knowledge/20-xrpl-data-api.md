@@ -342,11 +342,13 @@ async def get_xrplmeta(currency: str, issuer: str) -> dict:
         return resp.json()
 ```
 
+For currency codes longer than 3 characters, pass the on-ledger 40-char hex form (e.g. SOLO = `534F4C4F00000000000000000000000000000000`); responses also use the on-ledger code, with the display name under `meta.name`.
+
 Response:
 ```json
 {
-  "currency": "SOLO",
-  "issuer": "rHZwvHEs56GCmHupwjA4RY7oPA3EoAJWuN",
+  "currency": "534F4C4F00000000000000000000000000000000",
+  "issuer": "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz",
   "meta": {
     "name": "Sologenic",
     "icon": "https://...",

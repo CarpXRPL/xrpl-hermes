@@ -119,7 +119,8 @@ def list_amm_pools(client, assets: list[tuple]) -> list[dict]:
 POOLS_TO_TRACK = [
     ({"currency": "XRP"}, {"currency": "USD", "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"}),
     ({"currency": "XRP"}, {"currency": "EUR", "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"}),
-    ({"currency": "XRP"}, {"currency": "SOLO", "issuer": "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz"}),
+    # "SOLO" is 4 chars — the ledger requires the 160-bit hex code
+    ({"currency": "XRP"}, {"currency": "534F4C4F00000000000000000000000000000000", "issuer": "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz"}),
 ]
 ```
 

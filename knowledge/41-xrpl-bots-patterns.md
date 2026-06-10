@@ -29,6 +29,10 @@ ENDPOINTS = [
 
 
 class XRPLBot:
+    """Hot-wallet bot base. `secret` must come from an env var or secrets
+    manager — never hardcode it. Use this pattern only when the bot must
+    sign autonomously; otherwise emit signer-ready JSON for wallet handoff.
+    Fund hot wallets with the minimum balance the strategy needs."""
     def __init__(self, secret: str, endpoints: list[str] = ENDPOINTS):
         self.wallet = Wallet.from_secret(secret)
         self.clients = [JsonRpcClient(e) for e in endpoints]

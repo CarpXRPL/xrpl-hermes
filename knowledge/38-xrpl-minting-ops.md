@@ -45,7 +45,7 @@ holder = Wallet.from_secret(os.environ["HOLDER_SECRET"])
 trust_tx = TrustSet(
     account=holder.classic_address,
     limit_amount=IssuedCurrencyAmount(
-        currency="TOKEN",
+        currency="TKN",  # 3-char demo code; 4+ char codes need the 160-bit hex form
         issuer=issuer.classic_address,
         value="1000000000",  # Max they're willing to hold
     ),
@@ -58,7 +58,7 @@ issue_tx = Payment(
     account=issuer.classic_address,
     destination=holder.classic_address,
     amount=IssuedCurrencyAmount(
-        currency="TOKEN",
+        currency="TKN",
         issuer=issuer.classic_address,
         value="500000",  # Issue 500K tokens
     ),
@@ -254,16 +254,16 @@ def proportional_airdrop(
 # Full workflow example
 holders = snapshot_holders(
     issuer="rIssuer...",
-    currency="TOKEN",
+    currency="TKN",
     ledger_index=12345678,   # Historical snapshot
     min_balance=100.0,       # Exclude dust holders
 )
 print(f"Snapshot: {len(holders)} eligible holders")
 
-airdrop_plan = proportional_airdrop(holders, total_airdrop=1_000_000, airdrop_currency="REWARD")
+airdrop_plan = proportional_airdrop(holders, total_airdrop=1_000_000, airdrop_currency="RWD")
 
 # Verify trust lines exist before sending
-# (holders must have REWARD trust line or payment fails)
+# (holders must have a RWD trust line or payment fails)
 def filter_trusted(
     client, recipients: list[dict], currency: str, issuer_addr: str
 ) -> tuple[list, list]:
@@ -438,12 +438,12 @@ def currency_to_hex(code: str) -> str:
     padded = encoded.ljust(20, b"\x00")
     return padded.hex().upper()
 
-# Issue USDC
+# Issue USDC — "USDC" is 4 chars, so it must go through currency_to_hex()
 issue_usdc = Payment(
     account=issuer.classic_address,
     destination=holder.classic_address,
     amount=IssuedCurrencyAmount(
-        currency="USDC",
+        currency=currency_to_hex("USDC"),  # 5553444300000000000000000000000000000000
         issuer=issuer.classic_address,
         value="10000",
     ),
@@ -454,7 +454,7 @@ issue_hex = Payment(
     account=issuer.classic_address,
     destination=holder.classic_address,
     amount=IssuedCurrencyAmount(
-        currency="544F4B454E000000000000000000000000000000",  # "TOKEN" padded (16 chars → 40 hex)
+        currency="544F4B454E000000000000000000000000000000",  # "TOKEN" (5 ASCII bytes, zero-padded to 20 bytes / 40 hex)
         issuer=issuer.classic_address,
         value="5000",
     ),
@@ -471,11 +471,11 @@ After issuing tokens, create initial DEX buy orders to establish price discovery
 from xrpl.models.transactions import OfferCreate
 from xrpl.models.transactions.offer_create import OfferCreateFlag
 
-# Sell 100,000 TOKEN for 1,000 XRP → price = 0.01 XRP per TOKEN
+# Sell 100,000 TKN for 1,000 XRP → price = 0.01 XRP per TKN
 initial_offer = OfferCreate(
     account=issuer.classic_address,
     taker_gets=IssuedCurrencyAmount(
-        currency="TOKEN",
+        currency="TKN",
         issuer=issuer.classic_address,
         value="100000",
     ),
@@ -484,12 +484,12 @@ initial_offer = OfferCreate(
 )
 resp = submit_and_wait(initial_offer, client, issuer)
 
-# Buy side: purchase 50,000 TOKEN for up to 600 XRP
+# Buy side: purchase 50,000 TKN for up to 600 XRP
 buy_offer = OfferCreate(
     account=market_maker.classic_address,
     taker_gets=xrpl.utils.xrp_to_drops("600"),
     taker_pays=IssuedCurrencyAmount(
-        currency="TOKEN",
+        currency="TKN",
         issuer=issuer.classic_address,
         value="50000",
     ),

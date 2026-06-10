@@ -288,11 +288,15 @@ tx = Payment(
 ```python
 from xrpl.models.transactions import TrustSet
 
+# "SOLO" is 4 chars — codes longer than 3 chars require the 160-bit hex form
+SOLO_CUR = "534F4C4F00000000000000000000000000000000"
+SOLO_ISSUER = "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz"  # Sologenic (verify on-ledger)
+
 tx = TrustSet(
     account=wallet.address,
     limit_amount={
-        "currency": "SOLO",
-        "issuer": "rHZwvHEs56GCmHupwjA4RY7oPA3EoAJWuN",
+        "currency": SOLO_CUR,
+        "issuer": SOLO_ISSUER,
         "value": "1000000"
     },
     fee="12"
@@ -308,12 +312,12 @@ submit_and_wait(signed, client)
 ```python
 from xrpl.models.transactions import OfferCreate
 
-# Buy 1000 SOLO for 10 XRP
+# Buy 1000 SOLO for 10 XRP (constants from the TrustSet example above)
 tx = OfferCreate(
     account=wallet.address,
     taker_pays={
-        "currency": "SOLO",
-        "issuer": "rHZwvHEs...",
+        "currency": SOLO_CUR,
+        "issuer": SOLO_ISSUER,
         "value": "1000"
     },
     taker_gets=xrp_to_drops(10),  # 10 XRP
