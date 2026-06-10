@@ -2,18 +2,18 @@
 
 ## Network Overview
 
-The XRPL EVM Sidechain is an EVM-compatible blockchain that settles periodically to XRPL mainnet via a federated bridge. It uses the same wXRP token that represents XRP bridged from mainnet.
+The XRPL EVM Sidechain is an EVM-compatible Cosmos SDK / CometBFT chain connected to XRPL mainnet through Axelar bridge tooling. XRP is the native gas token on the EVM side; ERC-20 wrappers may exist for DeFi, but contract addresses must be verified from the live explorer before use.
 
 | Parameter | Value |
 |-----------|-------|
 | Chain ID | 1440000 (mainnet) / 1449000 (testnet) |
-| Native token | wXRP (18 decimals) |
+| Native token | XRP (18 decimals on EVM side) |
 | Block time | ~3.5 seconds |
-| Consensus | IBFT 2.0 (Istanbul BFT) |
+| Consensus | CometBFT |
 | EVM version | London |
-| RPC (devnet) | `https://rpc.xrplevm.org` |
-| Explorer (devnet) | `https://evm-sidechain.xrpl.org` |
-| Faucet | `https://bridge.devnet.xrpl.org` |
+| RPC (mainnet) | `https://rpc.xrplevm.org` |
+| Explorer | `https://explorer.xrplevm.org` |
+| Testnet faucet | `https://faucet.xrplevm.org` |
 
 ---
 
@@ -28,12 +28,12 @@ async function addXRPLEVMNetwork() {
       chainId: '0x15F900',           // 1440000 decimal
       chainName: 'XRPL EVM Sidechain',
       nativeCurrency: {
-        name: 'wXRP',
-        symbol: 'wXRP',
+        name: 'XRP',
+        symbol: 'XRP',
         decimals: 18,
       },
       rpcUrls: ['https://rpc.xrplevm.org/'],
-      blockExplorerUrls: ['https://evm-sidechain.xrpl.org/'],
+      blockExplorerUrls: ['https://explorer.xrplevm.org/'],
     }],
   });
 }
@@ -83,8 +83,8 @@ module.exports = {
       network: "xrpl_devnet",
       chainId: 1449000,
       urls: {
-        apiURL: "https://evm-sidechain.xrpl.org/api",
-        browserURL: "https://evm-sidechain.xrpl.org",
+        apiURL: "https://explorer.xrplevm.org/api",
+        browserURL: "https://explorer.xrplevm.org",
       },
     }],
   },
@@ -276,10 +276,11 @@ asyncio.run(watch_bridge_events())
 ### Depositing from XRPL to EVM
 
 ```python
-# Lock XRP on XRPL mainnet → receive wXRP on EVM
+# Route XRP through the current Axelar gateway only after verifying it from official docs
 from xrpl.models.transactions import Payment
+import os
 
-BRIDGE_DOOR = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"  # Mainnet bridge door
+BRIDGE_DOOR = os.environ["AXELAR_XRPL_GATEWAY"]  # verify from official docs before use
 
 def bridge_to_evm(
     client,
@@ -288,7 +289,7 @@ def bridge_to_evm(
     xrp_amount: float,
     dest_tag: int = 0,
 ):
-    """Send XRP to bridge; bridge mints wXRP on EVM for evm_recipient."""
+    """Build a bridge payment only after the gateway and memo/tag format are verified."""
     # EVM address is encoded in Memo field
     memo_data = evm_recipient.lower().replace("0x", "").encode("utf-8").hex().upper()
 

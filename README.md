@@ -20,7 +20,7 @@ xrpl-hermes is a practical builder kit. It does not ask for wallet seeds, it doe
 
 ## Run your own XRPL agent
 
-XRPL-native agents — pre-trained on the ledger, able to launch tokens, deploy sites, and run bots — exist today as hosted platforms such as [XRPLClaw](https://xrplclaw.com). xrpl-hermes is not a pitch against any of them. It is the open-source path for people who want to run that kind of agent themselves:
+XRPL-native agents — pre-trained on the ledger, able to launch tokens, deploy sites, and run bots — exist today as hosted platforms. xrpl-hermes is not a pitch against any of them. It is the open-source path for people who want to run that kind of agent themselves:
 
 - **Bring your own runtime.** Works as a Hermes Agent skill, or in OpenClaw, Claude Code, Cursor, and anything else that speaks MCP.
 - **Bring your own infrastructure.** Your machine, your VPS, or your own rippled/Clio node — public endpoints work out of the box.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The XRPL EVM Sidechain is an Ethereum Virtual Machine (EVM) compatible sidechain to the XRP Ledger. It enables Solidity smart contracts, ERC-20/ERC-721 tokens, and full Ethereum toolchain compatibility (Hardhat, Foundry, ethers.js, web3.py) while maintaining a trustless bridge to XRPL L1.
+The XRPL EVM Sidechain is an Ethereum Virtual Machine (EVM) compatible chain for the XRP Ledger ecosystem. It enables Solidity smart contracts, ERC-20/ERC-721 tokens, and full Ethereum toolchain compatibility (Hardhat, Foundry, ethers.js, web3.py) while connecting to XRPL L1 through Axelar bridge tooling.
 
 **Why it matters:** XRPL L1 has no Turing-complete smart contracts (by design for speed/cost). The EVM Sidechain brings programmable DeFi to the XRPL ecosystem without changing the core ledger.
 
@@ -20,43 +20,36 @@ The XRPL EVM Sidechain is an Ethereum Virtual Machine (EVM) compatible sidechain
 │   trust lines,                (Solidity + EVM)               │
 │   DEX, AMM)                                                  │
 │         │                           │                        │
-│         └──────── Bridge ───────────┘                        │
-│              (Federators/Witnesses)                          │
+│         └──────── Axelar bridge tooling ─────────────────────┘│
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Bridge Components
+### Bridge Components (current integration model)
 
 | Component | Role |
 |-----------|------|
-| Federators | Trusted parties that sign cross-chain messages (multi-sig) |
-| Witnesses | Observe and attest to L1 transactions for federators |
-| Bridge L1 Account | Holds locked XRP/tokens on XRPL L1 |
-| Bridge Contract | EVM contract managing deposits/withdrawals |
-| wXRP Contract | ERC-20 representation of locked XRP |
+| Axelar validators / gateway | Observe and authorize cross-chain messages through the Axelar network |
+| Squid Router UI | Recommended user-facing route linked from official XRPL EVM docs |
+| EVM native XRP | XRP arrives on the EVM side as the native gas token |
+| Optional WXRP wrapper | ERC-20 wrapper for DeFi integrations; verify the current contract on the live explorer before use |
 
 ### Deposit Flow (XRPL L1 → EVM)
 
 ```
-1. User sends XRP to bridge's L1 account
-   (with destination tag encoding EVM address)
-2. Witness nodes observe the XRPL Payment tx
-3. After 2+ ledger closes (~6-10 seconds), federators reach consensus
-4. Federators sign mint tx on EVM sidechain
-5. wXRP credited to user's EVM address
-   Time: ~30-60 seconds end-to-end
+1. User routes through the official XRPL EVM / Squid / Axelar flow
+2. Axelar observes and authorizes the cross-chain transfer
+3. XRP is delivered on the EVM side as native gas-token balance
+4. Timing and gateway details are route-dependent; verify against current official docs before building production UX
 ```
 
 ### Withdrawal Flow (EVM → XRPL L1)
 
 ```
-1. User calls bridge contract: withdraw(xrplAddress, amount)
-2. wXRP burned on EVM
-3. Federators observe burn event
-4. After consensus, federators sign XRPL Payment tx
-5. XRP released from L1 bridge account to user
-   Time: ~30-60 seconds end-to-end
+1. User routes through the current Axelar/Squid withdrawal path
+2. Axelar validates the source-chain event and coordinates release/delivery
+3. XRP arrives at the requested XRPL address if the route succeeds
+4. Timing, fees, and gateway details must be read from live official docs/UI
 ```
 
 ---
@@ -199,79 +192,41 @@ def transfer_erc20(
 
 ## Python: Bridge XRP from XRPL L1 to EVM Sidechain
 
+Do **not** build bridge payments from a hardcoded door account or copied tutorial address. The current production path is Axelar/Squid; gateway addresses, contract addresses, route fees, and memo/tag formats are live integration details.
+
+Safe automation pattern:
+
 ```python
-import httpx
-from xrpl.clients import JsonRpcClient
-from xrpl.models.transactions import Payment
-from xrpl.wallet import Wallet
-from xrpl.transaction import submit_and_wait
-from xrpl.utils import xrp_to_drops
-from eth_account import Account
+import os
+from web3 import Web3
 
-# Bridge gateway account on XRPL L1
-# Verify current address from official XRPL docs or evm-sidechain.xrpl.org
-BRIDGE_L1_ACCOUNT = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"  # example
+XRPL_EVM_RPC = "https://rpc.xrplevm.org"
+w3 = Web3(Web3.HTTPProvider(XRPL_EVM_RPC))
 
-def derive_destination_tag_from_evm_address(evm_address: str) -> int:
-    """
-    The bridge uses a destination tag derived from the EVM address.
-    Check current bridge docs for exact encoding.
-    """
-    addr_bytes = bytes.fromhex(evm_address.replace("0x", ""))
-    # Use last 4 bytes as destination tag (bridge-specific, verify from docs)
-    return int.from_bytes(addr_bytes[-4:], "big") % (2**32)
 
-def deposit_xrp_to_evm(
-    xrpl_wallet: Wallet,
-    evm_address: str,
-    amount_xrp: float
-) -> dict:
-    """
-    Send XRP from XRPL L1 to the EVM Sidechain bridge.
-    The EVM address receives wXRP on the sidechain.
-    """
-    client = JsonRpcClient("https://s1.ripple.com:51234")
-    dest_tag = derive_destination_tag_from_evm_address(evm_address)
-
-    tx = Payment(
-        account=xrpl_wallet.classic_address,
-        destination=BRIDGE_L1_ACCOUNT,
-        amount=str(xrp_to_drops(amount_xrp)),
-        destination_tag=dest_tag
-    )
-    result = submit_and_wait(tx, client, xrpl_wallet)
-
+def bridge_integration_preflight() -> dict:
+    """Collect values your app must verify from official docs/UI before enabling bridge actions."""
     return {
-        "xrpl_tx_hash": result.result["hash"],
-        "status": result.result["meta"]["TransactionResult"],
-        "evm_recipient": evm_address,
-        "amount_xrp": amount_xrp,
-        "note": "wXRP will appear in EVM wallet within ~60 seconds"
+        "official_docs": "https://docs.xrplevm.org",
+        "recommended_ui": "https://app.squidrouter.com",
+        "mainnet_explorer": "https://explorer.xrplevm.org",
+        "chain_id": w3.eth.chain_id,  # should be 1440000
+        "gateway_from_env": os.environ.get("AXELAR_XRPL_GATEWAY", "unset"),
+        "security_rule": "Do not submit a live bridge transaction unless the gateway/route was verified from official sources today.",
     }
 
-async def check_wxrp_balance(evm_address: str) -> dict:
-    """Check wXRP balance on EVM Sidechain."""
-    WXRP_ABI = [
-        {"inputs": [{"name": "account", "type": "address"}], "name": "balanceOf",
-         "outputs": [{"type": "uint256"}], "type": "function"}
-    ]
-    # wXRP contract address — verify from official sources
-    WXRP_CONTRACT = "0x..."  # get from evm-sidechain.xrpl.org
 
-    wxrp = w3.eth.contract(
-        address=Web3.to_checksum_address(WXRP_CONTRACT),
-        abi=WXRP_ABI
-    )
-    balance_wei = wxrp.functions.balanceOf(
-        Web3.to_checksum_address(evm_address)
-    ).call()
-
+def check_native_xrp_balance(evm_address: str) -> dict:
+    """Native XRP balance on the EVM sidechain, denominated with 18 decimals."""
+    balance_wei = w3.eth.get_balance(Web3.to_checksum_address(evm_address))
     return {
         "address": evm_address,
-        "wxrp_balance": balance_wei / 10**18,
-        "wxrp_drops_equivalent": balance_wei // 10**12  # 18 - 6 = 12 decimal diff
+        "xrp_balance": balance_wei / 10**18,
+        "wei": balance_wei,
     }
 ```
+
+For ERC-20 wrapped XRP integrations, verify the current wrapper contract on `https://explorer.xrplevm.org` and treat it as application configuration, not a constant baked into docs.
 
 ---
 
@@ -656,7 +611,7 @@ The federated model differs from Axelar (permissionless validator set). This is 
 - Block explorer: https://explorer.xrplevm.org
 - RPC endpoint: https://rpc.xrplevm.org
 - Bridge UI: https://bridge.xrpl.org
-- Testnet faucet: https://bridge.testnet.xrpl.org (XRPL EVM Sidechain testnet)
+- Testnet faucet: https://faucet.xrplevm.org (XRPL EVM Sidechain testnet; may rate-limit)
 - GitHub: https://github.com/xrplf/xbridge-cli
 
 ---

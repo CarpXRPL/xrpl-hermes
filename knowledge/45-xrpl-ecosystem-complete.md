@@ -196,7 +196,7 @@ console.log(response.data.meta.isSuccess);
 | Bithomp | `bithomp.com` | Good for account history, username lookup |
 | XRPl.org | `livenet.xrpl.org` | Official Ripple explorer |
 | XRPview | `xrpview.info` | Simple, clean interface |
-| XRPL-EVM Explorer | `evm-sidechain.xrpl.org` | EVM sidechain block explorer |
+| XRPL-EVM Explorer | `explorer.xrplevm.org` | EVM sidechain block explorer |
 
 ### Data APIs
 
@@ -505,7 +505,7 @@ XAHAU_RPC="https://xahau.network"
 TESTNET_FAUCET="https://faucet.altnet.rippletest.net/accounts"
 DEVNET_FAUCET="https://faucet.devnet.rippletest.net/accounts"
 XAHAU_FAUCET="https://xahau-test.net/faucet"
-EVM_FAUCET="https://bridge.devnet.xrpl.org"
+EVM_FAUCET="https://faucet.xrplevm.org"
 ```
 
 ```python

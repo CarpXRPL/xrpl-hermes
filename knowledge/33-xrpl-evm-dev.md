@@ -2,7 +2,7 @@
 
 ## Overview
 
-The XRPL EVM Sidechain is a fully EVM-compatible blockchain connected to the XRPL mainnet via a decentralized bridge. Deploy Solidity contracts, use standard Ethereum tooling, and access XRPL liquidity through the bridge. Chain ID: **1440000** (mainnet), **1449000** (testnet).
+The XRPL EVM Sidechain is a fully EVM-compatible blockchain (Cosmos SDK chain, CometBFT consensus) connected to XRPL mainnet via the Axelar bridge. Deploy Solidity contracts, use standard Ethereum tooling, and access XRPL liquidity through the bridge. Chain ID: **1440000** (mainnet), **1449000** (testnet).
 
 ---
 
@@ -13,8 +13,8 @@ The XRPL EVM Sidechain is a fully EVM-compatible blockchain connected to the XRP
 ```
 Chain ID:      1440000
 RPC:           https://rpc.xrplevm.org
-WSS:           wss://rpc.xrplevm.org/ws
-Explorer:      https://evm-sidechain.xrpl.org
+WSS:           wss://ws.xrplevm.org
+Explorer:      https://explorer.xrplevm.org
 Native token:  XRP (18 decimals on EVM side)
 ```
 
@@ -23,8 +23,8 @@ Native token:  XRP (18 decimals on EVM side)
 ```
 Chain ID:      1449000
 RPC:           https://rpc.testnet.xrplevm.org
-Faucet:        https://bridge.testnet.xrpl.org
-Explorer:      https://evm-sidechain.testnet.xrpl.org
+Faucet:        https://faucet.xrplevm.org
+Explorer:      https://explorer.testnet.xrplevm.org
 ```
 
 ---
@@ -99,8 +99,8 @@ const config: HardhatUserConfig = {
       network: "xrpl_evm",
       chainId: 1440000,
       urls: {
-        apiURL: "https://evm-sidechain.xrpl.org/api",
-        browserURL: "https://evm-sidechain.xrpl.org"
+        apiURL: "https://explorer.xrplevm.org/api",
+        browserURL: "https://explorer.xrplevm.org"
       }
     }]
   }
@@ -141,7 +141,7 @@ xrpl_evm = "${XRPL_EVM_RPC}"
 xrpl_evm_testnet = "https://rpc.testnet.xrplevm.org"
 
 [etherscan]
-xrpl_evm = { key = "${ETHERSCAN_API_KEY}", url = "https://evm-sidechain.xrpl.org/api" }
+xrpl_evm = { key = "${ETHERSCAN_API_KEY}", url = "https://explorer.xrplevm.org/api" }
 ```
 
 ```bash
@@ -161,12 +161,12 @@ anvil --fork-url https://rpc.xrplevm.org --chain-id 1440000
 
 ---
 
-## 4. wXRP ERC-20
+## 4. Wrapped XRP (WXRP) ERC-20
 
-wXRP is the wrapped XRP token on the EVM sidechain:
+XRP is the **native gas token** on the EVM sidechain. For protocols that need an ERC-20, a WETH-style WXRP wrapper is used. **Verify the current WXRP contract address on `https://explorer.xrplevm.org` before integrating** — devnet-era addresses in old tutorials are invalid.
 
 ```solidity
-// wXRP interface
+// WETH-style WXRP interface
 interface IWXRP {
     event Deposit(address indexed dst, uint256 wad);
     event Withdrawal(address indexed src, uint256 wad);
@@ -181,17 +181,19 @@ interface IWXRP {
     function allowance(address src, address guy) external view returns (uint256);
 }
 
-address constant WXRP = 0xCCccCCCc00000001000000000000000000000000;
+// Set from config after verifying on the live explorer — do not hardcode
+// a tutorial address.
+address immutable WXRP;
 ```
 
-Using wXRP in contracts:
+Using WXRP in contracts:
 ```solidity
-// Wrap XRP → wXRP
+// Wrap XRP → WXRP
 function wrapXRP() external payable {
     IWXRP(WXRP).deposit{value: msg.value}();
 }
 
-// Unwrap wXRP → XRP
+// Unwrap WXRP → XRP
 function unwrapXRP(uint256 amount) external {
     IWXRP(WXRP).withdraw(amount);
     payable(msg.sender).transfer(amount);
@@ -252,7 +254,7 @@ async function main() {
   
   const address = await token.getAddress();
   console.log(`Token deployed: ${address}`);
-  console.log(`Explorer: https://evm-sidechain.xrpl.org/address/${address}`);
+  console.log(`Explorer: https://explorer.xrplevm.org/address/${address}`);
   
   return address;
 }
@@ -275,8 +277,9 @@ from xrpl.wallet import Wallet
 from xrpl.models.transactions import Payment
 from xrpl.transaction import autofill_and_sign, submit_and_wait
 import binascii
+import os
 
-BRIDGE_DOOR = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"  # example door account
+BRIDGE_DOOR = os.environ["AXELAR_XRPL_GATEWAY"]  # verify from official docs before use
 
 client = JsonRpcClient("https://xrplcluster.com")
 wallet = Wallet.from_seed("sn...")

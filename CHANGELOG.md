@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.4.4 — EVM sidechain coherence pass — FABLE 5 Audited (2026-06-10)
+
+Focused repo-coherence pass started by Claude Code/Fable 5 and completed after the Claude session hit its quota limit.
+
+### Fixed
+- README first impression no longer names a hosted platform; positioning stays neutral: self-hosted, open source, keys stay yours, bring your own runtime.
+- EVM sidechain knowledge files (`knowledge/29-xrpl-metamask-evm.md`, `knowledge/33-xrpl-evm-dev.md`) now use the live explorer URLs (`explorer.xrplevm.org` / testnet explorer), current RPC/WebSocket examples, native XRP gas wording, and Axelar bridge framing instead of stale devnet-era bridge-door/wXRP/federator assumptions.
+- Removed hardcoded wrapped-XRP and bridge-door examples; docs now instruct users to verify current contract/gateway details from official docs/live explorer before integrating.
+- `pyproject.toml` and `requirements.txt` dependency bounds updated for the installed/current xrpl-py major line while retaining compatibility headroom.
+
+### Verified
+- Live probes: `docs.xrplevm.org` and `explorer.xrplevm.org` returned HTTP 200; `rpc.xrplevm.org` returned `eth_chainId = 0x15f900` (1440000).
+- Local tests and smoke checks passed after the patch.
+
 ## v1.4.3 — Knowledge freshness and depth pass — FABLE 5 Audited (2026-06-10)
 
 Research pass against live ledger state and official public docs (xrpl.org amendment status via live `feature` lookups, docs.xrplevm.org, docs.xaman.dev, chainlist).
@@ -74,7 +88,7 @@ Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatche
 - `xrpl-hermes-mcp` console entry point in `pyproject.toml`.
 - `SKILL.md` "Core Missions" section: token launch, site/dApp deployment, trading/monitor bots, and skill persistence — the four jobs hosted XRPL agent platforms sell, now first-class flows here.
 - `SKILL.md` "Wallet Login Flows" table mapping Xaman, Joey, Privy, and MetaMask handoffs to their knowledge files.
-- README positioning section: respectful comparison with hosted XRPL agent platforms (e.g. XRPLClaw) and MCP client setup instructions.
+- README positioning section: respectful comparison with hosted XRPL agent platforms and MCP client setup instructions.
 
 ### Changed
 - Version `1.3.11` → `1.4.0` across `SKILL.md` and `pyproject.toml`.

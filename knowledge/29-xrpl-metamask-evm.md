@@ -2,7 +2,7 @@
 
 ## Overview
 
-The XRPL EVM Sidechain is an Ethereum-compatible blockchain connected to the XRPL via a trust-minimized bridge. It runs Solidity smart contracts, uses wXRP as native currency, and connects to MetaMask. Chain ID: **1440000**.
+The XRPL EVM Sidechain is an Ethereum-compatible blockchain (Cosmos SDK chain, CometBFT consensus) connected to the XRPL via the Axelar bridge. It runs Solidity smart contracts, uses **XRP as the native gas token** (18 decimals on the EVM side), and connects to MetaMask. Chain ID: **1440000**.
 
 ---
 
@@ -16,7 +16,7 @@ The XRPL EVM Sidechain is an Ethereum-compatible blockchain connected to the XRP
 | RPC URL | `https://rpc.xrplevm.org` |
 | Chain ID | `1440000` |
 | Currency Symbol | `XRP` |
-| Block Explorer | `https://evm-sidechain.xrpl.org` |
+| Block Explorer | `https://explorer.xrplevm.org` |
 
 ```javascript
 // Add network programmatically
@@ -32,7 +32,7 @@ async function addXRPLNetwork() {
         decimals: 18
       },
       rpcUrls: ['https://rpc.xrplevm.org'],
-      blockExplorerUrls: ['https://evm-sidechain.xrpl.org']
+      blockExplorerUrls: ['https://explorer.xrplevm.org']
     }]
   });
 }
@@ -47,17 +47,12 @@ Testnet:  https://rpc.testnet.xrplevm.org (Chain ID: 1449000)
 
 ---
 
-## 2. wXRP Currency
+## 2. XRP as Native Gas + Wrapped XRP
 
-On the EVM sidechain, XRP is represented as the native gas token (like ETH on Ethereum). Wrapped XRP (wXRP) is an ERC-20 version:
-
-```
-wXRP Contract: 0xCCccCCCc00000001000000000000000000000000
-               (canonical wrapped XRP address)
-```
+On the EVM sidechain, XRP **is** the native gas token (like ETH on Ethereum) — it arrives via the Axelar bridge. For DeFi protocols that need an ERC-20, a WETH-style wrapped-XRP (WXRP) contract can be used. **Verify the current WXRP contract address on the live explorer (`https://explorer.xrplevm.org`) before using one** — old devnet-era addresses circulating in tutorials are no longer valid.
 
 ```solidity
-// IERC20 interface for wXRP
+// WETH-style wrapper interface for WXRP
 interface IWXRP {
     function deposit() external payable;
     function withdraw(uint256 amount) external;
@@ -121,8 +116,8 @@ module.exports = {
         network: 'xrpl_evm',
         chainId: 1440000,
         urls: {
-          apiURL: 'https://evm-sidechain.xrpl.org/api',
-          browserURL: 'https://evm-sidechain.xrpl.org'
+          apiURL: 'https://explorer.xrplevm.org/api',
+          browserURL: 'https://explorer.xrplevm.org'
         }
       }
     ]
@@ -158,7 +153,7 @@ xrpl_evm = "https://rpc.xrplevm.org"
 xrpl_evm_testnet = "https://rpc.testnet.xrplevm.org"
 
 [etherscan]
-xrpl_evm = { key = "placeholder", url = "https://evm-sidechain.xrpl.org/api" }
+xrpl_evm = { key = "placeholder", url = "https://explorer.xrplevm.org/api" }
 ```
 
 ```bash
@@ -206,61 +201,15 @@ npx hardhat run scripts/deploy.js --network xrpl_evm
 
 ---
 
-## 6. Bridge: XRPL ↔ EVM
+## 6. Bridge: XRPL ↔ EVM (Axelar)
 
-The bridge allows moving XRP between the XRPL mainnet and the EVM sidechain.
+XRP moves between XRPL mainnet and the EVM sidechain through the **Axelar network**. Do not hardcode old tutorial "door" accounts or placeholder bridge contracts; get the current route, gateway, and token details from the official XRPL EVM / Axelar docs and the live explorer at integration time.
 
-### Bridge Addresses
+- **UI route (recommended):** bridge via Squid Router — https://app.squidrouter.com — linked from https://docs.xrplevm.org.
+- **Programmatic route:** Axelar Interchain Token Service / GMP. See `knowledge/46-xrpl-axelar-bridge.md` for the flow and code patterns.
+- **Security rule:** never tell a user to send XRP to a bridge address you have not verified against official docs that same day.
 
-```
-XRPL Mainnet locking account: rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh  (door account)
-EVM Sidechain bridge contract: 0x... (deployed on EVM sidechain)
-```
-
-### Deposit (XRPL → EVM)
-
-```python
-# Send XRP from XRPL to bridge door account
-# with your EVM address as a memo
-
-from xrpl.models.transactions import Payment
-import binascii
-
-evm_address = "0xYOUR_EVM_ADDRESS"
-
-tx = Payment(
-    account=xrpl_wallet.address,
-    destination="rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",  # bridge door
-    amount="10000000",  # 10 XRP
-    memos=[{
-        "Memo": {
-            "MemoData": binascii.hexlify(evm_address.encode()).decode().upper(),
-            "MemoType": binascii.hexlify(b"destination").decode().upper()
-        }
-    }]
-)
-```
-
-### Withdrawal (EVM → XRPL)
-
-```solidity
-// Call bridge contract on EVM sidechain
-interface IBridge {
-    function crossChainTransfer(
-        string calldata xrplDestination,
-        uint256 amount,
-        uint32 destinationTag
-    ) external payable;
-}
-
-// Usage
-IBridge bridge = IBridge(BRIDGE_CONTRACT_ADDRESS);
-bridge.crossChainTransfer{value: 10 ether}(
-    "rXRPL_ADDRESS...",
-    10 ether,
-    0  // destination tag
-);
-```
+Bridged XRP arrives on the EVM side as the **native gas token** (no wrapping step needed to pay gas).
 
 ---
 

@@ -40,8 +40,9 @@ PAIR_ABI = [
     },
 ]
 
-# wXRP contract (canonical address)
-WXRP_ADDRESS = "0xCCccCCCc00000001000000000000000000000000"
+# Optional wrapped-XRP contract. Verify the current wrapper on the live
+# explorer before use; old devnet-era constants are intentionally not baked in.
+WXRP_ADDRESS = os.environ.get("XRPL_EVM_WXRP_ADDRESS")
 WXRP_ABI = [
     {"constant": True, "inputs": [{"name": "account", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
     {"constant": False, "inputs": [{"name": "guy", "type": "address"}, {"name": "wad", "type": "uint256"}], "name": "approve", "outputs": [{"name": "", "type": "bool"}], "type": "function"},
@@ -91,10 +92,15 @@ def main():
     print(f"  Output: {amount_out:.4f} tokens")
     print(f"  Price impact: {impact:.2f}%")
 
-    # Check wXRP balance
-    wxrp = w3.eth.contract(address=Web3.to_checksum_address(WXRP_ADDRESS), abi=WXRP_ABI)
-    balance = wxrp.functions.balanceOf(account.address).call()
-    print(f"\nwXRP balance: {balance / 10**18:.4f}")
+    # Check WXRP balance only if a verified wrapper contract is supplied.
+    if WXRP_ADDRESS:
+        wxrp = w3.eth.contract(address=Web3.to_checksum_address(WXRP_ADDRESS), abi=WXRP_ABI)
+        balance = wxrp.functions.balanceOf(account.address).call()
+        print(f"\nWXRP balance: {balance / 10**18:.4f}")
+    else:
+        native_balance = w3.eth.get_balance(account.address)
+        print(f"\nNative XRP balance: {native_balance / 10**18:.4f}")
+        print("Set XRPL_EVM_WXRP_ADDRESS only after verifying the current wrapper contract.")
 
     print("\nTo execute a real swap, deploy a pair contract and replace PAIR_ADDRESS.")
 

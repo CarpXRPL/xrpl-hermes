@@ -49,7 +49,7 @@ Wallets:    Xaman, Joey, Bifrost, Crossmark
 Network:    Ethereum-compatible EVM
 Chain ID:   1440000 (mainnet), 1449000 (testnet)
 RPC:        https://rpc.xrplevm.org
-Explorer:   https://evm-sidechain.xrpl.org
+Explorer:   https://explorer.xrplevm.org
 Native:     XRP (18 decimal places on EVM)
 Smart contracts: Solidity (full EVM)
 DEX:        EVM DEXes (deploy your own)
@@ -97,9 +97,10 @@ XRPL connection: F-Assets (XRP → FXRP)
 ## 3. Bridging: XRPL L1 ↔ EVM Sidechain
 
 ```python
-# XRPL → EVM: Send XRP to bridge door account
+# XRPL → EVM: construct only after verifying the current Axelar gateway
 from xrpl.models.transactions import Payment
 import binascii
+import os
 
 async def xrpl_to_evm(
     xrpl_wallet,
@@ -107,7 +108,9 @@ async def xrpl_to_evm(
     xrp_amount: float,
     client
 ):
-    BRIDGE_DOOR = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"  # Official bridge door
+    # Do not hardcode bridge door accounts; verify the current Axelar XRPL
+    # gateway from official docs before building a live transaction.
+    BRIDGE_DOOR = os.environ["AXELAR_XRPL_GATEWAY"]
     
     tx = Payment(
         account=xrpl_wallet.address,
@@ -127,12 +130,12 @@ async def xrpl_to_evm(
 ```
 
 ```javascript
-// EVM → XRPL: Call bridge contract on EVM sidechain
+// EVM → XRPL: call the current bridge/gateway contract after verifying it
 const { ethers } = require('ethers');
 
 async function evmToXRPL(xrplAddress, xrpAmount, provider, wallet) {
   const BRIDGE_ABI = ['function withdraw(string, uint32) external payable'];
-  const BRIDGE_ADDR = '0x0000000000000000000000000000000000000009';
+  const BRIDGE_ADDR = process.env.AXELAR_EVM_GATEWAY; // verify from official docs/explorer
   
   const bridge = new ethers.Contract(BRIDGE_ADDR, BRIDGE_ABI, wallet);
   const tx = await bridge.withdraw(xrplAddress, 0, {
