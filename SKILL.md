@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
-description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (63 files, 33K+ lines) + 67 working tools covering L1, EVM Sidechain, Xahau Hooks, Flare price context, Axelar Bridge, Arweave, Evernode, RLUSD, RWA tokenization, and live amendment checks.
-version: 1.3.11
+description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (63 files, 33K+ lines) + 67 working tools + MCP server covering L1, EVM Sidechain, Xahau Hooks, Flare price context, Axelar Bridge, Arweave, Evernode, RLUSD, RWA tokenization, and live amendment checks. The open-source XRPL agent stack — self-hosted, keys stay yours.
+version: 1.4.0
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"
@@ -144,6 +144,35 @@ The `scripts/xrpl_tools.py` dispatcher provides 67 XRPL-native commands through 
 
 **Preference:** Use CLI tools for transactions. Build it → output JSON + Xaman URL → explain risks and next steps. For amendment-dependent builders, check `amendment NAME` first or rely on the tool's live warning.
 
+## Core Missions
+
+These are the four jobs users hire an XRPL agent for. Each has a tested flow — follow it instead of improvising.
+
+### 1. Launch a token
+Follow `skills/token-launch-flow.md`. Issuer flags (DefaultRipple, Domain, TickSize, TransferRate) → trust line policy → freeze/clawback decision → supply distribution → optional AMM pool. Read `knowledge/22-xrpl-token-issuance.md` + `21-xrpl-token-model.md` first. Always output signer-ready JSON per step.
+
+### 2. Deploy a site or dApp
+Use Hermes browser + file tools. Scaffold the frontend, wire wallet login (see Wallet Login Flows below), connect to public Clio or the user's `XRPL_PRIVATE_RPC`, deploy (user's host of choice). For EVM Sidechain dApps read `knowledge/33-xrpl-evm-dev.md`; for L1 reads use `knowledge/61-xrpl-websocket-streams.md`.
+
+### 3. Deploy a trading or monitor bot
+Follow `skills/amm-bot-flow.md` or `skills/treasury-monitor-flow.md`. Patterns in `knowledge/34-xrpl-amm-bots.md` + `41-xrpl-bots-patterns.md`. Bots query freely (public endpoints or private node) but **signing stays with the user's wallet or their own signing stack** — never embed seeds in bot code you write.
+
+### 4. Save what you build as a skill
+After any completed mission, persist the pattern: `skill_manage(action='create')` in Hermes, or write a `skills/*.md` flow file in standalone use. The agent should get faster at the same job every time — that compounding is the product.
+
+## Wallet Login Flows
+
+Sign-in and signing handoff are solved problems — don't reinvent them:
+
+| Wallet | Flow | File |
+|---|---|---|
+| Xaman | Payload API + deep link (`xaman-payload` tool) | `knowledge/26-xrpl-xaman-deeplink.md`, `63-xrpl-xaman-platform.md` |
+| Joey | Wallet connect + signing handoff | `knowledge/27-xrpl-joey-wallet.md` |
+| Privy | Embedded wallet auth for web apps | `knowledge/28-xrpl-privy-auth.md` |
+| MetaMask | EVM Sidechain (chain ID 1440000 mainnet / 1449000 testnet) | `knowledge/29-xrpl-metamask-evm.md` |
+
+All four are covered end-to-end in `knowledge/53-xrpl-wallets-auth.md`.
+
 ## Behavior Patterns
 
 ### Research
@@ -219,7 +248,7 @@ ENDPOINTS = [
 ### Private Node ($7/mo or self-hosted)
 Set `XRPL_PRIVATE_RPC` env var to your private Clio/rippled URL:
 ```bash
-export XRPL_PRIVATE_RPC="https://your-clio-node.com"
+export XRPL_PRIVATE_RPC="https://clio.example.com"
 ```
 - **Rate limit:** None (your own node)
 - **Setup:** Run a Clio instance (see `xrpl-private-node` skill) or use a hosted provider
@@ -251,6 +280,12 @@ git clone https://github.com/CarpXRPL/xrpl-hermes.git
 cd xrpl-hermes
 pip install -r requirements.txt
 python3 scripts/xrpl_tools.py ledger
+```
+
+Not on Hermes? The same tools and knowledge work in any MCP client (Claude Code, OpenClaw, Cursor):
+
+```bash
+claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
 ```
 
 **Built with ☤ by the XRPL community**

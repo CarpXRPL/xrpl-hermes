@@ -1,6 +1,6 @@
 # ☤ xrpl-hermes
 
-Open-source XRPL tooling for Hermes Agent and Python users. It combines a 63-file XRPL knowledge base with 67 CLI commands for live ledger queries, signer-ready transaction JSON, amendment checks, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+Open-source XRPL tooling for AI agents and Python users. It combines a 63-file XRPL knowledge base with 67 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
 
 [![GitHub stars](https://img.shields.io/github/stars/CarpXRPL/xrpl-hermes?style=social)](https://github.com/CarpXRPL/xrpl-hermes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -15,6 +15,20 @@ xrpl-hermes is a practical builder kit. It does not ask for wallet seeds, it doe
 2. check live network/amendment status when the feature depends on one,
 3. build signer-ready JSON,
 4. let the user sign with their own wallet or signing stack.
+
+## An open-source alternative to hosted XRPL agents
+
+Hosted XRPL agent platforms like [XRPLClaw](https://xrplclaw.com) proved the demand: an agent pre-trained on XRPL, Xahau, the EVM Sidechain, Flare, and friends, that can launch tokens, deploy sites, and run bots. xrpl-hermes is the same idea as an open-source stack you run yourself — no shade intended, just an option. Bring your own agent runtime (Hermes Agent, OpenClaw, Claude Code, Cursor — anything that speaks MCP), and everything else is here:
+
+| | Hosted (e.g. XRPLClaw) | xrpl-hermes (self-hosted) |
+|---|---|---|
+| Knowledge base | 45 files | 63 files (33K+ lines) |
+| Agent tools | 29 MCP tools | 67 commands, all exposed over MCP |
+| Cost | one-time fee + inference credits | free, MIT — you pay only your own model usage |
+| Where it runs | their cloud container | your machine, your VPS, your node |
+| Keys | managed in their container | never leave your wallet — builders emit signer-ready JSON only |
+| Wallet flows | Xaman, Joey, MetaMask, Privy | same four, documented end-to-end in the knowledge base |
+| Improves over time | saves tasks as skills | same — flows in `skills/`, plus Hermes `skill_manage` |
 
 ## What you can build
 
@@ -91,6 +105,30 @@ Activate with:
 ```text
 activate xrpl-hermes
 ```
+
+## MCP server (Claude Code, OpenClaw, Cursor, any MCP client)
+
+`scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (any of the 67 commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
+
+```bash
+# Claude Code
+claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
+```
+
+Generic MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "xrpl-hermes": {
+      "command": "python3",
+      "args": ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+    }
+  }
+}
+```
+
+Commands run in a subprocess with a 90s timeout; knowledge reads are sandboxed to `knowledge/` and `references/`. The server never asks for or stores secret keys.
 
 ## Safety model
 

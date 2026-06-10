@@ -89,6 +89,15 @@ export XRPL_SEED=sEdYOUR_TESTNET_SEED_HERE
 python3 examples/example-build-payment.py
 ```
 
+## 8. Use It From Any MCP Client (optional)
+
+```bash
+# Claude Code / OpenClaw / Cursor — point your MCP config at the server:
+claude mcp add xrpl-hermes -- python3 "$(pwd)/scripts/mcp_server.py"
+```
+
+Your agent gets `xrpl_run` (all 67 commands), `xrpl_list_commands`, and the full knowledge base via `xrpl_knowledge`.
+
 ## Next Steps
 
 - **All tools**: see `STANDALONE.md` for the complete CLI reference

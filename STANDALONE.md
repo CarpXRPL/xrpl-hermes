@@ -1,6 +1,6 @@
 # XRPL-Hermes — Complete CLI Reference
 
-All 67 tools available via `python3 scripts/xrpl_tools.py <command> [args]`.
+All 67 tools available via `python3 scripts/xrpl_tools.py <command> [args]`, or from any MCP client through `scripts/mcp_server.py` (`xrpl_run` takes the same command names and args documented below).
 
 ---
 

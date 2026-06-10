@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.4.0 — MCP server + hosted-agent parity — FABLE 5 Audited (2026-06-09)
+
+Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatcher commands verified registered, live mainnet smoke tests green (`server-info` against rippled 3.1.3, `amendment MPTokensV1` → Enabled).
+
+### Added
+- `scripts/mcp_server.py` — dependency-free stdio MCP server exposing the full toolkit to any MCP client (Claude Code, OpenClaw, Cursor). Four tools: `xrpl_list_commands`, `xrpl_run` (all 67 commands via subprocess, 90s timeout), `xrpl_knowledge_index`, `xrpl_knowledge` (path-sandboxed to `knowledge/` and `references/`).
+- `tests/test_mcp_server.py` — offline end-to-end MCP session tests, including bad-command and path-traversal rejection.
+- `xrpl-hermes-mcp` console entry point in `pyproject.toml`.
+- `SKILL.md` "Core Missions" section: token launch, site/dApp deployment, trading/monitor bots, and skill persistence — the four jobs hosted XRPL agent platforms sell, now first-class flows here.
+- `SKILL.md` "Wallet Login Flows" table mapping Xaman, Joey, Privy, and MetaMask handoffs to their knowledge files.
+- README positioning section: respectful comparison with hosted XRPL agent platforms (e.g. XRPLClaw) and MCP client setup instructions.
+
+### Changed
+- Version `1.3.11` → `1.4.0` across `SKILL.md` and `pyproject.toml`.
+- `SKILL.md` private-RPC example now uses `clio.example.com` instead of a real-looking placeholder domain (the old one caused harmless but noisy `ERR_NAME_NOT_RESOLVED` link-prefetch errors in desktop agent UIs).
+- `QUICKSTART.md`, `STANDALONE.md`, `LIMITATIONS.md` updated for the MCP server.
+
+---
+
 ## v1.3.11 — Amendment sync + public release hardening (2026-06-08)
 
 - Added live amendment commands: `amendments`, `amendment`, and `amendment-status`.
