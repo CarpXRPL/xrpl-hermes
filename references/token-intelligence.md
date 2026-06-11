@@ -8,11 +8,12 @@ Condensed from `knowledge/64-token-intelligence-reports.md` — read that file b
 - Currency codes >3 chars are queried in 160-bit hex form.
 
 ## Gathering order
+0. `token-intel <code> rISSUER` — one-shot live report (issuer flags/domain, trustline sample, DEX book vs XRP, AMM, risk flags, confidence, missing-data list). Then deepen with:
 1. `validate-address` → `account rISSUER` (flags, domain, transfer rate)
 2. Domain TOML check (`/.well-known/xrp-ledger.toml` lists issuer?)
 3. `trustlines rISSUER <code>` (visible holders — report "at least N")
 4. Explorer obligations (supply, named source)
-5. `book-offers` both sides + AMM pool (depth, spread, fee)
+5. `book-offers` both sides + `amm-info XRP <code>:rISSUER` (depth, spread, fee)
 6. `account-tx rISSUER 50` (age, bursts, freezes, clawbacks)
 
 ## Output

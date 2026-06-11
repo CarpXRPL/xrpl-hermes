@@ -27,10 +27,10 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 **Coverage: Live commands.**
 
 - Issuer setup: `build-account-set` (DefaultRipple, domain, transfer rate, tick size), `build-trustset`, `build-payment` (mint/distribute), `build-clawback`
-- Research: `account` (issuer flags), `trustlines`, `book-offers`, `account-tx`
+- Research: `token-intel` (one-shot live report: issuer flags/domain, trustline sample, DEX book, AMM, risk flags), plus `account`, `trustlines`, `book-offers`, `account-tx` for deeper digging
 - Knowledge: `21-xrpl-token-model.md`, `22-xrpl-token-issuance.md`, `07-xrpl-clawback.md`, `38-xrpl-minting-ops.md`, `58-rlusd-operations.md`, `59-rwa-tokenization.md` · Card: `references/rlusd.md`
 - Workflow playbooks: `skills/token-launch-flow.md`, `skills/clawback-flow.md` · Examples: `example-clawback.py`
-- **Token intelligence reports:** the research workflow (≥5 live datapoints, confidence score, mandatory missing-data list, source labels) is specified in `knowledge/64-token-intelligence-reports.md` with the quick card at `references/token-intelligence.md`.
+- **Token intelligence reports:** `token-intel CURRENCY rISSUER` implements the research workflow (≥5 live datapoints, confidence score, mandatory missing-data list, source labels) specified in `knowledge/64-token-intelligence-reports.md` with the quick card at `references/token-intelligence.md`.
 
 ## NFTs (XLS-20)
 
@@ -46,7 +46,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 **Coverage: Live commands.**
 
 - Build: `build-amm-create`, `build-amm-deposit`, `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid`
-- Pool/market reads: `book-offers`, `path-find` (AMM liquidity participates in pathfinding); pool state via `amm_info` patterns in the knowledge files
+- Pool/market reads: `amm-info` (live pool state: reserves, trading fee, auction slot), `book-offers`, `path-find` (AMM liquidity participates in pathfinding)
 - Knowledge: `05-xrpl-amm.md`, `34-xrpl-amm-bots.md`
 - Workflow playbook: `skills/amm-bot-flow.md` (paper-mode-first, 9-stage go-live checklist) · Example: `example-amm-deposit.py`
 
@@ -133,5 +133,6 @@ Honest gaps, in rough priority order:
 
 1. **Axelar and Arweave remain docs-only** — candidate commands: bridge-status queries against Axelar APIs, Arweave upload-cost estimation. Contributions welcome (see [`DEVELOPERS.md`](DEVELOPERS.md)).
 2. **`hooks-bitmask` needs a correct reimplementation** against the real 256-bit `HookOn` spec.
-3. **AMM pool state (`amm_info`) as a first-class command** — currently a documented pattern, not a registered command.
-4. **Flare on-chain FTSOv2 reads** as an alternative to the public price API fallback.
+3. **Flare on-chain FTSOv2 reads** as an alternative to the public price API fallback.
+
+Shipped from earlier roadmaps: AMM pool state is now the first-class `amm-info` command, and the token-intelligence research workflow is the first-class `token-intel` command (both v1.5.1).

@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.5.1 — First-class token intelligence and AMM lookup commands — FABLE 5 Audited (2026-06-10)
+
+Pass 2: two new read-only commands turn the token-intelligence methodology (knowledge/64) into real tooling. 67 → 69 commands; both exposed automatically through the MCP server.
+
+### Added
+- `token-intel CURRENCY rISSUER [TX_LIMIT] [TRUSTLINE_LIMIT]` (`scripts/tools/token_intel.py`) — one-shot live token report: issuer account/flags/domain/transfer-rate, recent issuer transactions, trustline/holder sample, DEX order book vs XRP, and AMM pool state. Output: `input`, `normalized_currency`, `sources`, `datapoints`, `risk_flags`, `confidence` (high only with ≥5 live datapoints), `missing_data` (failures listed, never invented), `plain_english_summary`.
+- `amm-info ASSET1 ASSET2` (`scripts/tools/amm.py`) — live AMM pool lookup (reserves, trading fee, LP token, vote slots, auction slot) using the repo's `XRP` / `CUR:rISSUER` asset syntax; reports `AMMExists: false` honestly when no pool exists.
+- `normalize_currency_code()` and `parse_asset_normalized()` in `scripts/tools/_shared.py` — 4-20 char ASCII symbols (e.g. `RLUSD`) normalize to their 160-bit hex form; 3-char and 40-hex codes pass through.
+- `tests/test_token_intel.py` — 10 offline tests: normalization edge cases, AMM asset parsing, token-intel report shape with canned responses, honest all-failures path, command registration (69), CLI usage errors. MCP test now asserts `token-intel` and `amm-info` are exposed.
+- Dev-test matrix entries for both commands; SKILL.md routing, STANDALONE/QUICKSTART/WORKFLOWS/MCP-CLIENTS docs updated.
+
+### Verified
+- Pytest 21 passed; dev-test matrix regenerated 69/69 PASS (committed); MCP stdio smoke test green.
+- Live (2026-06-10): `token-intel RLUSD rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De` → 5/5 datapoints, confidence high, RLUSD normalized to `524C555344…0000`; `amm-info XRP RLUSD:rMxCK…` and `amm-info XRP USD:rvYAf…` returned live pools.
+
 ## v1.5.0 — Professional docs release: onboarding, MCP clients, workflow index — FABLE 5 Audited (2026-06-10)
 
 Documentation release closing the gaps between a working toolkit and a serious open-source release. No tool behavior changes except one stale-string fix.

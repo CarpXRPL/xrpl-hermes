@@ -1,6 +1,6 @@
 # ☤ xrpl-hermes
 
-Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 67 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 69 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
 
 **Staying current:** xrpl-hermes ships with markdown knowledge, but agents are instructed to verify live ledger state and current official docs before making claims (`knowledge/65-agent-freshness-and-source-policy.md`). Stale-able facts in the knowledge base are date-stamped where they appear.
 
@@ -67,20 +67,21 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Ecosystem workflow index — commands, knowledge, and honest coverage labels per ecosystem |
 | [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
 | [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
-| [`STANDALONE.md`](STANDALONE.md) | Complete CLI reference for all 67 commands |
+| [`STANDALONE.md`](STANDALONE.md) | Complete CLI reference for all 69 commands |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
 
 ## Command coverage
 
-67 commands are split across focused Python modules in `scripts/tools/`.
+69 commands are split across focused Python modules in `scripts/tools/`.
 
 | Ecosystem | Count | Commands |
 |---|---:|---|
 | XRPL L1 core and ops | 42 | `account`, `balance`, `account_objects`, `account-tx`, `trustlines`, `build-payment`, `build-trustset`, `build-offer`, `book-offers`, `path-find`, `ledger`, `ledger-entry`, `server-info`, `tx-info`, `decode`, `submit`, `submit-multisigned`, `build-account-set`, `build-account-delete`, `build-set-regular-key`, `build-deposit-preauth`, `build-signer-list-set`, `build-ticket-create`, `build-escrow-create`, `build-escrow-finish`, `build-escrow-cancel`, `build-check-create`, `build-check-cash`, `build-check-cancel`, `build-paychannel-create`, `build-paychannel-fund`, `build-paychannel-claim`, `build-clawback`, `build-cross-currency-payment`, `build-batch`, `build-set-oracle`, `build-credential-create`, `build-credential-accept`, `build-credential-delete`, `build-mpt-issuance-create`, `build-mpt-authorize`, `subscribe` |
 | Amendment status | 3 | `amendments`, `amendment`, `amendment-status` |
 | NFT marketplace | 7 | `nft-info`, `nft-offers`, `build-nft-mint`, `build-nft-create-offer`, `build-nft-accept-offer`, `build-nft-cancel-offer`, `build-nft-burn` |
-| AMM liquidity | 5 | `build-amm-create`, `build-amm-deposit`, `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid` |
+| AMM liquidity | 6 | `amm-info`, `build-amm-create`, `build-amm-deposit`, `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid` |
+| Token intelligence | 1 | `token-intel` |
 | EVM Sidechain | 3 | `evm-balance`, `evm-contract`, `evm-bridge` |
 | Xahau Hooks | 2 | `hooks-bitmask`, `hooks-info` |
 | Flare / price context | 1 | `flare-price` |
@@ -121,7 +122,7 @@ activate xrpl-hermes
 
 ## MCP server (Claude Code, OpenClaw, Cursor, any MCP client)
 
-`scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (any of the 67 commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
+`scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (any of the 69 commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
 
 ```bash
 # Claude Code

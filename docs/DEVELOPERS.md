@@ -51,7 +51,7 @@ xrpl-hermes/
 2. **Implement** using `_shared` helpers for endpoints and output. Validate args and print a `Usage:` line on bad input rather than raising.
 3. **Register a safe test invocation** in the `TESTS` dict in `scripts/dev_test_matrix.py` — one that exercises the real code path without submitting a transaction or printing a seed.
 4. **Add pytest coverage** in `tests/` for the output shape (see `tests/test_tool_outputs.py` for the pattern).
-5. **Document it** in `STANDALONE.md` (full reference) and, if user-facing, the README command-coverage table and `SKILL.md` tool table. Update the command count everywhere it appears (README, SKILL.md, LIMITATIONS.md, mcp_server docstring) — the MCP test asserts `count >= 67`, so additions are cheap, removals are not.
+5. **Document it** in `STANDALONE.md` (full reference) and, if user-facing, the README command-coverage table and `SKILL.md` tool table. Update the command count everywhere it appears (README, SKILL.md, LIMITATIONS.md, mcp_server docstring) — the MCP test asserts `count >= 69`, so additions are cheap, removals are not.
 6. **Run the verification suite** (below) and regenerate the matrix.
 
 ## MCP server internals
@@ -88,7 +88,7 @@ CI (`.github/workflows/ci.yml`) runs pytest plus a live `server-info` on every p
 python3 scripts/dev_test_matrix.py
 ```
 
-Runs all 67 registered commands with safe arguments and writes [`AUDIT-tool-matrix.md`](../AUDIT-tool-matrix.md) — command, status, exit code, latency, exact argv, and a 500-char output sample (with any seed-shaped strings redacted). Pass criteria are deliberately strict:
+Runs all 69 registered commands with safe arguments and writes [`AUDIT-tool-matrix.md`](../AUDIT-tool-matrix.md) — command, status, exit code, latency, exact argv, and a 500-char output sample (with any seed-shaped strings redacted). Pass criteria are deliberately strict:
 
 - read commands must exit 0 with no traceback;
 - `build-*` output containing an `"Error"` payload is a FAIL even at exit 0;
@@ -106,7 +106,7 @@ The script exits non-zero and lists failures if anything regresses. The committe
 
 ## Release flow
 
-1. All checks green: pytest, dev-test matrix 67/67 (or the new count), MCP smoke test.
+1. All checks green: pytest, dev-test matrix 69/69 (or the new count), MCP smoke test.
 2. Bump the version in **three places**: `pyproject.toml`, `SKILL.md` frontmatter, and `SERVER_INFO` in `scripts/mcp_server.py`.
 3. Add a `CHANGELOG.md` entry: what was Added / Fixed / Verified, with dates on live verifications.
 4. Commit with the `vX.Y.Z: summary` message format used throughout the history.

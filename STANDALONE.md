@@ -1,6 +1,6 @@
 # XRPL-Hermes — Complete CLI Reference
 
-All 67 tools available via `python3 scripts/xrpl_tools.py <command> [args]`, or from any MCP client through `scripts/mcp_server.py` (`xrpl_run` takes the same command names and args documented below).
+All 69 tools available via `python3 scripts/xrpl_tools.py <command> [args]`, or from any MCP client through `scripts/mcp_server.py` (`xrpl_run` takes the same command names and args documented below).
 
 ---
 
@@ -101,6 +101,19 @@ Decode a signed transaction blob to human-readable JSON.
 
 ```bash
 python3 scripts/xrpl_tools.py decode 1200002200000000...
+```
+
+---
+
+## Token Intelligence
+
+### `token-intel`
+One-shot read-only token report from live mainnet data: issuer account/flags/domain, recent issuer transactions, a trustline/holder sample, the DEX order book vs XRP, and AMM pool state. Output includes `sources`, `datapoints`, `risk_flags`, `confidence` (high only when 5 live datapoints were fetched), `missing_data` (anything that could not be fetched — never invented), and a `plain_english_summary`. 4+ character symbols are normalized to 160-bit hex automatically.
+
+```bash
+python3 scripts/xrpl_tools.py token-intel CURRENCY rISSUER [TX_LIMIT] [TRUSTLINE_LIMIT]
+python3 scripts/xrpl_tools.py token-intel RLUSD rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De
+python3 scripts/xrpl_tools.py token-intel USD rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B 10 100
 ```
 
 ---
@@ -212,6 +225,16 @@ python3 scripts/xrpl_tools.py build-account-delete \
 ---
 
 ## L1 — AMM
+
+### `amm-info`
+Look up a live AMM pool: reserves, trading fee, LP token, vote slots, auction slot. Read-only. 4+ character currency symbols (e.g. `RLUSD`) are normalized to their 160-bit hex code automatically. Reports `"AMMExists": false` honestly when no pool exists.
+
+```bash
+python3 scripts/xrpl_tools.py amm-info XRP USD:rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B
+python3 scripts/xrpl_tools.py amm-info XRP RLUSD:rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De
+```
+
+---
 
 ### `build-amm-create`
 Create an AMM pool with two assets.

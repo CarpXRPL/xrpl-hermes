@@ -59,6 +59,15 @@ Output (JSON):
 python3 scripts/xrpl_tools.py ledger
 ```
 
+## 4b. Research a Token (read-only)
+
+```bash
+# Live report: issuer flags/domain, trustline sample, DEX book vs XRP, AMM, risk flags
+python3 scripts/xrpl_tools.py token-intel RLUSD rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De
+```
+
+Anything that can't be fetched lands in `missing_data` — the report never fills gaps with made-up numbers.
+
 ## 5. Build a Payment (no wallet needed to build)
 
 ```bash
@@ -96,7 +105,7 @@ python3 examples/example-build-payment.py
 claude mcp add xrpl-hermes -- python3 "$(pwd)/scripts/mcp_server.py"
 ```
 
-Your agent gets `xrpl_run` (all 67 commands), `xrpl_list_commands`, and the full knowledge base via `xrpl_knowledge`.
+Your agent gets `xrpl_run` (all 69 commands), `xrpl_list_commands`, and the full knowledge base via `xrpl_knowledge`.
 
 ## Next Steps
 

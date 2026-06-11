@@ -48,7 +48,8 @@ Explorer obligations endpoints (e.g. XRPSCAN `account/{issuer}/obligations`) giv
 
 ### 5. Liquidity — AMM and DEX
 ```bash
-# AMM pool (raw amm_info via the amm-bot-flow pattern)
+# AMM pool, live:
+python3 -m scripts.xrpl_tools amm-info XRP <HEX_OR_SYMBOL>:rISSUER
 # DEX order book, both sides:
 python3 -m scripts.xrpl_tools book-offers <HEX>:rISSUER XRP
 python3 -m scripts.xrpl_tools book-offers XRP <HEX>:rISSUER

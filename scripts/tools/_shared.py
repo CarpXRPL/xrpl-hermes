@@ -169,6 +169,41 @@ def _parse_asset(arg: str):
         return IssuedCurrency(currency=parts[0].upper(), issuer=parts[1])
     raise ValueError(f"Invalid asset '{arg}'. Use 'XRP' or 'CUR:ISSUER'")
 
+def normalize_currency_code(code: str) -> str:
+    """Normalize a currency code to its on-ledger form.
+
+    3-char ISO-style codes (and XRP) pass through uppercased; 40-char hex
+    passes through uppercased; 4-20 char ASCII symbols become the 160-bit
+    hex code (zero-padded), e.g. RLUSD -> 524C555344...0000.
+    """
+    code = (code or "").strip()
+    if not code:
+        raise ValueError("Empty currency code")
+    if len(code) == 3:
+        return code.upper()
+    if len(code) == 40:
+        try:
+            bytes.fromhex(code)
+        except ValueError:
+            raise ValueError(f"Invalid currency '{code}': 40-char codes must be hex")
+        return code.upper()
+    if 4 <= len(code) <= 20:
+        try:
+            raw = code.encode("ascii")
+        except UnicodeEncodeError:
+            raise ValueError(f"Currency '{code}' must be ASCII to normalize to 160-bit hex")
+        return raw.hex().upper().ljust(40, "0")
+    raise ValueError(f"Invalid currency '{code}': use a 3-char code, 4-20 char symbol, or 40-char hex")
+
+def parse_asset_normalized(arg: str):
+    """Like _parse_asset but normalizes 4+ char symbols to 160-bit hex (e.g. RLUSD:rISS)."""
+    parts = arg.split(":", 1)
+    if parts[0].upper() == "XRP" and len(parts) == 1:
+        return XRPCurrency()
+    if len(parts) == 2:
+        return IssuedCurrency(currency=normalize_currency_code(parts[0]), issuer=parts[1])
+    raise ValueError(f"Invalid asset '{arg}'. Use 'XRP' or 'CUR:ISSUER'")
+
 def _parse_amount_for_amm(arg: str):
     parsed = parse_amount_arg(arg)
     if not isinstance(parsed, str) or _is_numeric_text(parsed):

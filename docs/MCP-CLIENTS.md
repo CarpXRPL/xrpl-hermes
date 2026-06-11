@@ -6,7 +6,7 @@
 
 | Tool | What it does |
 |---|---|
-| `xrpl_list_commands` | Lists all 67 CLI commands by name |
+| `xrpl_list_commands` | Lists all 69 CLI commands by name |
 | `xrpl_run` | Runs one command with CLI-style args (e.g. `command="account"`, `args=["rADDR"]`) |
 | `xrpl_knowledge_index` | Lists the 65 knowledge files and 11 reference cards with titles |
 | `xrpl_knowledge` | Reads one knowledge/reference file (sandboxed to `knowledge/` and `references/`) |
@@ -105,7 +105,8 @@ You should see three JSON-RPC responses; the third contains live validated-ledge
 
 - *"Use xrpl_knowledge_index, read the AMM file, then build an AMMDeposit for …"* — knowledge first, then build; this matches how the skill is designed to be used.
 - *"Check the live amendment status before using any post-2024 transaction type."* — the builders do this themselves for MPT/Credential/Oracle/Batch, but saying it keeps the agent honest for everything else.
-- *"Produce a token intelligence report for CODE:rISSUER following knowledge/64."* — forces the ≥5-live-datapoints, confidence-scored, missing-data-listed report format.
+- *"Run token-intel for CODE rISSUER and interpret the risk flags."* — one `xrpl_run` call (`command="token-intel"`, `args=["CODE","rISSUER"]`) returns the ≥5-live-datapoints, confidence-scored, missing-data-listed report; `knowledge/64` is the methodology behind it.
+- *"Check the XRP AMM pool for CODE:rISSUER."* — `command="amm-info"`, `args=["XRP","CODE:rISSUER"]` returns live reserves, trading fee, and auction slot, or an honest `AMMExists: false`.
 
 ## Troubleshooting
 
