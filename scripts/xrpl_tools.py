@@ -13,13 +13,13 @@ if __package__ in (None, ""):
 from scripts.tools import (accounts, payments, trustlines, dex, amm, nfts, escrow,
                    checks, paychannel, mpts, clawback, oracles,
                    credentials, batch, ledger, wallet, evm, xahau,
-                   flare, xaman, amendments, token_intel)
+                   flare, xaman, amendments, token_intel, arweave, axelar)
 
 COMMANDS = {}
 for mod in (accounts, payments, trustlines, dex, amm, nfts, escrow,
             checks, paychannel, mpts, clawback, oracles,
             credentials, batch, ledger, wallet, evm, xahau,
-            flare, xaman, amendments, token_intel):
+            flare, xaman, amendments, token_intel, arweave, axelar):
     COMMANDS.update(getattr(mod, 'COMMANDS', {}))
 
 # path-find is dispatched via _shared._dispatch_path_find

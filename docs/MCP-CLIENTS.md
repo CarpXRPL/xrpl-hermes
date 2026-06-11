@@ -6,7 +6,7 @@
 
 | Tool | What it does |
 |---|---|
-| `xrpl_list_commands` | Lists all 69 CLI commands by name |
+| `xrpl_list_commands` | Lists all 73 CLI commands by name |
 | `xrpl_run` | Runs one command with CLI-style args (e.g. `command="account"`, `args=["rADDR"]`) |
 | `xrpl_knowledge_index` | Lists the 65 knowledge files and 11 reference cards with titles |
 | `xrpl_knowledge` | Reads one knowledge/reference file (sandboxed to `knowledge/` and `references/`) |

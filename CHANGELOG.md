@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.5.2 — Bridge/oracle/storage utility pass — FABLE 5 Audited (2026-06-11)
+
+- Added read-only `bridge-status` and `bridge-tx` commands for Axelar/XRPL route and transfer checks.
+- Added read-only `arweave-cost` for permanent-storage fee estimates; it never uploads or touches keys.
+- Added `flare-ftso` for live FTSOv2 on-chain price reads, while keeping `flare-price` labeled as a public fallback.
+- Replaced the Xahau `hooks-bitmask` warning stub with a real HookOn bitmask calculator.
+- Added `scripts/audit_project_quality.py` to scan for decodable seeds, hostile competitor wording, command-count drift, version drift, and unsafe long currency literals.
+
 ## v1.5.1 — First-class token intelligence and AMM lookup commands — FABLE 5 Audited (2026-06-10)
 
 Pass 2: two new read-only commands turn the token-intelligence methodology (knowledge/64) into real tooling. 67 → 69 commands; both exposed automatically through the MCP server.

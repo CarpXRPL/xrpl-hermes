@@ -265,7 +265,7 @@ Alice owes Bob money but wants to delay the actual transfer:
 
 ## Replacing Checks with Payment Channels
 
-For recurring payments, payment channels are often better than checks:
+For recurring payments, payment channels are often preferable to checks:
 
 | Aspect | Check | Payment Channel |
 |---|---|---|

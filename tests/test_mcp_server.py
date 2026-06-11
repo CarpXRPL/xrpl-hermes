@@ -42,10 +42,13 @@ def test_mcp_session():
         lst = _rpc(proc, {"jsonrpc": "2.0", "id": 3, "method": "tools/call",
                           "params": {"name": "xrpl_list_commands", "arguments": {}}})
         listing = json.loads(lst["result"]["content"][0]["text"])
-        assert listing["count"] >= 69
+        assert listing["count"] >= 73
         assert "build-payment" in listing["commands"]
         assert "token-intel" in listing["commands"]
         assert "amm-info" in listing["commands"]
+        assert "flare-ftso" in listing["commands"]
+        assert "bridge-status" in listing["commands"]
+        assert "arweave-cost" in listing["commands"]
 
         # offline command through the real dispatcher
         run = _rpc(proc, {"jsonrpc": "2.0", "id": 4, "method": "tools/call",

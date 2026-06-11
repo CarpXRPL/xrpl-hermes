@@ -105,7 +105,7 @@ python3 examples/example-build-payment.py
 claude mcp add xrpl-hermes -- python3 "$(pwd)/scripts/mcp_server.py"
 ```
 
-Your agent gets `xrpl_run` (all 69 commands), `xrpl_list_commands`, and the full knowledge base via `xrpl_knowledge`.
+Your agent gets `xrpl_run` (all 73 commands), `xrpl_list_commands`, and the full knowledge base via `xrpl_knowledge`.
 
 ## Next Steps
 

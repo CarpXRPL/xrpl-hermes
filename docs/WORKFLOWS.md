@@ -74,30 +74,34 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 ## Xahau / Hooks
 
-**Coverage: partial — one live query, one disabled tool, deep references.**
+**Coverage: partial — live HookOn calculator, one live query, deep references.**
 
 - `hooks-info` — live query of installed hooks on a Xahau account
-- `hooks-bitmask` — **intentionally disabled**: it emits only a warning, because `HookOn` is a 256-bit transaction-type bitmap that the old implementation computed wrongly. Use the upstream Xahau docs it points to. (Honest-failure beats wrong output.)
+- `hooks-bitmask Payment OfferCreate …` — calculates the 256-bit Xahau `HookOn` transaction-type bitmap with active-low semantics (except SetHook). It outputs the hex value and the transaction types it will trigger on.
 - Knowledge: `32-xrpl-hooks-dev.md`, `43-xrpl-hooks-advanced.md`, `51-xrpl-xahau-hooks.md` (Hooks v3, URITokens, B2M), `54-xrpl-evernode-hosting.md` · Card: `references/xahau-hooks.md`
 
 ## Flare — price context
 
-**Coverage: Live command, clearly labeled limits.**
+**Coverage: Live commands, clearly labeled sources.**
 
-- `flare-price XRP FLR …` — current prices from a public Flare price API. Output is labeled as a **public price fallback, not direct on-chain FTSOv2 proof**; for verifiable on-chain reads, query FTSOv2 contracts as described in the knowledge file.
+- `flare-ftso XRP/USD BTC/USD …` — live read-only FTSOv2 `eth_call` reads from the Flare C-chain, resolving the contract through the FlareContractRegistry.
+- `flare-price XRP FLR …` — current prices from a public fallback API, labeled as **not direct on-chain FTSOv2 proof**.
 - Knowledge: `49-xrpl-flare-ftso.md` · Card: `references/flare-ftso.md`
 
 ## Axelar — bridging XRPL ↔ EVM and beyond
 
-**Coverage: Knowledge + references.** There is no `axelar-*` CLI command; bridging executes through Axelar's own contracts/UI, and the docs here tell you how — plus `evm-bridge` (below) reports live EVM-side chain status.
+**Coverage: Live read-only status + knowledge + references.** Bridging executes through Axelar's own contracts/UI, while xrpl-hermes can inspect route registration and transfer status.
 
+- `bridge-status [xrpl xrpl-evm]` — reads Axelar/XRPL chain registration and gateway context from Axelarscan; does not move funds.
+- `bridge-tx TXHASH` — looks up an Axelar GMP transfer by source-chain transaction hash.
 - Knowledge: `46-xrpl-axelar-bridge.md`, `55-xrpl-sidechain-interop.md`, `35-xrpl-full-interop.md` · Card: `references/axelar-bridge.md`
 - Always verify current gateway/contract addresses from official Axelar/XRPL EVM docs before moving funds — addresses are deliberately not hardcoded here.
 
 ## Arweave — permanent storage for token/NFT metadata
 
-**Coverage: Knowledge + references.** No CLI command; the workflow (upload metadata/images, reference `ar://` URIs from NFT mints and issuer TOMLs) runs with Arweave tooling per the docs.
+**Coverage: Live cost estimate + knowledge + references.** The workflow (upload metadata/images, reference `ar://` URIs from NFT mints and issuer TOMLs) still runs with Arweave tooling per the docs.
 
+- `arweave-cost 1MB` — estimates permanent storage cost from the public Arweave gateway. It never uploads data or handles wallet keys.
 - Knowledge: `47-xrpl-arweave-storage.md` · Card: `references/arweave-storage.md`
 - Pairs with: `build-nft-mint --uri <hex of ar://...>`
 
@@ -131,8 +135,8 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 Honest gaps, in rough priority order:
 
-1. **Axelar and Arweave remain docs-only** — candidate commands: bridge-status queries against Axelar APIs, Arweave upload-cost estimation. Contributions welcome (see [`DEVELOPERS.md`](DEVELOPERS.md)).
-2. **`hooks-bitmask` needs a correct reimplementation** against the real 256-bit `HookOn` spec.
-3. **Flare on-chain FTSOv2 reads** as an alternative to the public price API fallback.
+1. **Bridge workflow depth** — add richer, typed Axelar route/fee guidance while staying read-only by default.
+2. **Arweave workflow depth** — add optional signed upload handoff patterns without introducing hidden paid uploads or wallet-key handling.
+3. **Flare FTSOv2 hardening** — expand feed coverage and official-source regression tests for feed IDs/contracts.
 
-Shipped from earlier roadmaps: AMM pool state is now the first-class `amm-info` command, and the token-intelligence research workflow is the first-class `token-intel` command (both v1.5.1).
+Shipped from earlier roadmaps: AMM pool state is now the first-class `amm-info` command, the token-intelligence research workflow is the first-class `token-intel` command (both v1.5.1), and v1.5.2 added read-only Axelar status, Arweave cost estimates, Flare FTSOv2 reads, and a real Xahau HookOn calculator.

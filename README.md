@@ -1,6 +1,6 @@
 # ☤ xrpl-hermes
 
-Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 69 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 73 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
 
 **Staying current:** xrpl-hermes ships with markdown knowledge, but agents are instructed to verify live ledger state and current official docs before making claims (`knowledge/65-agent-freshness-and-source-policy.md`). Stale-able facts in the knowledge base are date-stamped where they appear.
 
@@ -67,13 +67,13 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Ecosystem workflow index — commands, knowledge, and honest coverage labels per ecosystem |
 | [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
 | [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
-| [`STANDALONE.md`](STANDALONE.md) | Complete CLI reference for all 69 commands |
+| [`STANDALONE.md`](STANDALONE.md) | Complete CLI reference for all 73 commands |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
 
 ## Command coverage
 
-69 commands are split across focused Python modules in `scripts/tools/`.
+73 commands are split across focused Python modules in `scripts/tools/`.
 
 | Ecosystem | Count | Commands |
 |---|---:|---|
@@ -84,7 +84,8 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | Token intelligence | 1 | `token-intel` |
 | EVM Sidechain | 3 | `evm-balance`, `evm-contract`, `evm-bridge` |
 | Xahau Hooks | 2 | `hooks-bitmask`, `hooks-info` |
-| Flare / price context | 1 | `flare-price` |
+| Flare / price context | 2 | `flare-price`, `flare-ftso` |
+| Axelar / Arweave | 3 | `bridge-status`, `bridge-tx`, `arweave-cost` |
 | Wallet utils | 3 | `wallet-generate`, `wallet-from-seed`, `validate-address` |
 | Xaman Platform | 1 | `xaman-payload` |
 
@@ -122,7 +123,7 @@ activate xrpl-hermes
 
 ## MCP server (Claude Code, OpenClaw, Cursor, any MCP client)
 
-`scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (any of the 69 commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
+`scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (any of the 73 commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
 
 ```bash
 # Claude Code
@@ -150,7 +151,7 @@ Commands run in a subprocess with a 90s timeout; knowledge reads are sandboxed t
 - Transaction builders output JSON for external signing.
 - `submit` exists for advanced users with signed blobs only.
 - Amendment-dependent builders check live XRPL mainnet status or emit build-only warnings.
-- Flare price output is labeled as a public price fallback, not direct on-chain FTSO proof.
+- Flare price output is labeled by source: `flare-price` is a public price fallback, while `flare-ftso` performs live read-only FTSOv2 `eth_call` lookups.
 
 ## Development checks
 

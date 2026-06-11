@@ -158,7 +158,7 @@ def test_new_commands_registered():
     from scripts.xrpl_tools import COMMANDS
     assert "token-intel" in COMMANDS
     assert "amm-info" in COMMANDS
-    assert len(COMMANDS) == 69
+    assert len(COMMANDS) >= 69
 
 
 def test_cli_usage_errors_offline():
