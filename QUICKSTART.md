@@ -89,9 +89,14 @@ python3 scripts/xrpl_tools.py build-trustset \
   --value 1000000000
 ```
 
-## 7. Run Example Scripts (requires XRPL_SEED)
+## 7. Run Example Scripts
 
-Get a free testnet wallet:
+No seed needed for the read-only token safety checker (live mainnet, exit code 0/1/2 for scripts):
+```bash
+python3 examples/example-token-safety-check.py RLUSD rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De
+```
+
+Transaction examples need a free testnet wallet:
 ```bash
 # Faucet: https://faucet.altnet.rippletest.net/accounts
 export XRPL_SEED=sEdYOUR_TESTNET_SEED_HERE

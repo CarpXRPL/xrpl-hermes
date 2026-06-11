@@ -29,7 +29,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Issuer setup: `build-account-set` (DefaultRipple, domain, transfer rate, tick size), `build-trustset`, `build-payment` (mint/distribute), `build-clawback`
 - Research: `token-intel` (one-shot live report: issuer flags/domain, trustline sample, DEX book, AMM, risk flags), plus `account`, `trustlines`, `book-offers`, `account-tx` for deeper digging
 - Knowledge: `21-xrpl-token-model.md`, `22-xrpl-token-issuance.md`, `07-xrpl-clawback.md`, `38-xrpl-minting-ops.md`, `58-rlusd-operations.md`, `59-rwa-tokenization.md` · Card: `references/rlusd.md`
-- Workflow playbooks: `skills/token-launch-flow.md`, `skills/clawback-flow.md` · Examples: `example-clawback.py`
+- Workflow playbooks: `skills/token-launch-flow.md`, `skills/clawback-flow.md` · Examples: `example-clawback.py`, `example-token-safety-check.py` (read-only pass/fail verdict over `token-intel`, exit-code friendly for scripts and CI)
 - **Token intelligence reports:** `token-intel CURRENCY rISSUER` implements the research workflow (≥5 live datapoints, confidence score, mandatory missing-data list, source labels) specified in `knowledge/64-token-intelligence-reports.md` with the quick card at `references/token-intelligence.md`.
 
 ## NFTs (XLS-20)

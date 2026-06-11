@@ -75,7 +75,7 @@ Real experiments belong on the XRPL **testnet**, where XRP is free and worthless
 
 1. Get a funded testnet account from the faucet: <https://faucet.altnet.rippletest.net/accounts>
 2. The faucet gives you a testnet address and seed. Treat even this seed as practice for good hygiene: keep it in an environment variable, never in a command line or a chat.
-3. The example scripts in [`examples/`](../examples/) run against testnet using `XRPL_SEED` from your environment.
+3. The transaction example scripts in [`examples/`](../examples/) run against testnet using `XRPL_SEED` from your environment. (`example-token-safety-check.py` is the exception: it is read-only against mainnet and needs no seed at all.)
 
 When you graduate to mainnet, the habit is already formed: seeds live in your wallet, not in your tooling.
 

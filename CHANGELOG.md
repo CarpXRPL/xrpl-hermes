@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.5.3 — Regression gates and executable examples — FABLE 5 Audited (2026-06-11)
+
+- Added offline regression tests for the v1.5.2 ecosystem tooling: Axelar bridge summaries, Arweave size/cost parsing, Flare FTSOv2 feed encoding/decoding, and Xahau HookOn active-low/active-high bitmask behavior.
+- Added a pytest project-quality gate that runs the audit checks for no seeds, neutral language, command-count sanity, version sync, and long-currency-literal pitfalls.
+- Added `examples/example-token-safety-check.py`, a read-only token-intel based CLI example with script-friendly exit codes and no seed requirement.
+- Expanded MCP client starter prompts and quickstart/workflow docs around executable read-only examples.
+
 ## v1.5.2 — Bridge/oracle/storage utility pass — FABLE 5 Audited (2026-06-11)
 
 - Added read-only `bridge-status` and `bridge-tx` commands for Axelar/XRPL route and transfer checks.

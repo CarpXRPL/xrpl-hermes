@@ -108,6 +108,26 @@ You should see three JSON-RPC responses; the third contains live validated-ledge
 - *"Run token-intel for CODE rISSUER and interpret the risk flags."* — one `xrpl_run` call (`command="token-intel"`, `args=["CODE","rISSUER"]`) returns the ≥5-live-datapoints, confidence-scored, missing-data-listed report; `knowledge/64` is the methodology behind it.
 - *"Check the XRP AMM pool for CODE:rISSUER."* — `command="amm-info"`, `args=["XRP","CODE:rISSUER"]` returns live reserves, trading fee, and auction slot, or an honest `AMMExists: false`.
 
+### Starter prompts by role
+
+Copy-paste these into any connected MCP client; each resolves to live read-only calls or signer-ready JSON.
+
+**New to XRPL**
+- *"What do account reserves cost right now? Check server-info and explain base and owner reserves in plain English."*
+- *"Look up account rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe and walk me through each field."*
+
+**Developer**
+- *"Check whether the MPTokensV1 amendment is enabled, then build a signer-ready MPTokenIssuanceCreate for my account rEXAMPLE… — do not submit anything."*
+- *"Build a TrustSet for 1000 RLUSD from rEXAMPLE… and explain every field before I sign it in my own wallet."*
+
+**Researcher**
+- *"Run token-intel on CODE rISSUER, then pull the issuer's last 25 transactions and tell me whether the activity pattern matches the holder picture."*
+- *"Compare amm-info XRP CODE:rISSUER against book-offers DEX depth for the same pair — where is the real liquidity?"*
+
+**Bot builder**
+- *"Get the XRP/USD price from flare-ftso and the validated ledger index, and shape both into one JSON object my monitor can poll."*
+- *"Check bridge-status for the xrpl and xrpl-evm chains and flag anything deprecated — this runs hourly, keep the output stable."*
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |

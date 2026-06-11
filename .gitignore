@@ -40,3 +40,4 @@ Thumbs.db
 .codex-spec.md
 .codex-audit.md
 .pytest_cache/
+.hermes-fable-goal-*.md
