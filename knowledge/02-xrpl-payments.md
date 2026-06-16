@@ -250,12 +250,11 @@ Use the `ripple_path_find` RPC to discover available paths:
 
 | Flag Name | Hex Value | Decimal | Description |
 |---|---|---|---|
-| `tfCanCrossCurrency` | 0x00040000 | 262144 | Allow cross-currency payment (implicitly set when needed) |
-| `tfLimitQuality` | 0x00010000 | 65536 | Only take offers of equal or better quality |
-| `tfNoDirectRipple` | 0x00020000 | 131072 | **DEPRECATED** — was used to force indirect rippling paths; do not use in new transactions |
+| `tfNoRippleDirect` | 0x00010000 | 65536 | Do not use the default (direct) path; settle only through the paths in the `Paths` field. Rarely needed. |
 | `tfPartialPayment` | 0x00020000 | 131072 | Allow the payment to deliver **less than the full `Amount`**; sender spends up to `SendMax`, recipient receives what actually arrives. Check `delivered_amount` in metadata, never `Amount`. |
+| `tfLimitQuality` | 0x00040000 | 262144 | Only take conversions of an exchange rate equal to or better than `Amount`/`SendMax`; reject worse-quality paths. |
 
-**Note on flag values:** `tfNoDirectRipple` (deprecated) and `tfPartialPayment` share hex value 0x00020000. Use `tfPartialPayment` only. The semantic meaning is determined by context in modern rippled — `tfNoDirectRipple` is no longer meaningful and should be omitted.
+**Note on flag values:** these are the only three `Payment` flags, and they do not collide. Cross-currency delivery needs no flag — it is implicit when `Amount` and `SendMax` are in different currencies (see *Cross-Currency Payments* and *Auto-Bridging* above). Values match `knowledge/15-xrpl-transaction-format.md`.
 
 ## Source & Destination Tags (agent attribution)
 
