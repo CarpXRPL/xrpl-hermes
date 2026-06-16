@@ -257,6 +257,31 @@ Use the `ripple_path_find` RPC to discover available paths:
 
 **Note on flag values:** `tfNoDirectRipple` (deprecated) and `tfPartialPayment` share hex value 0x00020000. Use `tfPartialPayment` only. The semantic meaning is determined by context in modern rippled — `tfNoDirectRipple` is no longer meaningful and should be omitted.
 
+## Source & Destination Tags (agent attribution)
+
+Both tags are optional **UInt32** fields (0 – 4,294,967,295). They do not affect routing — they are
+labels carried in the transaction.
+
+| Field | Set by | Meaning |
+|---|---|---|
+| `SourceTag` | sender | identifies the *origin* of the payment. For agents, tag **every agent-initiated transaction** so on-ledger activity is attributable and auditable separately from human transactions. |
+| `DestinationTag` | sender | identifies a sub-account at the *destination* (exchanges, custodians, hosted wallets). Required when paying an account that sets `lsfRequireDestTag` (see `knowledge/01-xrpl-accounts.md`); a missing tag there fails with `tecDST_TAG_NEEDED`. |
+
+```json
+{
+  "TransactionType": "Payment",
+  "Account": "rAGENT",
+  "Destination": "rEXCHANGE",
+  "Amount": "1000000",
+  "SourceTag": 20260615,
+  "DestinationTag": 472913
+}
+```
+
+Hermes builds these directly: `build-payment --source-tag N --dest-tag N` (and
+`build-cross-currency-payment`). Pair `SourceTag` with a `Memo` for a richer audit trail / x402
+invoice id (`references/agentic-payments.md`, `references/x402-payments.md`).
+
 ## Memos
 
 Memos attach arbitrary data to a payment (up to ~1KB total):

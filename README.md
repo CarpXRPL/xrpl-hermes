@@ -38,6 +38,7 @@ If a hosted platform fits you better, use it — this repo exists so that self-h
 | AMM operations | Create pools, deposit/withdraw liquidity, vote fees, and work with auction slot bids. |
 | MPT operations | Build MPT issuance and authorization payloads with live amendment checks. |
 | Treasury workflows | Build multisig, tickets, checks, escrow, payment channels, and batch payloads where supported. |
+| Agentic / x402 payments | Build signer-ready XRP/RLUSD payments with `SourceTag` + `Memos`, signer-separated (keys stay yours), plus HTTP-402 machine-to-machine billing (`references/agentic-payments.md`, `references/x402-payments.md`). |
 | Bot integrations | Use Telegram/Discord patterns for monitors, alerts, and signer handoff flows. |
 | Cross-ecosystem apps | Combine XRPL L1 with Xahau, XRPL EVM Sidechain, Axelar references, Arweave metadata, and Flare price context. |
 
@@ -67,7 +68,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Ecosystem workflow index — commands, knowledge, and honest coverage labels per ecosystem |
 | [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
 | [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
-| [`STANDALONE.md`](STANDALONE.md) | Complete CLI reference for all 73 commands |
+| [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 73-command list: `SKILL.md` tool table) |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
 

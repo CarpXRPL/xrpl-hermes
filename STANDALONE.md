@@ -1,6 +1,9 @@
 # XRPL-Hermes — Complete CLI Reference
 
-All 73 tools available via `python3 scripts/xrpl_tools.py <command> [args]`, or from any MCP client through `scripts/mcp_server.py` (`xrpl_run` takes the same command names and args documented below).
+This guide documents the most common commands in depth. The **complete, authoritative list of all
+73 commands** is the tool table in `SKILL.md` (and `python3 scripts/xrpl_tools.py --help`). Every
+command runs via `python3 scripts/xrpl_tools.py <command> [args]`, or from any MCP client through
+`scripts/mcp_server.py` (`xrpl_run` takes the same command names and args).
 
 ---
 
@@ -132,7 +135,16 @@ python3 scripts/xrpl_tools.py build-payment \
 python3 scripts/xrpl_tools.py build-payment \
   --from rSENDER --to rDEST \
   --amount 100 --cur USD --iss rISSUER
+
+# Agent-initiated: tag and add an on-chain audit trail
+python3 scripts/xrpl_tools.py build-payment \
+  --from rSENDER --to rDEST --amount 1000000 \
+  --source-tag 20260615 --dest-tag 472913 --memo "agent:order-4417"
 ```
+
+Optional flags: `--source-tag N` (SourceTag, UInt32 — set on every agent-initiated payment),
+`--dest-tag N` (DestinationTag; `--tag` is a back-compat alias), `--memo TEXT` (UTF-8 → hex MemoData).
+Same flags apply to `build-cross-currency-payment`. See `references/agentic-payments.md`.
 
 ---
 
@@ -626,16 +638,18 @@ python3 scripts/xrpl_tools.py evm-bridge testnet
 ## Hooks (Xahau)
 
 ### `hooks-bitmask`
-⚠️ **BROKEN** — Xahau `HookOn` is a 256-bit bitmap indexed by transaction-type
-ID, not named events. This tool currently only emits a warning so a developer
-isn't misled into shipping a broken hook config. Do not rely on it. See
-`knowledge/51-xrpl-xahau-hooks.md` and the upstream
-[Xahau hooks docs](https://xrpl-hooks.readthedocs.io/) for the real spec.
+Compute the Xahau `HookOn` 256-bit field for the given transaction types. `HookOn` bits are
+**active-low** (a `0` bit means the hook fires for that transaction type), except bit 22
+(`ttHOOK_SET`) which is active-high — the tool handles this for you and returns the hex value to
+place in the `HookOn` field of a `SetHook` transaction.
 
 ```bash
 python3 scripts/xrpl_tools.py hooks-bitmask Payment OfferCreate
-# emits JSON warning; produces no usable bitmask
+# → {"TriggersOn": [...], "HookOn": "0xFFFF...", "Semantics": "...", "Source": "xahau.network docs"}
 ```
+
+Verify the resulting set against the current Xahau spec before deploying — coverage caveats live in
+`LIMITATIONS.md`; deeper context in `knowledge/51-xrpl-xahau-hooks.md`.
 
 ---
 

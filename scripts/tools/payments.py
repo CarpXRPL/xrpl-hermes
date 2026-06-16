@@ -3,23 +3,35 @@
 from ._shared import (
     _request, json_out, note_out, json_tx_out, parse_amount_arg, usage_out,
     IssuedCurrencyAmount, _dispatch_build, make_amount,
-    Payment, RipplePathFind,
+    Payment, RipplePathFind, build_memos, to_uint32,
 )
 
 def tool_build_payment(frm: str, to: str, amount: str, cur: str = None,
-                       iss: str = None, tag: int = None, memo: str = None):
+                       iss: str = None, tag: int = None, memo: str = None,
+                       source_tag: int = None, dest_tag: int = None):
     if cur and cur.upper() != "XRP" and iss:
         amt = IssuedCurrencyAmount(currency=cur, issuer=iss, value=amount)
     else:
         amt = amount
-    tx = Payment(account=frm, destination=to, amount=amt,
-                 destination_tag=tag if tag else None)
+    # `--dest-tag` is the explicit destination tag; `--tag` stays a back-compat alias for it.
+    destination_tag = to_uint32(dest_tag if dest_tag is not None else tag, "destination tag")
+    src_tag = to_uint32(source_tag, "source tag")
+    kwargs: dict = dict(account=frm, destination=to, amount=amt)
+    if destination_tag is not None:
+        kwargs["destination_tag"] = destination_tag
+    if src_tag is not None:
+        kwargs["source_tag"] = src_tag
+    memos = build_memos(memo)
+    if memos:
+        kwargs["memos"] = memos
+    tx = Payment(**kwargs)
     note_out("# Payment TX JSON - signer-ready JSON - paste into Xaman Developer tab")
     json_tx_out(tx)
 
 def tool_build_cross_currency_payment(frm: str, to: str, deliver: str, send_max: str,
                                        paths: str = None, dest_tag: str = None,
-                                       currency: str = None, issuer: str = None):
+                                       currency: str = None, issuer: str = None,
+                                       source_tag: str = None, memo: str = None):
     d_parts = deliver.split(":", 2)
     if currency and currency.upper() != "XRP" and issuer and ":" not in deliver and "/" not in deliver:
         amount = IssuedCurrencyAmount(currency=currency.upper(), issuer=issuer, value=deliver)
@@ -43,7 +55,15 @@ def tool_build_cross_currency_payment(frm: str, to: str, deliver: str, send_max:
         import json
         try: kwargs["paths"] = json.loads(paths)
         except: print(f"Warning: could not parse --paths JSON: {paths}")
-    if dest_tag: kwargs["destination_tag"] = int(dest_tag)
+    destination_tag = to_uint32(dest_tag, "destination tag")
+    if destination_tag is not None:
+        kwargs["destination_tag"] = destination_tag
+    src_tag = to_uint32(source_tag, "source tag")
+    if src_tag is not None:
+        kwargs["source_tag"] = src_tag
+    memos = build_memos(memo)
+    if memos:
+        kwargs["memos"] = memos
     tx = Payment(**kwargs)
     note_out("# Cross-Currency Payment TX JSON - signer-ready JSON")
     json_tx_out(tx)

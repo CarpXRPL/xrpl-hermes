@@ -111,19 +111,19 @@ Configure multi-signing with up to 32 signers:
 }
 ```
 
-### SetAccountRoot
+### AccountSet
+Configure account settings (domain, flags, tick size, transfer rate). `SetFlag`/`ClearFlag` take
+`asf*` flag numbers (small integers), **not** `lsf*` ledger bitmasks. Set or clear one flag per tx.
 ```json
 {
-  "TransactionType": "SetAccountRoot",
+  "TransactionType": "AccountSet",
   "Account": "rIssuer",
   "Domain": "6578616D706C652E636F6D",  // hex of "example.com"
-  "EmailHash": "...",
-  "MessageKey": "...",
-  "SetFlag": 0x00800000,  // lsfDefaultRipple — required for issuers
-  "ClearFlag": 0,  // clear a flag
+  "SetFlag": 8,                          // asfDefaultRipple (8) — required for issuers
   "TickSize": 5
 }
 ```
+Build it with `build-account-set --from rIssuer --set-flag 8` (and `--domain`, `--tick-size`, `--transfer-rate`).
 
 ## Token Operations
 

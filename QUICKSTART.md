@@ -79,6 +79,10 @@ python3 scripts/xrpl_tools.py build-payment \
 
 Output is raw TX JSON. Copy it into Xaman or Crossmark to sign and submit.
 
+**Agent-initiated?** Add `--source-tag N` (attribution) and `--memo TEXT` (audit trail) — set them
+on every agent payment. For XRP+RLUSD agentic and HTTP-402/x402 flows see `references/agentic-payments.md`,
+`references/x402-payments.md`, and `skills/agentic-payment-flow.md`.
+
 ## 6. Set Up a Trust Line (build only)
 
 ```bash
@@ -114,7 +118,7 @@ Your agent gets `xrpl_run` (all 73 commands), `xrpl_list_commands`, and the full
 
 ## Next Steps
 
-- **All tools**: see `STANDALONE.md` for the complete CLI reference
+- **All tools**: the complete 73-command list is the tool table in `SKILL.md`; `STANDALONE.md` has in-depth usage for the common commands
 - **Deploy your own node**: see `deploy/README.md`
 - **Bot examples**: `examples/example-telegram-bot.py`, `examples/example-discord-bot.py`
 - **Private node**: set `XRPL_PRIVATE_RPC=http://localhost:5005` to use your own Clio/rippled

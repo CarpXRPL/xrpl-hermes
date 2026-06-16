@@ -33,6 +33,32 @@ def test_build_payment_produces_payment_transaction_type():
     assert tx["Amount"] == "1000000"
 
 
+def test_build_payment_applies_source_tag_and_memo():
+    tx = capture_json(
+        tool_build_payment, SRC, DST, "1000000",
+        source_tag="20260615", memo="agent:settle-x402",
+    )
+    assert tx["TransactionType"] == "Payment"
+    # SourceTag marks agent-initiated transactions and must be an integer UInt32.
+    assert tx["SourceTag"] == 20260615
+    assert isinstance(tx["SourceTag"], int)
+    # Memo is an on-chain audit trail; MemoData is hex-encoded ASCII.
+    memo_data = tx["Memos"][0]["Memo"]["MemoData"]
+    assert bytes.fromhex(memo_data).decode("utf-8") == "agent:settle-x402"
+
+
+def test_build_payment_default_has_no_tags_or_memos():
+    tx = capture_json(tool_build_payment, SRC, DST, "1000000")
+    assert "SourceTag" not in tx
+    assert "Memos" not in tx
+    assert "DestinationTag" not in tx
+
+
+def test_build_payment_rejects_out_of_range_source_tag():
+    with pytest.raises(ValueError, match="UInt32"):
+        tool_build_payment(SRC, DST, "1000000", source_tag="999999999999")
+
+
 def test_build_account_set_produces_accountset_with_set_flag():
     tx = capture_json(tool_build_account_set, SRC, set_flag=8)
     assert tx["TransactionType"] == "AccountSet"

@@ -18,13 +18,13 @@ xrpl-hermes/
 │       ├── credentials.py  batch.py  ledger.py  wallet.py  amendments.py
 │       └── evm.py  xahau.py  flare.py  xaman.py
 ├── knowledge/               # 65 numbered deep-dive files (the agent's library)
-├── references/              # 11 quick-reference cards pointing into knowledge/
+├── references/              # 14 quick-reference cards pointing into knowledge/
 ├── skills/                  # multi-step workflow playbooks (token launch, AMM bot, …)
 ├── examples/                # runnable end-to-end scripts (testnet, env-var seeds)
 ├── tests/                   # pytest: CLI regressions, tool outputs, MCP end-to-end
 ├── deploy/                  # rippled/Clio docker-compose for a private node
 ├── SKILL.md                 # Hermes Agent master prompt (agent behavior rules live here)
-└── STANDALONE.md            # complete CLI reference for humans
+└── STANDALONE.md            # in-depth CLI usage for humans (full 73-command list: SKILL.md)
 ```
 
 ### Dispatcher pattern
@@ -51,7 +51,7 @@ xrpl-hermes/
 2. **Implement** using `_shared` helpers for endpoints and output. Validate args and print a `Usage:` line on bad input rather than raising.
 3. **Register a safe test invocation** in the `TESTS` dict in `scripts/dev_test_matrix.py` — one that exercises the real code path without submitting a transaction or printing a seed.
 4. **Add pytest coverage** in `tests/` for the output shape (see `tests/test_tool_outputs.py` for the pattern).
-5. **Document it** in `STANDALONE.md` (full reference) and, if user-facing, the README command-coverage table and `SKILL.md` tool table. Update the command count everywhere it appears (README, SKILL.md, LIMITATIONS.md, mcp_server docstring) — the MCP test asserts `count >= 69`, so additions are cheap, removals are not.
+5. **Document it** in `STANDALONE.md` (in-depth usage) and, if user-facing, the README command-coverage table and `SKILL.md` tool table. Update the command count everywhere it appears (README, SKILL.md, LIMITATIONS.md, mcp_server docstring) — the MCP test asserts a minimum command count (`count >= 73`) — keep it in sync, so additions are cheap, removals are not.
 6. **Run the verification suite** (below) and regenerate the matrix.
 
 ## MCP server internals

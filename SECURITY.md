@@ -6,6 +6,8 @@
 2. **No seeds in prompts.** Never paste a seed, secret key, or mnemonic into an AI chat, agent prompt, or MCP tool call. Agents using xrpl-hermes research and build — they must never hold signing power.
 3. **Signer-ready JSON only.** Transaction builders emit unsigned JSON. You review it and sign it in your own wallet (Xaman, Crossmark, hardware-backed signer). The `submit` command is for advanced users with *already-signed* blobs only.
 
+> For the full transaction-safety ruleset every value transfer follows — the 8 **Safety rules** covering source/destination tags, memos, mainnet approval, autofill, and amount handling — see the canonical **Safety rules** block in `SKILL.md`. The points above are consistent with it.
+
 ## Private Keys & Seeds
 
 This project's build-* commands generate **unsigned JSON** client-side — no keys needed.

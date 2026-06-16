@@ -23,7 +23,7 @@ try:
         DepositPreauth, PaymentChannelCreate, PaymentChannelFund, PaymentChannelClaim, \
         SetRegularKey, AccountDelete, Clawback, OracleSet, \
         MPTokenIssuanceCreate, MPTokenAuthorize, \
-        CredentialCreate, CredentialAccept, CredentialDelete, Batch
+        CredentialCreate, CredentialAccept, CredentialDelete, Batch, Memo
     from xrpl.models.transactions.signer_list_set import SignerEntry
     from xrpl.models.transactions.oracle_set import PriceData
     from xrpl.models.currencies import XRP as XRPCurrency, IssuedCurrency
@@ -96,6 +96,34 @@ def make_amount(currency: str, issuer: Optional[str], value: str) -> dict:
     if currency.upper() == "XRP" and not issuer:
         return value if value is not None else currency
     return {"currency": currency, "issuer": issuer, "value": value}
+
+def to_uint32(value, name: str = "tag"):
+    """Coerce a CLI-supplied tag to a UInt32 int, or None. Raises on out-of-range."""
+    if value is None or value == "":
+        return None
+    try:
+        iv = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{name} must be an integer (got {value!r})")
+    if not (0 <= iv <= 0xFFFFFFFF):
+        raise ValueError(f"{name} must be a UInt32 (0..4294967295)")
+    return iv
+
+def build_memos(memo):
+    """Turn plain-text memo(s) into XRPL Memo objects with hex-encoded MemoData.
+
+    Accepts a single string or a list of strings. Memos are an on-chain audit
+    trail for agent-initiated transactions; the ledger stores MemoData as hex.
+    """
+    if not memo:
+        return None
+    texts = memo if isinstance(memo, (list, tuple)) else [memo]
+    memos = []
+    for t in texts:
+        if t is None or t == "":
+            continue
+        memos.append(Memo(memo_data=str(t).encode("utf-8").hex().upper()))
+    return memos or None
 
 def json_out(obj):
     print(json.dumps(obj, indent=2, default=str))

@@ -269,8 +269,8 @@ print(result.result)
 ## Reserve Calculation
 
 ```python
-BASE_RESERVE_XRP = 10  # current mainnet
-RESERVE_PER_ITEM_XRP = 2
+BASE_RESERVE_XRP = 1     # current mainnet (reduced from 10); confirm live via `server-info`
+RESERVE_PER_ITEM_XRP = 0.2  # owner reserve per object (reduced from 2)
 
 def spendable_xrp(balance_xrp: float, object_count: int) -> float:
     reserve = BASE_RESERVE_XRP + (RESERVE_PER_ITEM_XRP * object_count)

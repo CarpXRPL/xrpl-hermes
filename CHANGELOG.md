@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.6.0 — First-class agentic payments (XRP + RLUSD), x402, signer-separated docs — FABLE 5 Audited (2026-06-16)
+
+Brings XRPL-native agentic payments up to date with the June 2026 official XRPL agent skills and audits the package for accuracy.
+
+### Added
+- `references/agentic-payments.md` — the signer-separated two-layer model (payment builder vs wallet/signing layer), dual-stack guidance (xrpl-py + xrpl.js for the *user's* code), a primitive coverage map cross-linking existing knowledge files, the strict 8-rule safety set, and a testnet-first Hermes implementation roadmap for the three official equivalents (payment-builder = mostly shipped; wallet-signing-layer = documented design only, no custody; x402 = plan).
+- `references/x402-payments.md` — HTTP-402 machine-to-machine payment flow, the t54 facilitator, `x402_xrpl` (Python) / `x402Fetch` (TS), network ids (`xrpl:1`/`xrpl:0`), pricing in drops, and safety — all framed "verify live before production."
+- `skills/agentic-payment-flow.md` — tested flow backing the new 5th Core Mission.
+- `build-payment` / `build-cross-currency-payment`: `--source-tag` (SourceTag), `--dest-tag` (DestinationTag), and a now-functional `--memo` (UTF-8 → hex MemoData). Tags are validated as UInt32; `--tag` stays a back-compat alias for `--dest-tag`. Builders still emit unsigned JSON only.
+- Canonical "Source & Destination Tags" section in `knowledge/02-xrpl-payments.md`; testnet RLUSD issuer added to `references/rlusd.md`.
+
+### Changed
+- SKILL.md: agentic payments promoted from a passive "Freshness Note" to a first-class section + a 5th Core Mission; consolidated the 8 safety rules into a single source-of-truth block (SECURITY.md and the agentic reference now defer to it).
+
+### Fixed
+- `build-payment` previously accepted `--memo` but silently dropped it and had no SourceTag support; `--tag` raised a type error. All corrected with offline regression tests.
+- `references/xrpl-l1.md`: corrected a non-existent `SetAccountRoot` transaction type to `AccountSet`.
+- Documentation accuracy: softened STANDALONE.md's "complete reference for all 73" claim to defer to the SKILL.md table, corrected the stale `hooks-bitmask` "BROKEN" note, and fixed stale reference-card counts and an MCP command-count assertion in the docs.
+
 ## v1.5.3 — Regression gates and executable examples — FABLE 5 Audited (2026-06-11)
 
 - Added offline regression tests for the v1.5.2 ecosystem tooling: Axelar bridge summaries, Arweave size/cost parsing, Flare FTSOv2 feed encoding/decoding, and Xahau HookOn active-low/active-high bitmask behavior.

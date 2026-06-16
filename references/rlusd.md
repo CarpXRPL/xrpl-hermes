@@ -4,7 +4,8 @@ Condensed from `knowledge/58-rlusd-operations.md` — read that file before buil
 
 ## Identity
 - Ripple-issued USD stablecoin on XRPL mainnet (also ERC-20 on Ethereum).
-- Issuer: `rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De` (domain `ripple.com`; verify on-ledger before use).
+- Issuer (mainnet): `rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De` (domain `ripple.com`; verify on-ledger before use).
+- Issuer (testnet): `rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV` (use for testnet-first agentic flows; re-verify before production).
 - Currency code: `524C555344000000000000000000000000000000`. "RLUSD" is 5 characters, so every transaction and API call must use the 160-bit hex form — explorers only *display* "RLUSD".
 
 ## Compliance model
