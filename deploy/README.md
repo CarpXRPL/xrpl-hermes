@@ -6,6 +6,11 @@ Run your own rippled + Clio stack for a private, high-performance XRPL endpoint.
 **Sync time**: ~24 hours for full ledger history  
 **Privacy**: your queries never hit public endpoints
 
+> **Updating rippled (3.2.0, released 2026-06-15):** the [3.2.0 release notes](https://github.com/XRPLF/rippled/releases/tag/3.2.0)
+> include a significant rename (the `rippled` binary becomes `xrpld`, with related file renames) and a
+> **rotated GPG signing key** — existing installs must download and trust the new key before upgrading.
+> Review the official notes before bumping a node; this compose file targets the published `rippled` image.
+
 ---
 
 ## Requirements

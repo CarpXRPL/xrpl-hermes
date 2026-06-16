@@ -1,0 +1,15 @@
+{
+  "name": "xrpl-hermes-js-examples",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runnable xrpl.js (TypeScript/JavaScript) examples for XRPL-Hermes — build-only, no signing, no seeds",
+  "type": "commonjs",
+  "scripts": {
+    "xrp": "node build-xrp-payment.js",
+    "rlusd": "node build-rlusd-payment.js"
+  },
+  "dependencies": {
+    "xrpl": "^5.0.0"
+  },
+  "license": "MIT"
+}

@@ -47,3 +47,7 @@ This knowledge base is a starting point, not live truth. Markdown ages; the ledg
 ## Repo maintenance signal
 
 When live verification contradicts a knowledge file, fixing the answer is half the job — note the file and line so the repo gets corrected. Stale markdown that survives contradiction will mislead the next session.
+
+## Updating the repo itself
+
+When the user asks to **update XRPL-Hermes** ("update it", "freshness pass", "is this current?"), follow the step-by-step playbook in [`skills/freshness-update-flow.md`](../skills/freshness-update-flow.md): check rippled releases, live amendment status, xrpl.js (`npm view xrpl version`) and xrpl-py (PyPI) versions, x402/t54 and ecosystem docs; **write an audit report before editing**; run the full verification suite; then version-bump and commit. Never bump a fact you could not verify from a primary source.

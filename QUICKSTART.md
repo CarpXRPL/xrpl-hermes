@@ -21,10 +21,12 @@ uv pip install -r requirements.txt
 python3 scripts/xrpl_tools.py server-info
 ```
 
-Expected output (JSON; numbers will vary; rippled is on the 2.x/3.x line):
+Expected output (JSON; numbers will vary; `BuildVersion` is whatever the node you reach has
+upgraded to — rippled **3.2.0** is the latest release as of 2026-06-15, and public mainnet
+clusters were reporting 3.1.3 when this was checked live):
 ```json
 {
-  "BuildVersion": "3.1.x",
+  "BuildVersion": "3.1.3",
   "Uptime": 123456,
   "CompleteLedgers": "32570-104xxxxxx",
   "ValidatedLedger": {"seq": 104125000, "reserve_base_xrp": 1, "reserve_inc_xrp": 0.2, ...},
@@ -82,6 +84,13 @@ Output is raw TX JSON. Copy it into Xaman or Crossmark to sign and submit.
 **Agent-initiated?** Add `--source-tag N` (attribution) and `--memo TEXT` (audit trail) — set them
 on every agent payment. For XRP+RLUSD agentic and HTTP-402/x402 flows see `references/agentic-payments.md`,
 `references/x402-payments.md`, and `skills/agentic-payment-flow.md`.
+
+**Building in JavaScript/TypeScript?** The same unsigned payment in `xrpl.js`:
+```bash
+cd examples/js && npm install && node build-xrp-payment.js   # XRP
+node build-rlusd-payment.js                                  # RLUSD (160-bit currency code)
+```
+The CLI is Python, but your app code can be Python *or* TypeScript/JavaScript — both first-class.
 
 ## 6. Set Up a Trust Line (build only)
 

@@ -87,6 +87,28 @@ def wait_for_amendment(client, amendment_name: str, timeout_s: int = 300) -> boo
 
 ---
 
+## rippled 3.2.0 — release & node-operator note (live-checked 2026-06-16)
+
+**rippled 3.2.0 is the latest release** (tagged 2026-06-15) —
+`https://github.com/XRPLF/rippled/releases/tag/3.2.0`. It is largely a cleanup/modernization
+release: it **retires** a large set of long-enabled legacy `fix*` amendments (their behavior is now
+baked in) and includes source-level refactors. Per the release notes it also renames the C++
+`ripple` namespace to `xrpl` and the `rippled` binary to `xrpld` (with related file renames) —
+**node operators should read the release notes before upgrading** rather than assuming a drop-in swap.
+
+**GPG signing key (verbatim from the release notes):** *"Ripple has rotated the GPG key used to sign
+`rippled` packages. If you have an existing installation, you should download and trust the new key to
+prevent issues upgrading in the future."*
+
+**Mainnet trails the release — verify live, don't assume.** Checked live 2026-06-16:
+`python3 -m scripts.xrpl_tools server-info` returned `BuildVersion: 3.1.3` from the public cluster, and
+amendments named in the 3.2.0 line (e.g. `fixCleanup3_2_0`) are **not yet on the live mainnet `feature`
+table** — `amendment fixCleanup3_2_0` returns `UnknownAmendment` because mainnet nodes have not yet
+upgraded. New amendments only become enabled through the usual validator-upgrade + 80%/2-week majority
+process. Confirm the full new-amendment set in the official release notes; never trust a static list.
+
+---
+
 ## Complete Enabled Amendments (Mainnet, Chronological)
 
 ### 2016

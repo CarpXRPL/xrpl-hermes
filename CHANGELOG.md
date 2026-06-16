@@ -1,5 +1,44 @@
 # Changelog
 
+## v1.6.1 — Dual-stack (Python + xrpl.js) developer experience, "build anything" map, rippled 3.2.0 freshness — Opus 4.8 Ultra Audited (2026-06-16)
+
+Makes XRPL-Hermes read as a "build anything on XRPL with AI agents" kit for both Python and
+TypeScript/JavaScript developers, adds a reusable self-update playbook, and refreshes currentness for
+the rippled 3.2.0 release. No command behavior changes — the CLI and MCP server stay Python (`xrpl-py`).
+
+### Added
+- `examples/js/` — runnable, build-only `xrpl.js` twins of the Python payment examples:
+  `build-xrp-payment.js` (unsigned XRP `Payment` with `SourceTag`/`DestinationTag`/hex `Memo`) and
+  `build-rlusd-payment.js` (unsigned RLUSD issued-currency `Payment` using the 160-bit currency code).
+  Neither signs, submits, nor touches a seed; both leave Fee/Sequence/LLS for the wallet layer's
+  autofill. Includes `package.json` (pins `xrpl@^5`) and a README mapping xrpl-py ↔ xrpl.js calls.
+- `skills/freshness-update-flow.md` — the reusable "update XRPL-Hermes" playbook (audit report first →
+  edit → verify → version-bump → ship), wired into SKILL.md and `knowledge/65`. It enumerates the
+  sources to check: rippled releases, live amendments, `npm view xrpl version`, xrpl-py on PyPI, x402/t54.
+- README **"Choose your stack"** table (Python/`xrpl-py` vs TS-JS/`xrpl.js`, both first-class for the
+  user's app code) and a labeled **"Build anything on XRPL with AI agents"** builder map with honest
+  status labels (CLI / live tool / ref / pattern / roadmap) across tokens, NFTs, AMM/DEX, payments,
+  RLUSD, x402, bots, wallets, MPTs, treasury, EVM, Xahau, Flare, Axelar, Arweave, and token intelligence.
+
+### Changed
+- QUICKSTART, `docs/DEVELOPERS.md`, and SKILL.md now make the Python-engine / dual-stack-app boundary
+  explicit and point at `examples/js/`; SKILL.md frontmatter notes dual-stack. `.js` added to the
+  project-quality audit's scanned suffixes so the new JS lane gets seed coverage.
+- Freshness refresh for **rippled 3.2.0** (released 2026-06-15): dated, URL-anchored notes in
+  `knowledge/37-xrpl-amendments.md`, `references/amendments.md`, `deploy/README.md`, and the QUICKSTART
+  `server-info` example. Notes record the rotated GPG signing key and the binary rename to `xrpld`, and
+  anchor the load-bearing point on a live check: mainnet still reported `BuildVersion 3.1.3` and
+  3.2.0-line amendments (e.g. `fixCleanup3_2_0`) are not yet on the mainnet `feature` table.
+
+### Verified
+- Pytest 46 passed; `dev_test_matrix.py` 73/73 PASS (matrix regenerated); `audit_project_quality.py`
+  all checks PASS (no-seeds, neutral-language, command-count, version-sync 1.6.1, currency-literals).
+- JS: `node --check` passes on both files; `npm install` + `node build-xrp-payment.js` /
+  `build-rlusd-payment.js` produce the expected unsigned JSON (memo hex byte-identical to the Python
+  `build-payment` output; RLUSD code `524C555344…0000`).
+- Live (2026-06-16): `server-info` → `BuildVersion 3.1.3`; `amendment fixCleanup3_2_0` → `UnknownAmendment`.
+- MCP stdio smoke: initialize → tools/list (4 tools) → `xrpl_run validate-address` green.
+
 ## v1.6.0 — First-class agentic payments (XRP + RLUSD), x402, signer-separated docs — FABLE 5 Audited (2026-06-16)
 
 Brings XRPL-native agentic payments up to date with the June 2026 official XRPL agent skills and audits the package for accuracy.

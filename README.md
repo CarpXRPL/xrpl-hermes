@@ -18,6 +18,23 @@ xrpl-hermes is a practical builder kit. It does not ask for wallet seeds, it doe
 3. build signer-ready JSON,
 4. let the user sign with their own wallet or signing stack.
 
+## Choose your stack — Python *or* TypeScript/JavaScript
+
+The XRPL-Hermes **CLI and MCP server run on Python (`xrpl-py`)** — that's the engine that
+emits signer-ready JSON, checks live amendments, and runs token intelligence. The code **you**
+build for your own project can be either language; both are first-class:
+
+| Stack | SDK | Install | First-class for | Deep file |
+|---|---|---|---|---|
+| **Python** | `xrpl-py` | `pip install xrpl-py` | FastAPI services, scripts, data jobs, server-side bots, the Hermes CLI itself | [`knowledge/30-xrpl-xrplpy.md`](knowledge/30-xrpl-xrplpy.md) |
+| **TypeScript / JavaScript** | `xrpl.js` | `npm install xrpl` | web apps, dashboards, wallet UX, browser dApps, Node bots, x402 services, AI-agent CLIs | [`knowledge/31-xrpl-xrpljs.md`](knowledge/31-xrpl-xrpljs.md) · [`examples/js/`](examples/js/) |
+
+The builders emit the same signer-ready JSON either way — pick the SDK that matches your codebase
+and **don't introduce a second language** just to use this kit. Runnable, build-only payment
+examples for both stacks live in [`examples/`](examples/) (Python) and [`examples/js/`](examples/js/)
+(xrpl.js). The signer-separated model is the same in both:
+[`references/agentic-payments.md`](references/agentic-payments.md).
+
 ## Run your own XRPL agent
 
 XRPL-native agents — pre-trained on the ledger, able to launch tokens, deploy sites, and run bots — exist today as hosted platforms. xrpl-hermes is not a pitch against any of them. It is the open-source path for people who want to run that kind of agent themselves:
@@ -29,18 +46,34 @@ XRPL-native agents — pre-trained on the ledger, able to launch tokens, deploy 
 
 If a hosted platform fits you better, use it — this repo exists so that self-hosting is a real option, not a compromise.
 
-## What you can build
+## Build anything on XRPL with AI agents
 
-| Build | Example |
-|---|---|
-| Issued token launch | Configure issuer flags, trust lines, domain, transfer rate, freeze/clawback policy, and supply flow. |
-| NFT marketplace | Mint NFTs, create sell offers, discover offers, accept offers, cancel stale offers, and burn inventory. |
-| AMM operations | Create pools, deposit/withdraw liquidity, vote fees, and work with auction slot bids. |
-| MPT operations | Build MPT issuance and authorization payloads with live amendment checks. |
-| Treasury workflows | Build multisig, tickets, checks, escrow, payment channels, and batch payloads where supported. |
-| Agentic / x402 payments | Build signer-ready XRP/RLUSD payments with `SourceTag` + `Memos`, signer-separated (keys stay yours), plus HTTP-402 machine-to-machine billing (`references/agentic-payments.md`, `references/x402-payments.md`). |
-| Bot integrations | Use Telegram/Discord patterns for monitors, alerts, and signer handoff flows. |
-| Cross-ecosystem apps | Combine XRPL L1 with Xahau, XRPL EVM Sidechain, Axelar references, Arweave metadata, and Flare price context. |
+A practical map of what you can build, with an **honest label** for how far XRPL-Hermes takes you:
+**CLI** = shipped command(s); **live tool** = makes a live network read; **ref** = reference card +
+knowledge file; **pattern** = integration pattern / runnable example; **roadmap** = documented design,
+not a shipped feature.
+
+| Build | What XRPL-Hermes gives you | Label |
+|---|---|---|
+| Issued token launch | Issuer flags, trust lines, domain, transfer rate, freeze/clawback, supply flow (`build-account-set`, `build-trustset`, `build-clawback`) + `skills/token-launch-flow.md` | CLI + flow |
+| NFT marketplace | Mint, create/accept/cancel offers, discover offers, burn (7 `nft`/`build-nft-*` commands) | CLI + live tool |
+| AMM / DEX | Create pools, deposit/withdraw, vote fees, auction-slot bids, live pool + orderbook reads (`build-amm-*`, `amm-info`, `book-offers`, `path-find`) | CLI + live tool |
+| Payments (XRP) | Signer-ready `Payment` JSON with `SourceTag`/`DestinationTag`/`Memos`, reserve-aware (`build-payment`) — Python + xrpl.js examples | CLI |
+| RLUSD / issued-currency | Dollar-denominated payments with 160-bit currency codes + trust-line and compliance guidance (`references/rlusd.md`, `knowledge/58`) | CLI + ref |
+| x402 / HTTP-402 paid APIs | The XRPL Payment that settles a 402 charge + the t54-facilitator flow | ref + roadmap |
+| Bots & monitors | Treasury/AMM monitor playbooks, Telegram/Discord examples, WebSocket `subscribe` | CLI + pattern |
+| Wallets & auth | Xaman/Joey/Privy/MetaMask login + signer handoff (`xaman-payload`, `knowledge/53`) | live tool + ref |
+| MPT operations | MPT issuance/authorization payloads with live amendment checks (`build-mpt-*`) | CLI |
+| Treasury & escrow | Multisig, tickets, checks, escrow, payment channels, batch (`build-*`, `submit-multisigned`) | CLI |
+| EVM Sidechain | Balance, contract-deploy JSON, bridge status (`evm-balance`, `evm-contract`, `evm-bridge`) | live tool + ref |
+| Xahau Hooks | HookOn bitmask calculator + hooks lookup (`hooks-bitmask`, `hooks-info`) | CLI + live tool |
+| Flare price context | On-chain FTSOv2 oracle reads + a public price fallback (`flare-ftso`, `flare-price`) | live tool |
+| Axelar bridge | Route/registration status and transfer tracking (`bridge-status`, `bridge-tx`) | live tool |
+| Arweave storage | Permanent-storage cost estimates, never uploads (`arweave-cost`) | live tool |
+| Token intelligence | One-shot live token report with risk flags + missing-data honesty (`token-intel`) | live tool |
+| Attention bridge / social cards | Product framing for "bring eyes to XRPL" / discovery ideas (`references/xrpl-attention-bridge.md`) | ref |
+
+Both stacks are first-class for the code you write on top — see **Choose your stack** above.
 
 ## Quick start
 

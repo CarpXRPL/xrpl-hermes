@@ -20,7 +20,8 @@ xrpl-hermes/
 ├── knowledge/               # 65 numbered deep-dive files (the agent's library)
 ├── references/              # 14 quick-reference cards pointing into knowledge/
 ├── skills/                  # multi-step workflow playbooks (token launch, AMM bot, …)
-├── examples/                # runnable end-to-end scripts (testnet, env-var seeds)
+├── examples/                # runnable end-to-end scripts (Python; testnet, env-var seeds)
+│   └── js/                  # runnable xrpl.js twins (build-only, no seeds) — npm install
 ├── tests/                   # pytest: CLI regressions, tool outputs, MCP end-to-end
 ├── deploy/                  # rippled/Clio docker-compose for a private node
 ├── SKILL.md                 # Hermes Agent master prompt (agent behavior rules live here)
@@ -30,6 +31,10 @@ xrpl-hermes/
 ### Dispatcher pattern
 
 `scripts/xrpl_tools.py` imports every module in `scripts/tools/` and merges their `COMMANDS` dicts (`command-name -> zero-arg callable that reads sys.argv`). It contains no tool logic itself. The MCP server, the CLI, the dev-test matrix, and the tests all consume this single registry, so a command added to one module is automatically available everywhere.
+
+### Dual-stack boundary (Python engine, language-neutral output)
+
+The CLI and MCP server are **Python (`xrpl-py`) by design** — that is the engine, not a constraint on the user. The signer-ready JSON they emit is language-neutral, so the application code a user builds on top can be Python (`xrpl-py`, `knowledge/30`) **or** TypeScript/JavaScript (`xrpl.js`, `knowledge/31`). Keep both lanes first-class in docs and examples: the Python examples live in `examples/`, their build-only `xrpl.js` twins in `examples/js/`. Do **not** port the CLI/MCP server to Node.
 
 ### Networking and failover (`scripts/tools/_shared.py`)
 

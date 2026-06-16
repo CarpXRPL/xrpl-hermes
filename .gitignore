@@ -8,6 +8,9 @@ dist/
 build/
 *.whl
 
+# Node (examples/js — lockfile is committed, deps are not)
+node_modules/
+
 # Environments
 .env
 .env.local
@@ -35,9 +38,9 @@ Thumbs.db
 *.tgz
 *.codex-*
 .audit-prompt.md
-.hermes-fable-upgrade-prompt.md
 .codex-smoke.md
 .codex-spec.md
 .codex-audit.md
 .pytest_cache/
-.hermes-fable-goal-*.md
+# Local Hermes/Claude effort-prompt scratch files (never committed)
+.hermes-*.md

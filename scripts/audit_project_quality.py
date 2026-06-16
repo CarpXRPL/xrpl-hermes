@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-TEXT_SUFFIXES = {".py", ".md", ".toml", ".txt", ".sh", ".json", ".yml", ".yaml"}
+TEXT_SUFFIXES = {".py", ".md", ".toml", ".txt", ".sh", ".json", ".yml", ".yaml", ".js"}
 
 
 def _tracked_files() -> list[Path]:
