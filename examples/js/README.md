@@ -21,12 +21,14 @@ cd examples/js
 npm install            # pulls xrpl.js (xrpl@^5)
 node build-xrp-payment.js
 node build-rlusd-payment.js
+node agent-receipt-nft.js
 ```
 
 | File | Builds |
 |---|---|
 | `build-xrp-payment.js` | Unsigned XRP `Payment` with `SourceTag`, `DestinationTag`, and a hex-encoded `Memo` |
 | `build-rlusd-payment.js` | Unsigned RLUSD issued-currency `Payment` using the 160-bit currency code (the literal `"RLUSD"` is invalid on-ledger) |
+| `agent-receipt-nft.js` | Unsigned `NFTokenMint` that records an agent run / skill evolution as an on-chain receipt — compact base64 `data:` URI, enforces the 256-byte URI limit *after* encoding. Safe twin of "agent mints its own NFT": no seed, no signing, no submit. See [`../../skills/agent-receipt-flow.md`](../../skills/agent-receipt-flow.md) |
 
 ## Equivalent calls across stacks
 

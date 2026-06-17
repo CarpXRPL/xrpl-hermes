@@ -1,5 +1,42 @@
 # Changelog
 
+## v1.6.2 — Agent / skill receipts: safe, signer-separated on-chain provenance — Opus 4.8 Max Audited (2026-06-16)
+
+Adds a focused, safe way to record **what an agent did, or how a skill improved (v1 → v2), as an
+on-chain receipt** — an unsigned `NFTokenMint` the user's wallet signs. It is the signer-separated
+shape of the popular "an agent mints its own NFT to prove it learned" demo: the provenance (timestamp,
+author, tamper-evidence, public verifiability) is kept; the unsafe part — a seed inside the agent that
+signs and submits on its own — is removed. No new command and no architecture change: it composes the
+existing `build-nft-mint` primitive.
+
+### Added
+- `skills/agent-receipt-flow.md` — the signer-separated receipt playbook: summarize a run / skill
+  evolution as a compact ≤256-byte URI (or a pointer to an off-ledger record) → build an **unsigned**
+  `NFTokenMint` (CLI or JS) → human preview + approval → wallet signs → `nft-info` reads it back.
+  Explicit: no autonomous minting; keys stay with the user.
+- `examples/js/agent-receipt-nft.js` — runnable, build-only `xrpl.js` receipt builder. Encodes a
+  compact receipt as a base64 `data:` URI, enforces the 256-byte URI limit **after** base64+hex
+  encoding (where the limit actually bites), and prints the unsigned `NFTokenMint`. Never reads a
+  seed, signs, submits, or connects to a node — the safe twin of a seed-signing minter.
+- `tests/test_agent_receipt.py` — node-free coverage of the receipt primitive: `build-nft-mint`
+  hex-encodes a text URI, passes through already-hex, round-trips a compact `data:` receipt through
+  on-ledger hex, emits the unsigned `SigningPubKey:""` marker, and refuses an over-256-byte URI.
+
+### Changed
+- Discoverability wiring only: an **"Agent / skill receipts"** row in the README "build anything"
+  map (label: CLI + pattern), a row in `examples/js/README.md`, a "Key Knowledge Files" row, and a
+  one-line note in SKILL.md Core Mission 5. No command behavior changed; the dispatcher still exposes
+  73 commands and the CLI/MCP server stay Python (`xrpl-py`).
+
+### Verified
+- Pytest 51 passed (46 + 5 new receipt tests); `dev_test_matrix.py` 73/73 PASS (no command change);
+  `audit_project_quality.py` all PASS (no-seeds incl. the new `.js`, neutral-language, command-count,
+  version-sync 1.6.2, currency-literals).
+- JS: `node --check examples/js/agent-receipt-nft.js` passes; `node agent-receipt-nft.js` prints an
+  unsigned `NFTokenMint` (URI 370/512 hex). Its URI hex is byte-identical to the Python
+  `build-nft-mint --uri <data:…>` output and round-trips back to the original receipt JSON.
+- MCP stdio smoke: initialize reports 1.6.2.
+
 ## v1.6.1 — Dual-stack (Python + xrpl.js) developer experience, "build anything" map, rippled 3.2.0 freshness — Opus 4.8 Ultra Audited (2026-06-16)
 
 Makes XRPL-Hermes read as a "build anything on XRPL with AI agents" kit for both Python and

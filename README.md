@@ -72,6 +72,7 @@ not a shipped feature.
 | Arweave storage | Permanent-storage cost estimates, never uploads (`arweave-cost`) | live tool |
 | Token intelligence | One-shot live token report with risk flags + missing-data honesty (`token-intel`) | live tool |
 | Attention bridge / social cards | Product framing for "bring eyes to XRPL" / discovery ideas (`references/xrpl-attention-bridge.md`) | ref |
+| Agent / skill receipts | Record what an agent did, or how a skill improved (v1→v2), as an unsigned on-chain `NFTokenMint` — provenance, timestamp, public verifiability; no seed, no autonomous signing (`build-nft-mint` + `skills/agent-receipt-flow.md` + `examples/js/agent-receipt-nft.js`) | CLI + pattern |
 
 Both stacks are first-class for the code you write on top — see **Choose your stack** above.
 

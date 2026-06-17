@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
 description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (65 files, 33K+ lines) + 73 working tools + MCP server covering L1, EVM Sidechain, Xahau Hooks (incl. HookOn calculator), Flare FTSOv2 on-chain reads, Axelar bridge status, Arweave cost estimates, Evernode, RLUSD, RWA tokenization, signer-separated agentic payments (XRP + RLUSD) and x402/HTTP-402, token intelligence, and live amendment checks. Dual-stack: Python (xrpl-py) + TypeScript/JavaScript (xrpl.js). The open-source XRPL agent stack — self-hosted, keys stay yours.
-version: 1.6.1
+version: 1.6.2
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"
@@ -85,6 +85,7 @@ Full access to `./knowledge/` and `./references/`. Always read the most relevant
 | Staying current / citing sources | `65-agent-freshness-and-source-policy.md` |
 | Updating XRPL-Hermes itself ("update it") | `skills/freshness-update-flow.md` |
 | Build in JavaScript/TypeScript (`xrpl.js`) | `knowledge/31-xrpl-xrpljs.md`, `examples/js/` |
+| Record an agent run / skill evolution as an on-chain receipt (unsigned NFT) | `skills/agent-receipt-flow.md`, `examples/js/agent-receipt-nft.js` |
 
 ### How to Use Knowledge
 
@@ -217,7 +218,7 @@ Follow `skills/amm-bot-flow.md` or `skills/treasury-monitor-flow.md`. Patterns i
 Follow `skills/agentic-payment-flow.md`. Build typed **unsigned** Payment JSON (XRP / RLUSD / IOU / cross-currency) with `--source-tag` and `--memo` → confirm asset/amount/destination/tags/memos → hand off to the user's wallet/signing layer (autofill → sign → `submitAndWait`) → read the result code. For HTTP-402 pay-per-request flows use `references/x402-payments.md`. Read `references/agentic-payments.md` first; RLUSD specifics in `references/rlusd.md`. **Testnet-first; keys stay with the user** (Safety rules block above).
 
 ### 5. Save what you build as a skill
-After any completed mission, persist the pattern: `skill_manage(action='create')` in Hermes, or write a `skills/*.md` flow file in standalone use. The agent should get faster at the same job every time — that compounding is the product.
+After any completed mission, persist the pattern: `skill_manage(action='create')` in Hermes, or write a `skills/*.md` flow file in standalone use. The agent should get faster at the same job every time — that compounding is the product. Optionally record the run, or a skill's v1→v2 improvement, as a verifiable **on-chain receipt** — an unsigned `NFTokenMint` the user's wallet signs (`skills/agent-receipt-flow.md`). Provenance only: never autonomous minting, keys stay with the user.
 
 ## Token Intelligence Rules
 
