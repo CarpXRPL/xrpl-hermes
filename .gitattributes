@@ -1,0 +1,10 @@
+# GitHub Linguist language statistics.
+#
+# Linguist classifies everything under examples/ as "documentation" and leaves
+# it out of the repository language bar. The xrpl.js files in examples/js/ are
+# real, runnable source — count them so the dual-stack (Python + JavaScript)
+# lane is actually visible. No synthetic JS/TS is added to influence stats.
+examples/js/*.js linguist-documentation=false
+
+# The committed lockfile is generated, not authored — keep it out of the stats.
+examples/js/package-lock.json linguist-generated=true

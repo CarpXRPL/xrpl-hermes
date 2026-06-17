@@ -134,5 +134,6 @@ facilitator issues a receipt. Full flow, package names, and network ids: `refere
 | Raw XRP floats | `xrp_to_drops()` / drops only |
 | Going to mainnet without approval | Explicit human sign-off; change endpoint deliberately |
 
-See also: `references/agentic-payments.md`, `references/x402-payments.md`, `references/rlusd.md`,
+See also: `references/agentic-payments.md`, `references/x402-payments.md`,
+`references/track-agent-behavior.md` (attribute & monitor the tx you just built), `references/rlusd.md`,
 `knowledge/02-xrpl-payments.md`, `knowledge/53-xrpl-wallets-auth.md`.

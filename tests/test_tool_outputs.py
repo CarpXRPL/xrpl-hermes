@@ -47,6 +47,22 @@ def test_build_payment_applies_source_tag_and_memo():
     assert bytes.fromhex(memo_data).decode("utf-8") == "agent:settle-x402"
 
 
+def test_build_payment_carries_structured_agent_attribution_memo():
+    # Official track-agent-behavior pattern: a hex-encoded JSON memo with
+    # agent_id/session_id/action/task_id correlates an on-chain tx to the agent's
+    # logs. Hermes hex-encodes the JSON string passed to --memo; it must decode
+    # back to the same object so the audit trail round-trips.
+    attribution = {"agent_id": "hermes-1", "session_id": "s-92",
+                   "action": "settle", "task_id": "t-4417"}
+    tx = capture_json(
+        tool_build_payment, SRC, DST, "1000000",
+        source_tag="4417", memo=json.dumps(attribution),
+    )
+    assert tx["SourceTag"] == 4417
+    memo_data = tx["Memos"][0]["Memo"]["MemoData"]
+    assert json.loads(bytes.fromhex(memo_data).decode("utf-8")) == attribution
+
+
 def test_build_payment_default_has_no_tags_or_memos():
     tx = capture_json(tool_build_payment, SRC, DST, "1000000")
     assert "SourceTag" not in tx

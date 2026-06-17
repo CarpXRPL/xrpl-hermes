@@ -93,8 +93,15 @@ def wait_for_amendment(client, amendment_name: str, timeout_s: int = 300) -> boo
 `https://github.com/XRPLF/rippled/releases/tag/3.2.0`. It is largely a cleanup/modernization
 release: it **retires** a large set of long-enabled legacy `fix*` amendments (their behavior is now
 baked in) and includes source-level refactors. Per the release notes it also renames the C++
-`ripple` namespace to `xrpl` and the `rippled` binary to `xrpld` (with related file renames) —
-**node operators should read the release notes before upgrading** rather than assuming a drop-in swap.
+`ripple` namespace to `xrpl` and the `rippled` binary to `xrpld` — the rename follows **XLS-0095**,
+with related file renames — so **node operators should read the release notes before upgrading**
+rather than assuming a drop-in swap.
+
+The `fixCleanup3_2_0` amendment in this line **bundles** several correctness fixes per the release
+notes (e.g. precision/rounding for Single Asset Vaults and the Lending Protocol, a
+`ValidPermissionedDEX` invariant fix, validation of non-canonical MPT amounts, a zero-`DomainID`
+check for permissioned domains, and the new `AccountRootsDeletedClean` invariant). Like any
+amendment it is inactive on mainnet until validators adopt it — see the live check below.
 
 **GPG signing key (verbatim from the release notes):** *"Ripple has rotated the GPG key used to sign
 `rippled` packages. If you have an existing installation, you should download and trust the new key to

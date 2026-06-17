@@ -154,5 +154,6 @@ charge and document the t54 facilitator integration; signing remains in the wall
 4. Sign + submit in your wallet/signing env (`submitAndWait`), then read the result code.
 5. Confirm finality with `tx-info <hash>`.
 
-Related: `references/x402-payments.md`, `references/rlusd.md`, `references/xrpl-wallets-auth.md`,
-`knowledge/02-xrpl-payments.md`, `knowledge/53-xrpl-wallets-auth.md`, `knowledge/65-agent-freshness-and-source-policy.md`.
+Related: `references/x402-payments.md`, `references/track-agent-behavior.md`, `references/rlusd.md`,
+`references/xrpl-wallets-auth.md`, `knowledge/02-xrpl-payments.md`, `knowledge/53-xrpl-wallets-auth.md`,
+`knowledge/65-agent-freshness-and-source-policy.md`.

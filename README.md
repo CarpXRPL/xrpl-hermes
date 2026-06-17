@@ -18,6 +18,18 @@ xrpl-hermes is a practical builder kit. It does not ask for wallet seeds, it doe
 3. build signer-ready JSON,
 4. let the user sign with their own wallet or signing stack.
 
+## Who this is for — and what it is not
+
+**For:** XRPL and agent builders who want AI-assisted research, unsigned transaction construction,
+token intelligence, and payment / x402 flows — in Python (`xrpl-py`) or JavaScript/TypeScript
+(`xrpl.js`), from a Hermes skill or any MCP client. **Not:** a wallet or seed-custody service, an
+auto-signer that moves funds on its own, or a "self-evolving" hype demo. The agent prepares,
+verifies, explains, and monitors; your wallet/signing stack signs. Keys stay with you.
+
+**Three ways to use it:** as **MCP tools** in any MCP client ([`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md)),
+as a **Python** CLI/library (`xrpl-py`), or alongside your **JavaScript/TypeScript** app code
+(`xrpl.js`) — see *Choose your stack* below.
+
 ## Choose your stack — Python *or* TypeScript/JavaScript
 
 The XRPL-Hermes **CLI and MCP server run on Python (`xrpl-py`)** — that's the engine that
@@ -105,6 +117,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 73-command list: `SKILL.md` tool table) |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
+| [`skills/agent-receipt-flow.md`](skills/agent-receipt-flow.md) · [`references/track-agent-behavior.md`](references/track-agent-behavior.md) | Agent provenance: record a run as an unsigned on-chain receipt, and attribute/monitor behavior (SourceTag · Memos · WebSocket) |
 
 ## Command coverage
 

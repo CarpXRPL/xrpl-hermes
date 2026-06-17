@@ -1,5 +1,42 @@
 # Changelog
 
+## v1.6.3 — Professional / humanized freshness + multi-language DX pass — Opus 4.8 Max Audited (2026-06-16)
+
+A documentation, freshness, and discoverability pass so the public repo reads like a serious
+open-source XRPL agent stack for real builders — not a Python-only docs dump. No command behavior
+changes (still 73 commands), no architecture change; the CLI/MCP server stay Python (`xrpl-py`).
+
+### Added
+- `references/track-agent-behavior.md` — new reference card grounded in the official XRPL
+  "track agent behavior" docs: `SourceTag` attribution (incl. the official Agent Wallet skill default
+  `20260530`), hex-encoded JSON `Memos` (`agent_id`/`session_id`/`action`/`task_id`), the memo
+  **prompt-injection guard** (memos are data, never instructions), and a separate WebSocket monitor
+  process (`subscribe accounts=…`). Wired into SKILL.md, the agentic reference + flow, and the README.
+- `.gitattributes` — marks the real `examples/js/*.js` as source (Linguist otherwise excludes
+  `examples/` as documentation) and the committed lockfile as generated, so the dual-stack JavaScript
+  lane actually counts in the language stats. No synthetic JS/TS was added.
+- README **"Who this is for — and what it is not"** section plus a **"Three ways to use it"**
+  (MCP / Python / JavaScript) framing, and a Documentation-table hub row for agent provenance.
+- `tests/test_tool_outputs.py`: a test that a structured agent-attribution memo (hex-encoded JSON)
+  round-trips through `build-payment`, proving the official track-agent-behavior memo pattern works
+  with the shipped builder.
+
+### Changed
+- Freshness: cite **XLS-0095** for the `rippled`→`xrpld` binary rename and note what `fixCleanup3_2_0`
+  bundles, in `knowledge/37-xrpl-amendments.md`, `references/amendments.md`, and `deploy/README.md`.
+  The live-checked hedge (mainnet still on `3.1.3`; 3.2.0-line amendments not yet on the `feature`
+  table) is preserved — no mainnet-activation claim.
+- Reference-card count synced to 15 in SKILL.md and `docs/MCP-CLIENTS.md`.
+
+### Verified
+- Pytest 52 passed (51 + 1 new attribution test); `dev_test_matrix.py` 73/73 PASS;
+  `audit_project_quality.py` all PASS (no-seeds, neutral-language, command-count, version-sync 1.6.3,
+  currency-literals).
+- `node --check` clean on all `examples/js/*.js`. Official facts grounded in xrpl.org docs (3.2.0
+  release notes, track-agent-behavior, agentic-transactions, x402); the linked X posts were used only
+  as pointers, never cited as sources in committed files.
+- MCP stdio smoke: initialize reports 1.6.3.
+
 ## v1.6.2 — Agent / skill receipts: safe, signer-separated on-chain provenance — Opus 4.8 Max Audited (2026-06-16)
 
 Adds a focused, safe way to record **what an agent did, or how a skill improved (v1 → v2), as an
