@@ -79,7 +79,9 @@ python3 scripts/xrpl_tools.py build-payment \
   --amount 1000000
 ```
 
-Output is raw TX JSON. Copy it into Xaman or Crossmark to sign and submit.
+That output is **unsigned** — builder commands stop there on purpose. Sign and submit it with your
+own wallet/signing layer: Xaman, Crossmark, or your own `xrpl.js` / `xrpl-py` signer. **Never paste a
+seed or private key into the agent** — the agent builds the transaction; your wallet holds the keys.
 
 **Agent-initiated?** Add `--source-tag N` (attribution) and `--memo TEXT` (audit trail) — set them
 on every agent payment. For XRP+RLUSD agentic and HTTP-402/x402 flows see `references/agentic-payments.md`,

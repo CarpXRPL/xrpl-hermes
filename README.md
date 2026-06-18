@@ -114,6 +114,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Ecosystem workflow index — commands, knowledge, and honest coverage labels per ecosystem |
 | [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
 | [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
+| [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md) | Freshness cadence and the exact verification commands that keep the repo current |
 | [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 73-command list: `SKILL.md` tool table) |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
