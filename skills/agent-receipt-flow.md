@@ -79,9 +79,10 @@ python3 scripts/xrpl_tools.py build-nft-mint \
 - Flags default to `8` (tfTransferable) so others can hold/verify the receipt; pass a different
   value for a non-transferable (soulbound) receipt bound to the minting account.
 
-**JS/TS twin (same unsigned JSON, builder-only):** [`examples/js/agent-receipt-nft.js`](../examples/js/agent-receipt-nft.js)
-builds the compact `data:` URI, enforces the 256-byte limit *after* encoding, and prints the
-unsigned `NFTokenMint` — no seed, no signing, no node connection.
+**Runnable build-only twins (same unsigned JSON, no seed/signing/node):** Python
+[`examples/example-agent-receipt.py`](../examples/example-agent-receipt.py) and xrpl.js
+[`examples/js/agent-receipt-nft.js`](../examples/js/agent-receipt-nft.js) — each builds the compact
+`data:` URI, enforces the 256-byte limit *after* encoding, and prints the unsigned `NFTokenMint`.
 
 ---
 
@@ -133,5 +134,5 @@ off-ledger record. Anyone can do this — that is the point of putting it on-cha
 | Recording on mainnet without approval | Explicit human sign-off; it is a permanent public write (Safety rule 5) |
 | Seed in code/logs/chat | `os.environ["XRPL_SEED"]` (dev) or KMS/HSM (prod); redact always |
 
-See also: `examples/js/agent-receipt-nft.js`, `skills/agentic-payment-flow.md`,
+See also: `examples/example-agent-receipt.py`, `examples/js/agent-receipt-nft.js`, `skills/agentic-payment-flow.md`,
 `knowledge/06-xrpl-nfts.md`, `knowledge/23-xrpl-nft-minting.md`, `references/agentic-payments.md`.

@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
 description: ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (65 files, 33K+ lines) + 73 working tools + MCP server covering L1, EVM Sidechain, Xahau Hooks (incl. HookOn calculator), Flare FTSOv2 on-chain reads, Axelar bridge status, Arweave cost estimates, Evernode, RLUSD, RWA tokenization, signer-separated agentic payments (XRP + RLUSD) and x402/HTTP-402, token intelligence, and live amendment checks. Dual-stack: Python (xrpl-py) + TypeScript/JavaScript (xrpl.js). The open-source XRPL agent stack — self-hosted, keys stay yours.
-version: 1.6.3
+version: 1.6.4
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"

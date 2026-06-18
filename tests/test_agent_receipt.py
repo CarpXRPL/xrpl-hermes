@@ -67,3 +67,41 @@ def test_build_nft_mint_rejects_oversize_uri():
     oversized receipt can never produce a temMALFORMED mint. Use pointer mode."""
     with pytest.raises(XRPLModelException, match="512"):
         tool_build_nft_mint(SRC, taxon=1, uri="x" * 300)
+
+
+# --- examples/example-agent-receipt.py: the build-only Python exemplar --------
+
+import subprocess
+import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+_RECEIPT_EXAMPLE = _ROOT / "examples" / "example-agent-receipt.py"
+
+
+def test_example_agent_receipt_runs_and_emits_unsigned_mint():
+    proc = subprocess.run([sys.executable, str(_RECEIPT_EXAMPLE)],
+                          cwd=_ROOT, capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0, proc.stderr
+    # Strip comment / blank lines, leaving the pretty-printed NFTokenMint JSON.
+    body = "\n".join(l for l in proc.stdout.splitlines()
+                     if not l.lstrip().startswith("#")).strip()
+    tx = json.loads(body)
+    assert tx["TransactionType"] == "NFTokenMint"
+    assert tx["SigningPubKey"] == ""          # unsigned / signer-ready
+    assert len(tx["URI"]) <= 512              # 256-byte on-ledger URI budget
+    assert "Fee" not in tx and "Sequence" not in tx  # left for wallet autofill
+    decoded = bytes.fromhex(tx["URI"]).decode()
+    payload = base64.b64decode(decoded.split(",", 1)[1])
+    assert json.loads(payload)["skill"] == "xrpl_send_payment"
+
+
+def test_example_agent_receipt_is_build_only():
+    """No seed, no signing, no submission, no node client — the source proves it
+    is the builder layer, not the wallet layer (executable calls, not the
+    documentary 'submit_and_wait' mention in the next-steps print)."""
+    src = _RECEIPT_EXAMPLE.read_text()
+    assert "from_seed" not in src
+    assert "submit_and_wait(" not in src
+    assert "JsonRpcClient" not in src
+    assert ".sign(" not in src

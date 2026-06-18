@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.6.4 — Build-only Python exemplar + honest examples index — Opus 4.8 Max Audited (2026-06-17)
+
+A focused onboarding/trust pass: give `examples/` a layer-labeled index so the signer-separated
+model is impossible to miss, and add the first build-only Python example. No command behavior
+changes (still 73 commands), no architecture change. Dependency pins verified current — no churn.
+
+### Added
+- `examples/example-agent-receipt.py` — the build-only Python exemplar: constructs an **unsigned**
+  `NFTokenMint` agent/skill receipt (compact base64 `data:` URI, 256-byte limit enforced *after*
+  encoding) and prints signer-ready JSON. No seed, no signing, no submission, no node client — it
+  imports only `base64`, `json`, and `NFTokenMint`. Twin of `examples/js/agent-receipt-nft.js`; its
+  URI hex is byte-identical to the JS twin and to the `build-nft-mint` CLI output.
+- `examples/README.md` — a layer-labeled index of every Python example: (1) **builder layer**
+  (unsigned, no seed), (2) **wallet layer** (signs + submits with YOUR env testnet seed — the user's
+  signing stack, by design), (3) **read-only**. Makes the signer-separated boundary explicit and
+  frames the sign+submit examples as intentional architecture, not a lapse.
+- `tests/test_agent_receipt.py` — runs the new example and asserts it emits an unsigned
+  (`SigningPubKey:""`), size-bounded `NFTokenMint` that round-trips its receipt URI, and that the
+  source is build-only (no `from_seed` / `submit_and_wait(` / `JsonRpcClient` / `.sign(`).
+
+### Changed
+- `skills/agent-receipt-flow.md` now points at both runnable build-only twins (Python + xrpl.js).
+
+### Verified
+- Pytest 54 passed (52 + 2 new); `dev_test_matrix.py` 73/73 PASS; `audit_project_quality.py` all PASS
+  (no-seeds incl. the new example, neutral-language, command-count, version-sync 1.6.4, currency-literals).
+- Dependency freshness confirmed live: npm `xrpl` latest **5.0.0** (pin `^5.0.0`), PyPI `xrpl-py` latest
+  **5.0.0** (pin `>=4.2.0,<6.0.0`) — both current; rippled/`xrpld` 3.2.0 wording unchanged and still
+  hedged. No version-pin churn.
+- `node --check` clean on `examples/js/*.js`; the Python example runs and round-trips its receipt URI.
+- MCP stdio smoke: initialize reports 1.6.4.
+
 ## v1.6.3 — Professional / humanized freshness + multi-language DX pass — Opus 4.8 Max Audited (2026-06-16)
 
 A documentation, freshness, and discoverability pass so the public repo reads like a serious
