@@ -17,7 +17,7 @@ Source-of-truth policy: live ledger > official docs > this repo > claims
 | Weekly | `xrpl-py` latest | `pip index versions xrpl-py` (or PyPI) vs `pyproject.toml` | the pin in `pyproject.toml` / `requirements.txt` |
 | Monthly | `xrpld`/`rippled` releases | https://github.com/XRPLF/rippled/releases | `knowledge/37`, `references/amendments.md`, `deploy/README.md` |
 | Monthly | Known Amendments / docs index | https://xrpl.org/known-amendments.html · https://xrpl.org/llms.txt | the amendment notes + any cited doc |
-| Monthly | Agent / x402 docs + T54 facilitator | https://xrpl.org/docs/agents/ · T54 facilitator docs | `references/x402-payments.md`, `references/agentic-payments.md`, `references/track-agent-behavior.md` |
+| Monthly | Agent / x402 docs + T54 facilitator | https://xrpl.org/docs/agents/getting-started-with-agentic-transactions/ · T54 facilitator docs | `references/x402-payments.md`, `references/agentic-payments.md`, `references/track-agent-behavior.md` |
 | As referenced | Xaman, XRPL EVM, Axelar, Xahau, Flare | their official docs/releases | the matching `knowledge/` + `references/` cards |
 
 Rule: a check is only "done" when the repo line is re-dated against a live result. Never copy a

@@ -118,6 +118,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 73-command list: `SKILL.md` tool table) |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
+| [`docs/BUILD-BENCHMARK.md`](docs/BUILD-BENCHMARK.md) | Build-proof benchmark — L1→L3 + adversarial safety tasks proving an agent builds on XRPL safely (complements the tool matrix) |
 | [`skills/agent-receipt-flow.md`](skills/agent-receipt-flow.md) · [`references/track-agent-behavior.md`](references/track-agent-behavior.md) | Agent provenance: record a run as an unsigned on-chain receipt, and attribute/monitor behavior (SourceTag · Memos · WebSocket) |
 
 ## Command coverage

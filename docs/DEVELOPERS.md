@@ -115,3 +115,19 @@ The script exits non-zero and lists failures if anything regresses. The committe
 2. Bump the version in **three places**: `pyproject.toml`, `SKILL.md` frontmatter, and `SERVER_INFO` in `scripts/mcp_server.py`.
 3. Add a `CHANGELOG.md` entry: what was Added / Fixed / Verified, with dates on live verifications.
 4. Commit with the `vX.Y.Z: summary` message format used throughout the history.
+5. **Publish + repo metadata.** Push the branch, then keep the public GitHub metadata current. Describe
+   XRPL-Hermes in absolute, open-source terms — what it *is*, never relative to another product:
+
+   ```bash
+   git push origin main
+   # after `gh auth login`:
+   gh repo edit CarpXRPL/xrpl-hermes \
+     --description "Open-source XRPL agent stack: MCP tools, signer-separated transaction builders, live XRPL knowledge, Python + xrpl.js examples, x402, RLUSD, and on-ledger receipts."
+   gh repo edit CarpXRPL/xrpl-hermes \
+     --add-topic xrpl --add-topic xrp-ledger --add-topic mcp --add-topic ai-agents \
+     --add-topic agentic-payments --add-topic x402 --add-topic xrpl-js --add-topic xrpl-py \
+     --add-topic xaman --add-topic rlusd
+   ```
+
+   On WSL, if `gh auth login` can't open a browser, open `https://github.com/login/device` in Windows and
+   enter the device code; if GitHub returns `slow_down`, wait a few minutes before retrying.
