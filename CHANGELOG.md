@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — Product Builder Mode foundation
+
+A docs/prompt-layer foundation for product-altitude XRPL work: route vague app/platform/dashboard/API requests to a structured Product Builder Mode before emitting transaction JSON. **No CLI/tool behavior changes** (still 73 commands, builders remain unsigned); no runtime, custody, or hosting scope added.
+
+### Added
+- `skills/build-xrpl-product-flow.md`: canonical Product Builder Mode umbrella with the operation-vs-product altitude test, ≤5-question intake, custody stop-and-warn tree, 5-box XRPL product architecture, base testnet/mainnet checklists, coding-agent handoff template, and planned archetype dispatch table.
+- `docs/PRODUCT-BUILDER.md`: human-facing hub for GitHub readers and MCP/Hermes users, linking to the canonical umbrella flow and listing product archetypes.
+
+### Changed
+- `SKILL.md`: adds Route P for product intent, a compact Product Builder Mode section, a product-intent row in the routing table, and rewrites Core Mission 2 to avoid jumping straight from "build a dApp" to low-level implementation.
+- `docs/WORKFLOWS.md`: adds a Product Builder Mode section with coverage labels and planned archetypes.
+
 ## v1.7.0 — Decision-layer routing + XRPL workflow safety — FABLE 5 Audited (2026-07-09)
 
 A skill-layer (docs/prompt) pass: make route selection deterministic for any agent driving the

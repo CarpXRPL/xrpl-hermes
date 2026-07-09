@@ -58,8 +58,22 @@ Before answering, pick the route. The failure mode this section prevents is the 
 - **B. Current ledger / account / token / liquidity / amendment facts** → run the live tool and cite the exact command: `server-info`, `amendments` / `amendment NAME`, `account`, `account_objects`, `trustlines`, `amm-info`, `token-intel`, `tx-info`, `decode`, `book-offers`, `account-tx`. Never answer a "current" question from markdown alone (`knowledge/65`).
 - **C. Multi-step jobs** (launch, failed-tx diagnosis, multisig, hooks, NFTs, account access, receipts, bots, agentic payments) → follow the matching `skills/*.md` flow instead of improvising; the flow encodes the safe order and its checkpoints.
 - **D. Ask a clarifying question only when the missing fact changes which command runs or which transaction gets built** — network (mainnet/testnet), which account signs, which asset/currency+issuer, amount/limit/quorum. If the answer wouldn't change the build, proceed and state your assumption.
+- **P. Product intent** (the user wants an app, platform, dashboard, API, service, tool, marketplace, launchpad, business, or "something on XRPL") → follow `skills/build-xrpl-product-flow.md` before any builder. Altitude test: if the deliverable is signed by the user's wallet today, it is an operation (C); if it is software other people or agents will use, it is a product (P).
 
 Routes compose: a live check (B) inside a flow (C) grounded by a knowledge file (A) is the normal shape of a good answer.
+
+### Product Builder Mode
+
+For product altitude, ask at most the missing intake questions: **who uses it, custody model, value moved, stack/runtime, network+horizon**. Then produce a one-pager, 5-box architecture (`UI/client · app backend · XRPL read layer · signing layer · monitor/attribution`), primitive map, MVP plan, testnet demo checklist, and mainnet-safe launch checklist. Stop-and-warn if the design requires holding users' funds, seeds, or private keys.
+
+| Product intent sounds like | Start with | First wedge |
+|---|---|---|
+| "build something on XRPL" | `skills/build-xrpl-product-flow.md` | intake → architecture → primitive map |
+| payments app / checkout / tipping | `skills/payment-app-product-flow.md` (planned) | request → wallet handoff → ledger receipt |
+| paid API / x402 / agent payments | `skills/agentic-payments-product-flow.md` (planned) | 402 challenge + verified payment middleware |
+| token safety / holder dashboard | `skills/token-intelligence-product-flow.md` (planned) | live report + confidence/missing-data list |
+| launchpad / token creator platform | `skills/token-launch-product-flow.md` (planned) | non-custodial issuer wizard |
+| treasury / multisig tool | `skills/treasury-tool-product-flow.md` (planned) | read-only cockpit + unsigned proposals |
 
 ### From MCP clients (Claude Code, Cursor, Codex, any MCP-capable agent)
 
@@ -89,6 +103,7 @@ Routes compose: a live check (B) inside a flow (C) grounded by a knowledge file 
 | Axelar bridge status / transfer tracking | `knowledge/46` + `references/axelar-bridge.md` | `bridge-status`, `bridge-tx TXHASH` |
 | Arweave permanent storage cost | `knowledge/47` + `references/arweave-storage.md` | `arweave-cost SIZE` (estimate only — never uploads) |
 | Agentic / machine-to-machine payments, x402 / HTTP-402 | `references/agentic-payments.md`, `references/x402-payments.md`, `skills/agentic-payment-flow.md` | `build-payment --source-tag N --memo TEXT` |
+| Product/app/platform/dashboard/API/service/tool/launchpad on XRPL | `skills/build-xrpl-product-flow.md` | Ask intake, map primitives, then use live checks/operation flows as needed — do not emit tx JSON first |
 | Amendment status | `references/amendments.md` + `knowledge/37` | `amendment NAME`, `amendments [FILTER]` |
 | "Update it" / freshness pass / "is this still current?" | `skills/freshness-update-flow.md` + `knowledge/65` | `server-info`, `amendments`, then the flow's checklist |
 
@@ -271,8 +286,8 @@ These are the four jobs users hire an XRPL agent for. Each has a tested flow —
 ### 1. Launch a token
 Follow `skills/token-launch-flow.md`. Issuer flags (DefaultRipple, Domain, TickSize, TransferRate) → trust line policy → freeze/clawback decision → supply distribution → optional AMM pool. Read `knowledge/22-xrpl-token-issuance.md` + `21-xrpl-token-model.md` first. Always output signer-ready JSON per step.
 
-### 2. Deploy a site or dApp
-Use Hermes browser + file tools. Scaffold the frontend, wire wallet login (see Wallet Login Flows below), connect to public Clio or the user's `XRPL_PRIVATE_RPC`, deploy (user's host of choice). For EVM Sidechain dApps read `knowledge/33-xrpl-evm-dev.md`; for L1 reads use `knowledge/61-xrpl-websocket-streams.md`.
+### 2. Build an XRPL product, site, or dApp
+Use Product Builder Mode: start with `skills/build-xrpl-product-flow.md`, choose the product archetype, map the XRPL primitives, then hand a coding-agent implementation brief to the user's chosen stack. Wallet/signing UX links to the wallet files below; L1 read layers use `knowledge/61-xrpl-websocket-streams.md`; EVM Sidechain dApps read `knowledge/33-xrpl-evm-dev.md`. Do not jump straight to a transaction builder unless the user wanted operation altitude.
 
 ### 3. Deploy a trading or monitor bot
 Follow `skills/amm-bot-flow.md` or `skills/treasury-monitor-flow.md`. Patterns in `knowledge/34-xrpl-amm-bots.md` + `41-xrpl-bots-patterns.md`. Bots query freely (public endpoints or private node) but **signing stays with the user's wallet or their own signing stack** — never embed seeds in bot code you write. **Every bot starts in paper mode** and goes live only through the staged go-live checklist in `skills/amm-bot-flow.md`: detection → enrichment → scoring → paper decisions → dry-run (unsigned JSON) → human review → smallest-size live → sell-integrity → ledger-read position tracking.

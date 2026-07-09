@@ -10,6 +10,18 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 ---
 
+## Product Builder Mode — idea → architecture → MVP
+
+**Coverage: Knowledge + references + live verification.** Product Builder Mode is the product-altitude layer: use it when the user wants an app, platform, dashboard, API, service, marketplace, launchpad, or agent workflow that other people/agents will use. It does not add CLI commands or custody; it routes builders through intake, architecture, primitive mapping, operation flows, and live verification.
+
+- Canonical umbrella: `skills/build-xrpl-product-flow.md`
+- Human hub: `docs/PRODUCT-BUILDER.md`
+- Product altitude test: if the deliverable is signed by the user's wallet today, use an operation flow; if it is software other people or agents will use, use Product Builder Mode first.
+- Planned archetype playbooks: wallet-signing UX, payment app, agentic payments/x402, token intelligence, token launch platform, treasury/multisig tool, NFT/community product, AMM/DEX product, Xahau Hook app, RWA/compliance rails, and self-hosted XRPL agent stack.
+- Live checks used during planning as needed: `server-info`, `account`, `tx-info`, `token-intel`, `amm-info`, `book-offers`, `path-find`, `amendment`.
+
+---
+
 ## XRPL L1 — accounts, payments, trust lines, DEX
 
 **Coverage: Live commands.**
