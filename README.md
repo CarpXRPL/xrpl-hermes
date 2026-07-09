@@ -18,6 +18,13 @@ xrpl-hermes is a practical builder kit. It does not ask for wallet seeds, it doe
 3. build signer-ready JSON,
 4. let the user sign with their own wallet or signing stack.
 
+It also includes **Product Builder Mode** for product-altitude work: when the user wants an app,
+dashboard, launchpad, paid API, treasury tool, token intelligence product, or self-hosted XRPL agent
+stack, the skill routes through intake → architecture → XRPL primitive map → MVP → testnet demo →
+mainnet-safe launch gates before emitting transaction JSON. Canonical flow:
+[`skills/build-xrpl-product-flow.md`](skills/build-xrpl-product-flow.md); human hub:
+[`docs/PRODUCT-BUILDER.md`](docs/PRODUCT-BUILDER.md).
+
 ## Who this is for — and what it is not
 
 **For:** XRPL and agent builders who want AI-assisted research, unsigned transaction construction,
@@ -112,6 +119,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`QUICKSTART.md`](QUICKSTART.md) | Install and first commands in 5 minutes |
 | [`docs/BEGINNERS.md`](docs/BEGINNERS.md) | New to XRPL and agent CLIs — concepts, safety, first session |
 | [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Ecosystem workflow index — commands, knowledge, and honest coverage labels per ecosystem |
+| [`docs/PRODUCT-BUILDER.md`](docs/PRODUCT-BUILDER.md) | Product Builder Mode — app/platform/dashboard archetypes, 5-box architecture, and links to product playbooks |
 | [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
 | [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
 | [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md) | Freshness cadence and the exact verification commands that keep the repo current |

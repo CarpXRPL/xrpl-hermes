@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Product Builder Mode foundation
+## v1.8.2 — Product Builder Mode + XRPL product playbooks — FABLE 5 Audited (2026-07-09)
 
 A docs/prompt-layer foundation for product-altitude XRPL work: route vague app/platform/dashboard/API requests to a structured Product Builder Mode before emitting transaction JSON. **No CLI/tool behavior changes** (still 73 commands, builders remain unsigned); no runtime, custody, or hosting scope added.
 
