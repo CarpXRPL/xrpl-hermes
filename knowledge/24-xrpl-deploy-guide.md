@@ -140,10 +140,10 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=xrplbot
-WorkingDirectory=/home/xrplbot/xrpl-bot
+WorkingDirectory=/opt/xrpl-bot
 Environment=PYTHONUNBUFFERED=1
-EnvironmentFile=/home/xrplbot/xrpl-bot/.env
-ExecStart=/home/xrplbot/xrpl-bot/venv/bin/python bot.py
+EnvironmentFile=/etc/xrpl-bot.env
+ExecStart=/opt/xrpl-bot/venv/bin/python bot.py
 Restart=on-failure
 RestartSec=30
 StandardOutput=journal
@@ -173,9 +173,9 @@ After=network.target
 [Service]
 Type=simple
 User=xrplbot
-WorkingDirectory=/home/xrplbot/xrpl-node-bot
-EnvironmentFile=/home/xrplbot/xrpl-node-bot/.env
-ExecStart=/usr/bin/node /home/xrplbot/xrpl-node-bot/index.js
+WorkingDirectory=/opt/xrpl-node-bot
+EnvironmentFile=/etc/xrpl-node-bot.env
+ExecStart=/usr/bin/node /opt/xrpl-node-bot/index.js
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
@@ -189,9 +189,10 @@ EOF
 ### Environment File
 
 ```bash
-# /home/xrplbot/xrpl-bot/.env
+# /etc/xrpl-bot.env
 XRPL_NODE=wss://xrplcluster.com
-WALLET_SEED=sn...
+# Do not put a wallet seed in a generic bot service. Use read-only mode by default.
+# If a user-owned signer/executor is required, keep it in a separate policy-gated service.
 NETWORK=mainnet
 LOG_LEVEL=info
 ALERT_WEBHOOK=https://hooks.slack.com/...
@@ -199,8 +200,8 @@ ALERT_WEBHOOK=https://hooks.slack.com/...
 
 Secure the env file:
 ```bash
-chmod 600 /home/xrplbot/xrpl-bot/.env
-chown xrplbot:xrplbot /home/xrplbot/xrpl-bot/.env
+chmod 600 /etc/xrpl-bot.env
+chown root:xrplbot /etc/xrpl-bot.env
 ```
 
 ---
@@ -214,13 +215,13 @@ For scheduled tasks (not continuous bots):
 crontab -e -u xrplbot
 
 # Add:
-* * * * * /home/xrplbot/xrpl-bot/venv/bin/python /home/xrplbot/xrpl-bot/price_check.py >> /var/log/xrplbot/price_check.log 2>&1
+* * * * * /opt/xrpl-bot/venv/bin/python /opt/xrpl-bot/price_check.py >> /var/log/xrplbot/price_check.log 2>&1
 
 # Hourly report
-0 * * * * /home/xrplbot/xrpl-bot/venv/bin/python /home/xrplbot/xrpl-bot/hourly_report.py
+0 * * * * /opt/xrpl-bot/venv/bin/python /opt/xrpl-bot/hourly_report.py
 
 # Daily cleanup at 3am
-0 3 * * * /home/xrplbot/xrpl-bot/venv/bin/python /home/xrplbot/xrpl-bot/cleanup.py
+0 3 * * * /opt/xrpl-bot/venv/bin/python /opt/xrpl-bot/cleanup.py
 ```
 
 ---

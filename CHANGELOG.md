@@ -53,7 +53,7 @@ one-word MCP allowlist addition.
   `build-payment --amount VALUE --cur CUR --iss rISSUER`. Replaced the false "no prior trust line
   needed via DEX path" claim (Payments never auto-create trust lines; executed OfferCreates do) and
   added the offer alternative.
-- `skills/treasury-monitor-flow.md`: stale `knowledge/56-telegram-integration.md` link →
+- `skills/treasury-monitor-flow.md`: stale old Telegram integration link →
   `knowledge/56-telegram-xrpl-bots.md`; broken multisig pseudo-code (`tx_from_dict`, unimported
   `Submit`, hardcoded seed placeholders) → working `Transaction.from_xrpl` + env-seed sketch and the
   `submit-multisigned` CLI, cross-linked to the new multisig flow.
@@ -434,7 +434,7 @@ Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatche
 - Fixed SECURITY.md: accurately described local seed-handling with CLI warning (replaced absolute "NEVER handles seeds" wording)
 - Fixed CI workflow: now runs `pytest -q` + build-payment smoke test (was only `server-info`)
 - Fixed pyproject.toml: 59→63 knowledge files, aligned deps with requirements.txt, added `[project.scripts]` entry point
-- Deleted stale `scripts/xrpl_tools.py.bak`
+- Deleted stale backup file `xrpl_tools.py.bak`
 
 ---
 
@@ -456,7 +456,7 @@ Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatche
 - **Bots & power users**: `account-tx` (transaction history), `build-ticket-create` (parallel tx), `ledger-entry` (generic object lookup)
 
 ### 🐛 Fixes
-- **Deleted** `scripts/xrpl_tx_builder.py` (broken import path — `xrpl.binary_codec` → `xrpl.core.binarycodec`)
+- **Deleted** stale transaction-builder script with broken import path (`xrpl.binary_codec` → `xrpl.core.binarycodec`)
 - **Fake Xaman URLs** replaced in `knowledge/56-telegram-xrpl-bots.md` and `examples/example-telegram-bot.py` — the old `https://xumm.app/sign/{json}` pattern would 404. Replaced with real `xaman-payload` CLI flow
 - **Clawback flag** wrong constant (`536870912`) corrected to `2147483648` in `knowledge/07-xrpl-clawback.md`
 

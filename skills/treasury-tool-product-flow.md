@@ -39,7 +39,7 @@ Project teams, communities, small funds, grant programs, and signer groups.
 - `skills/multisig-safety-flow.md`
 - `skills/treasury-monitor-flow.md`
 - `skills/account-access-safety-flow.md`
-- `knowledge/12-xrpl-multisigning.md`
+- `knowledge/12-xrpl-multisig.md`
 - `knowledge/13-xrpl-tickets.md`
 - `knowledge/42-xrpl-treasury.md`
 - `knowledge/40-xrpl-monitoring.md`

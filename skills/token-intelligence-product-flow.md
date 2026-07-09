@@ -35,7 +35,7 @@ Read-only only:
 - `skills/build-xrpl-product-flow.md`
 - `knowledge/64-token-intelligence-reports.md`
 - `references/token-intelligence.md`
-- `knowledge/25-xrpl-security-audit.md`
+- `knowledge/25-xrpl-audit-security.md`
 - `knowledge/40-xrpl-monitoring.md`
 - `knowledge/56-telegram-xrpl-bots.md` / `knowledge/57-discord-xrpl-bots.md` when building bots
 - `knowledge/61-xrpl-websocket-streams.md`

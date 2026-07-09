@@ -11,8 +11,8 @@ Do not create fake URLs by embedding transaction JSON in a URL. Create a real pa
 4. Store them as environment variables on the server only.
 
 ```bash
-export XUMM_API_KEY='your-api-key'
-export XUMM_API_SECRET='your-api-secret'
+export XUMM_API_KEY="$XUMM_API_KEY"
+export XUMM_API_SECRET="$XUMM_API_SECRET"
 ```
 
 ## xaman-payload CLI
