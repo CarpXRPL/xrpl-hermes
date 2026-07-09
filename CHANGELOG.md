@@ -7,11 +7,12 @@ A docs/prompt-layer foundation for product-altitude XRPL work: route vague app/p
 ### Added
 - `skills/build-xrpl-product-flow.md`: canonical Product Builder Mode umbrella with the operation-vs-product altitude test, ≤5-question intake, custody stop-and-warn tree, 5-box XRPL product architecture, base testnet/mainnet checklists, coding-agent handoff template, and planned archetype dispatch table.
 - Five core product playbooks: `skills/wallet-signing-ux-product-flow.md`, `skills/payment-app-product-flow.md`, `skills/agentic-payments-product-flow.md`, `skills/token-intelligence-product-flow.md`, and `skills/token-launch-product-flow.md`.
+- Six additional product playbooks: `skills/treasury-tool-product-flow.md`, `skills/nft-community-product-flow.md`, `skills/amm-dex-product-flow.md`, `skills/xahau-hook-app-product-flow.md`, `skills/rwa-compliance-product-flow.md`, and `skills/xrpl-agent-stack-product-flow.md`.
 - `docs/PRODUCT-BUILDER.md`: human-facing hub for GitHub readers and MCP/Hermes users, linking to the canonical umbrella flow and listing product archetypes.
 
 ### Changed
 - `SKILL.md`: adds Route P for product intent, a compact Product Builder Mode section, a product-intent row in the routing table, and rewrites Core Mission 2 to avoid jumping straight from "build a dApp" to low-level implementation.
-- `docs/WORKFLOWS.md` and `docs/PRODUCT-BUILDER.md`: mark the first five product archetype playbooks live while leaving deeper playbooks planned.
+- `docs/WORKFLOWS.md` and `docs/PRODUCT-BUILDER.md`: mark all planned product archetype playbooks live.
 
 ## v1.7.0 — Decision-layer routing + XRPL workflow safety — FABLE 5 Audited (2026-07-09)
 

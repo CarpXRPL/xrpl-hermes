@@ -95,12 +95,12 @@ After intake, produce:
 | Paid API, x402, agent-to-agent payments, monetize MCP | `skills/agentic-payments-product-flow.md` | live | 402 challenge + verified XRPL payment middleware |
 | Token safety dashboard, holder dashboard, rug checker, analytics bot | `skills/token-intelligence-product-flow.md` | live | Read-only token report API with confidence + missing-data list |
 | Launchpad, creator token wizard, token creator tool | `skills/token-launch-product-flow.md` | live | Non-custodial issuer wizard driven by live ledger state |
-| DAO/project treasury, signer coordination, proposal flow | `skills/treasury-tool-product-flow.md` | planned | Read-only treasury cockpit + unsigned proposal workflow |
-| NFT mint site, holder-gated community, small marketplace | `skills/nft-community-product-flow.md` | planned | Mint/offer/holder-verification loop with wallet proof |
-| Swap UI, LP dashboard, DEX/AMM analytics | `skills/amm-dex-product-flow.md` | planned | Read-only pool/orderbook explorer + timestamped quote view |
-| Xahau Hook app, on-ledger automation product | `skills/xahau-hook-app-product-flow.md` | planned | Hook use-case plan + HookOn calculation + install verification |
-| RWA/compliance-gated issuance platform | `skills/rwa-compliance-product-flow.md` | planned | Technical rails plan with RequireAuth/credentials/clawback boundary |
-| Self-hosted XRPL agent stack, MCP-powered agent service | `skills/xrpl-agent-stack-product-flow.md` | planned | MCP smoke + read-only agent job + human-signed builder loop |
+| DAO/project treasury, signer coordination, proposal flow | `skills/treasury-tool-product-flow.md` | live | Read-only treasury cockpit + unsigned proposal workflow |
+| NFT mint site, holder-gated community, small marketplace | `skills/nft-community-product-flow.md` | live | Mint/offer/holder-verification loop with wallet proof |
+| Swap UI, LP dashboard, DEX/AMM analytics | `skills/amm-dex-product-flow.md` | live | Read-only pool/orderbook explorer + timestamped quote view |
+| Xahau Hook app, on-ledger automation product | `skills/xahau-hook-app-product-flow.md` | live | Hook use-case plan + HookOn calculation + install verification |
+| RWA/compliance-gated issuance platform | `skills/rwa-compliance-product-flow.md` | live | Technical rails plan with RequireAuth/credentials/clawback boundary |
+| Self-hosted XRPL agent stack, MCP-powered agent service | `skills/xrpl-agent-stack-product-flow.md` | live | MCP smoke + read-only agent job + human-signed builder loop |
 
 ## Coding-agent handoff template
 

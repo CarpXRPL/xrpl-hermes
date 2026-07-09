@@ -17,7 +17,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Canonical umbrella: `skills/build-xrpl-product-flow.md`
 - Human hub: `docs/PRODUCT-BUILDER.md`
 - Product altitude test: if the deliverable is signed by the user's wallet today, use an operation flow; if it is software other people or agents will use, use Product Builder Mode first.
-- Live product playbooks: wallet-signing UX, payment app, agentic payments/x402, token intelligence, token launch platform. Planned next: treasury/multisig tool, NFT/community product, AMM/DEX product, Xahau Hook app, RWA/compliance rails, and self-hosted XRPL agent stack.
+- Live product playbooks: wallet-signing UX, payment app, agentic payments/x402, token intelligence, token launch platform, treasury/multisig tool, NFT/community product, AMM/DEX product, Xahau Hook app, RWA/compliance rails, and self-hosted XRPL agent stack.
 - Live checks used during planning as needed: `server-info`, `account`, `tx-info`, `token-intel`, `amm-info`, `book-offers`, `path-find`, `amendment`.
 
 ---

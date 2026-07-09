@@ -55,12 +55,12 @@ If the deliverable is a single transaction signed by the user's wallet today, us
 | live | Agentic payments / x402 | `skills/agentic-payments-product-flow.md` | 402 challenge + verified XRPL payment middleware |
 | live | Token intelligence dashboard/API/bot | `skills/token-intelligence-product-flow.md` | live token report with confidence and missing-data list |
 | live | Token launch platform | `skills/token-launch-product-flow.md` | non-custodial creator wizard driven by live ledger state |
-| planned | Treasury/multisig tool | `skills/treasury-tool-product-flow.md` | read-only treasury cockpit + unsigned proposal workflow |
-| planned | NFT/community product | `skills/nft-community-product-flow.md` | mint/offer/holder-verification loop |
-| planned | AMM/DEX product | `skills/amm-dex-product-flow.md` | pool/orderbook explorer + timestamped quote view |
-| planned | Xahau Hook app | `skills/xahau-hook-app-product-flow.md` | hook use-case plan + HookOn calculation + install verification |
-| planned | RWA/compliance rails | `skills/rwa-compliance-product-flow.md` | technical issuance rails with counsel boundary |
-| planned | Self-hosted XRPL agent stack | `skills/xrpl-agent-stack-product-flow.md` | MCP-powered read-only agent job + human-signed builder loop |
+| live | Treasury/multisig tool | `skills/treasury-tool-product-flow.md` | read-only treasury cockpit + unsigned proposal workflow |
+| live | NFT/community product | `skills/nft-community-product-flow.md` | mint/offer/holder-verification loop |
+| live | AMM/DEX product | `skills/amm-dex-product-flow.md` | pool/orderbook explorer + timestamped quote view |
+| live | Xahau Hook app | `skills/xahau-hook-app-product-flow.md` | hook use-case plan + HookOn calculation + install verification |
+| live | RWA/compliance rails | `skills/rwa-compliance-product-flow.md` | technical issuance rails with counsel boundary |
+| live | Self-hosted XRPL agent stack | `skills/xrpl-agent-stack-product-flow.md` | MCP-powered read-only agent job + human-signed builder loop |
 
 ## How to use from Hermes
 

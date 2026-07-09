@@ -73,7 +73,7 @@ For product altitude, ask at most the missing intake questions: **who uses it, c
 | paid API / x402 / agent payments | `skills/agentic-payments-product-flow.md` | 402 challenge + verified payment middleware |
 | token safety / holder dashboard | `skills/token-intelligence-product-flow.md` | live report + confidence/missing-data list |
 | launchpad / token creator platform | `skills/token-launch-product-flow.md` | non-custodial issuer wizard |
-| treasury / multisig tool | `skills/treasury-tool-product-flow.md` (planned) | read-only cockpit + unsigned proposals |
+| treasury / multisig tool | `skills/treasury-tool-product-flow.md` | read-only cockpit + unsigned proposals |
 
 ### From MCP clients (Claude Code, Cursor, Codex, any MCP-capable agent)
 
