@@ -1,5 +1,51 @@
 # Changelog
 
+## v1.7.0 — Decision-layer routing + XRPL workflow safety — FABLE 5 Audited (2026-07-09)
+
+A skill-layer (docs/prompt) pass: make route selection deterministic for any agent driving the
+toolkit, and cover the highest-risk multi-step jobs with checkpointed flows. **No CLI/tool behavior
+changes** (still 73 commands, all builders unchanged and unsigned); the only code touch is a
+one-word MCP allowlist addition.
+
+### Added
+- `SKILL.md` **Decision Layer — Routing**: A/B/C/D route selection (knowledge for stable semantics,
+  live tools for current facts, `skills/*.md` flows for multi-step jobs, clarify only when the answer
+  changes the command/transaction), an intent → files → commands routing table, MCP-specific wording
+  (`xrpl_knowledge_index` → `xrpl_knowledge` → `xrpl_run`), and a **confirm-before-build** list for
+  high-risk builders (account-delete, clawback, freeze TrustSet, signer-list-set, set-regular-key,
+  deposit-preauth, AMM deposit/withdraw/bid/vote, NFT burn/accept/cancel, mainnet value transfers;
+  `submit`/`submit-multisigned` documented as signed-blob/JSON-only).
+- Six new workflow flows: `skills/failed-transaction-diagnosis-flow.md` (ledger-facts-first triage,
+  final vs provisional result classes), `skills/issuer-first-mint-flow.md` (irreversible-flag
+  checkpoints before first mint), `skills/multisig-safety-flow.md` (quorum math, signing ceremony,
+  lockout-safe removal/recovery), `skills/xahau-hook-setup-flow.md` (can/cannot boundary, HookOn via
+  `hooks-bitmask`, manual SetHook template), `skills/account-access-safety-flow.md` (prove the
+  survivor authority before removing one; AccountDelete checklist), `skills/nft-operations-flow.md`
+  (mint-time immutability, offer/accept/broker/burn lifecycle).
+
+### Changed
+- `scripts/mcp_server.py`: `skills/` added to the sandboxed knowledge dirs so MCP clients can read
+  workflow flows (tool descriptions updated to match); `docs/MCP-CLIENTS.md` wording follows.
+- `docs/WORKFLOWS.md`: sections now point at the new playbooks.
+
+### Fixed
+- `skills/clawback-flow.md`: bogus `build-payment` placeholder → `build-account-set --set-flag 16`
+  (with the zero-trust-lines precondition); removed the nonexistent `--issuer` argument from the
+  `build-clawback` example (it would raise a TypeError); signing snippet now sources the seed from
+  the environment instead of a hardcoded placeholder.
+- `skills/token-launch-flow.md`: corrected issued-currency payment argument shape and split the two
+  cases explicitly: issuer first-mint uses `build-cross-currency-payment --deliver CUR:rISSUER:VALUE
+  --send-max CUR:rISSUER:VALUE`; ordinary holder-to-holder IOU transfers use
+  `build-payment --amount VALUE --cur CUR --iss rISSUER`. Replaced the false "no prior trust line
+  needed via DEX path" claim (Payments never auto-create trust lines; executed OfferCreates do) and
+  added the offer alternative.
+- `skills/treasury-monitor-flow.md`: stale `knowledge/56-telegram-integration.md` link →
+  `knowledge/56-telegram-xrpl-bots.md`; broken multisig pseudo-code (`tx_from_dict`, unimported
+  `Submit`, hardcoded seed placeholders) → working `Transaction.from_xrpl` + env-seed sketch and the
+  `submit-multisigned` CLI, cross-linked to the new multisig flow.
+- `SKILL.md` compliance pattern: freeze is a hand-added `Flags` field on the TrustSet JSON —
+  `build-trustset` takes no flags argument (stated explicitly now).
+
 ## v1.6.4 — Build-only Python exemplar + honest examples index — Opus 4.8 Max Audited (2026-06-17)
 
 A focused onboarding/trust pass: give `examples/` a layer-labeled index so the signer-separated

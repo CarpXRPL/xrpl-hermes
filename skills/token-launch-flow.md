@@ -103,21 +103,25 @@ tx = TrustSet(
 The issuer sends tokens to the distributor. This "mints" them (XRPL has no separate mint TX):
 
 ```bash
-python3 scripts/xrpl_tools.py build-payment \
+python3 scripts/xrpl_tools.py build-cross-currency-payment \
   --from rISSUER \
   --to rDISTRIBUTOR \
-  --amount USD:rISSUER:500000 \
-  --cur USD
+  --deliver USD:rISSUER:500000 \
+  --send-max USD:rISSUER:500000
+# Issuer first-mint: deliver and send_max are the same issued currency amount.
+# Holder-to-holder IOU payments can use build-payment --amount VALUE --cur CUR --iss rISSUER.
 ```
 
 ```python
 from xrpl.models.transactions import Payment
 from xrpl.models.amounts import IssuedCurrencyAmount
 
+mint_amount = IssuedCurrencyAmount(currency="USD", issuer="rISSUER", value="500000")
 tx = Payment(
     account="rISSUER",
     destination="rDISTRIBUTOR",
-    amount=IssuedCurrencyAmount(currency="USD", issuer="rISSUER", value="500000"),
+    amount=mint_amount,
+    send_max=mint_amount,
 )
 ```
 
@@ -158,22 +162,34 @@ python3 scripts/xrpl_tools.py build-trustset \
   --issuer rISSUER \
   --value 100000
 
-# Then distributor sends
+# Then distributor sends (ordinary holder-to-holder IOU payment)
 python3 scripts/xrpl_tools.py build-payment \
   --from rDISTRIBUTOR \
   --to rUSER \
-  --amount USD:rISSUER:1000
+  --amount 1000 --cur USD --iss rISSUER
 ```
 
-**Via DEX (no prior trust line needed if using tfNoRippleDirect path):**
+**Via DEX (user buys with XRP — still requires the trust line first):**
+
+A Payment never auto-creates a trust line for the recipient; only an executed
+OfferCreate does. So the user either sets the trust line and self-pays cross-currency:
 
 ```bash
-python3 scripts/xrpl_tools.py path-find rUSER rDISTRIBUTOR 1000 USD:rISSUER
+python3 scripts/xrpl_tools.py path-find rUSER rUSER 100 USD:rISSUER
 python3 scripts/xrpl_tools.py build-cross-currency-payment \
   --from rUSER \
   --to rUSER \
   --deliver USD:rISSUER:100 \
   --send-max XRP:500000
+```
+
+...or places a DEX offer, which creates the trust line automatically when it executes:
+
+```bash
+python3 scripts/xrpl_tools.py build-offer \
+  --from rUSER \
+  --sell XRP:500000 \
+  --buy USD:rISSUER:100
 ```
 
 ---

@@ -29,18 +29,16 @@ CLAWBACK_FLAG = 0x80000000  # lsfAllowTrustLineClawback
 print("Clawback enabled:", bool(flags & CLAWBACK_FLAG))
 ```
 
-**If not enabled:** Build an AccountSet transaction to enable it first:
+**If not enabled:** Build an AccountSet transaction to enable it first (unsigned):
 
 ```bash
-python3 scripts/xrpl_tools.py build-payment --from rISSUER --to rISSUER --amount 0
-# Actually use AccountSet:
-python3 -c "
-import json
-from xrpl.models.transactions import AccountSet
-tx = AccountSet(account='rISSUER', set_flag=16)  # 16 = asfAllowTrustLineClawback
-print(json.dumps(tx.to_xrpl(), indent=2))
-"
+python3 scripts/xrpl_tools.py build-account-set --from rISSUER --set-flag 16
+# 16 = asfAllowTrustLineClawback
 ```
+
+The flag can only be enabled while the issuer has **zero trust lines** (check
+`trustlines rISSUER`) and is permanent once set — see
+`skills/issuer-first-mint-flow.md` Step 1 for the decision checkpoint.
 
 ---
 
@@ -72,10 +70,12 @@ python3 scripts/xrpl_tools.py build-clawback \
   --from rISSUER \
   --destination rHOLDER \
   --currency USD \
-  --issuer rISSUER \
   --amount 100 \
   --memo "compliance-clawback-2025-01"
 ```
+
+(No `--issuer` argument exists — the issuer is `--from`, and the builder sets
+`Amount.issuer` to the holder per protocol.)
 
 Expected output:
 ```json
@@ -99,12 +99,13 @@ Expected output:
 Sign with Xaman, Crossmark, or xrpl-py wallet:
 
 ```python
+import os
 from xrpl.wallet import Wallet
 from xrpl.transaction import submit_and_wait
 from xrpl.models.transactions import Clawback
 from xrpl.models.amounts import IssuedCurrencyAmount
 
-issuer_wallet = Wallet.from_seed("sISSUER_SEED")
+issuer_wallet = Wallet.from_seed(os.environ["XRPL_SEED"])  # never hardcode seeds
 tx = Clawback(
     account=issuer_wallet.classic_address,
     amount=IssuedCurrencyAmount(currency="USD", issuer="rHOLDER", value="100"),

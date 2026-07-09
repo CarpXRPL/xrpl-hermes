@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrpl-hermes"
-version = "1.6.4"
+version = "1.7.0"
 description = "Open-source XRPL ecosystem toolkit — 65 knowledge files + 73 commands + MCP server covering L1, EVM Sidechain, Xahau Hooks, Flare FTSOv2, Axelar status, Arweave cost estimates, token intelligence, AMMs, and live amendment checks"
 authors = [{name = "CarpXRPL"}]
 license = {text = "MIT"}

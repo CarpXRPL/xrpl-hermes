@@ -44,6 +44,8 @@ than commit noise. Stage real files explicitly; don't `git add -A` the regenerat
 ## Safety invariants (never regress)
 
 - Builders emit **unsigned, signer-ready JSON only** — no builder accepts, derives, or stores a seed.
+  (Autonomous mainnet execution, if any, lives in a separate user-configured policy-gated signer/executor
+  layer — never a builder.)
 - No seeds/private keys in committed files (the `no-seeds` audit gate fails the build on any decodable one).
 - No fabricated live data: a failed lookup names the failing endpoint; it never guesses a number.
 - Amendment-gated builders check live mainnet status and print an explicit build-only note.

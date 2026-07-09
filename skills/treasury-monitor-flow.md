@@ -159,7 +159,7 @@ def check_alerts(state: dict, recent_txs: list) -> list[str]:
 
 ## Step 5 — Send Notifications
 
-**Telegram alert (see `knowledge/56-telegram-integration.md`):**
+**Telegram alert (see `knowledge/56-telegram-xrpl-bots.md`):**
 
 ```python
 import httpx
@@ -232,25 +232,26 @@ python3 scripts/xrpl_tools.py build-payment \
   --to rDESTINATION \
   --amount 1000000000
 
-# 2. Each required signer signs independently (xrpl-py)
-python3 -c "
+# 2. Each required signer signs independently in their own stack (xrpl-py sketch;
+#    seeds come from each signer's own environment — never from this toolkit)
+python3 - <<'EOF'
+import os
 from xrpl.wallet import Wallet
-from xrpl.transaction import multisign, sign
+from xrpl.transaction import sign
+from xrpl.models.transactions import Transaction
 
-tx_json = {...}  # from step 1 output
-wallet1 = Wallet.from_seed('sSIGNER1_SEED')
-signed1 = sign(tx_from_dict(tx_json), wallet1, multisign=True)
-print(signed1.to_xrpl())  # Share with signer 2
-"
+tx = Transaction.from_xrpl({...})  # autofilled JSON from step 1 (fee ≥ (1+N)×base)
+wallet = Wallet.from_seed(os.environ["XRPL_SEED"])
+signed = sign(tx, wallet, multisign=True)
+print(signed.to_xrpl())  # pass to the coordinator
+EOF
 
-# 3. Combine signatures and submit
-python3 -c "
-from xrpl.transaction import multisign
-combined = multisign(tx_from_dict(tx_json), [signed1, signed2, signed3])
-result = client.request(Submit(tx_blob=combined.to_xrpl()))
-print(result.result)
-"
+# 3. Combine the Signers arrays with xrpl.transaction.multisign, then submit the
+#    fully-signed JSON (this toolkit only accepts already-signed transactions):
+python3 scripts/xrpl_tools.py submit-multisigned '{"TransactionType":"Payment","Signers":[...],...}'
 ```
+
+Quorum math, signing-ceremony rules, and recovery paths: `skills/multisig-safety-flow.md`.
 
 ---
 

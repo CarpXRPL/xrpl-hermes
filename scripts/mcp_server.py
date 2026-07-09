@@ -9,8 +9,8 @@ MCP client (Claude Code, OpenClaw, Cursor, etc.):
 Tools:
     xrpl_list_commands   — list every dispatcher command
     xrpl_run             — run one command (same args as the CLI)
-    xrpl_knowledge_index — list knowledge/reference files with titles
-    xrpl_knowledge       — read one knowledge/reference file
+    xrpl_knowledge_index — list knowledge/reference/workflow files with titles
+    xrpl_knowledge       — read one knowledge/reference/workflow file
 
 Commands run in a subprocess so a tool crash can never take down the
 server. No secrets are read or stored; signing stays with the user.
@@ -22,10 +22,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xrpl-hermes", "version": "1.6.4"}
+SERVER_INFO = {"name": "xrpl-hermes", "version": "1.7.0"}
 RUN_TIMEOUT_SECONDS = 90
 
-_KNOWLEDGE_DIRS = ("knowledge", "references")
+_KNOWLEDGE_DIRS = ("knowledge", "references", "skills")
 
 
 def _command_names():
@@ -112,13 +112,14 @@ TOOLS = [
     },
     {
         "name": "xrpl_knowledge_index",
-        "description": "List the XRPL knowledge base and reference cards with titles. "
-                       "Read the relevant file with xrpl_knowledge before building.",
+        "description": "List the XRPL knowledge base, reference cards, and skills/ workflow "
+                       "flows with titles. Read the relevant file with xrpl_knowledge before building.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {
         "name": "xrpl_knowledge",
-        "description": "Read one knowledge or reference file, e.g. 'knowledge/05-xrpl-amm.md'.",
+        "description": "Read one knowledge, reference, or workflow file, e.g. "
+                       "'knowledge/05-xrpl-amm.md' or 'skills/failed-transaction-diagnosis-flow.md'.",
         "inputSchema": {
             "type": "object",
             "properties": {"file": {"type": "string", "description": "Path from xrpl_knowledge_index"}},

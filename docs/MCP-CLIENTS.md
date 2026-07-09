@@ -8,14 +8,14 @@
 |---|---|
 | `xrpl_list_commands` | Lists all 73 CLI commands by name |
 | `xrpl_run` | Runs one command with CLI-style args (e.g. `command="account"`, `args=["rADDR"]`) |
-| `xrpl_knowledge_index` | Lists the 65 knowledge files and 15 reference cards with titles |
-| `xrpl_knowledge` | Reads one knowledge/reference file (sandboxed to `knowledge/` and `references/`) |
+| `xrpl_knowledge_index` | Lists the 65 knowledge files, 15 reference cards, and `skills/` workflow flows with titles |
+| `xrpl_knowledge` | Reads one knowledge/reference/workflow file (sandboxed to `knowledge/`, `references/`, and `skills/`) |
 
 Design properties worth knowing before you wire it up:
 
 - **Subprocess isolation.** Each `xrpl_run` call executes in a child process with a 90-second timeout, so a crashing or hanging command never takes down the server.
 - **No secrets, ever.** The server has no tool that accepts a seed or key. Builders return signer-ready JSON for external signing.
-- **Knowledge reads are sandboxed.** `xrpl_knowledge` rejects paths outside `knowledge/` and `references/` (covered by tests).
+- **Knowledge reads are sandboxed.** `xrpl_knowledge` rejects paths outside `knowledge/`, `references/`, and `skills/` (covered by tests).
 - **Live-network commands need the repo's Python deps.** `xrpl_list_commands`, `xrpl_knowledge_index`, and `xrpl_knowledge` work even without `xrpl-py` installed; `xrpl_run` needs `pip install -r requirements.txt` done once in the Python that runs the server.
 
 In all examples below, replace `/path/to/xrpl-hermes` with your actual clone path. If you installed the repo's dependencies into a virtualenv, use that venv's Python (e.g. `/path/to/xrpl-hermes/.venv/bin/python3`) as the command.

@@ -20,7 +20,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Advanced ops: `build-signer-list-set` (multisig), `build-ticket-create`, `build-escrow-*`, `build-check-*`, `build-paychannel-*`, `build-batch` (XLS-56, warns until enabled on mainnet), `build-set-oracle` (XLS-47), `build-credential-*` (XLS-70)
 - Submit path for advanced users with externally signed blobs: `submit`, `submit-multisigned`
 - Knowledge: `01`–`04`, `09`–`15`, `52-xrpl-l1-reference.md`, `60-xrpl-account-set.md`, `61-xrpl-websocket-streams.md` · Card: `references/xrpl-l1.md`
-- Workflow playbook: `skills/treasury-monitor-flow.md` · Examples: `example-build-payment.py`, `example-setup-trustline.py`, `example-create-offer.py`, `example-cross-currency.py`, `example-multisig.py`
+- Workflow playbooks: `skills/treasury-monitor-flow.md`, `skills/multisig-safety-flow.md`, `skills/account-access-safety-flow.md`, `skills/failed-transaction-diagnosis-flow.md` · Examples: `example-build-payment.py`, `example-setup-trustline.py`, `example-create-offer.py`, `example-cross-currency.py`, `example-multisig.py`
 
 ## Issued tokens (IOUs)
 
@@ -29,7 +29,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Issuer setup: `build-account-set` (DefaultRipple, domain, transfer rate, tick size), `build-trustset`, `build-payment` (mint/distribute), `build-clawback`
 - Research: `token-intel` (one-shot live report: issuer flags/domain, trustline sample, DEX book, AMM, risk flags), plus `account`, `trustlines`, `book-offers`, `account-tx` for deeper digging
 - Knowledge: `21-xrpl-token-model.md`, `22-xrpl-token-issuance.md`, `07-xrpl-clawback.md`, `38-xrpl-minting-ops.md`, `58-rlusd-operations.md`, `59-rwa-tokenization.md` · Card: `references/rlusd.md`
-- Workflow playbooks: `skills/token-launch-flow.md`, `skills/clawback-flow.md` · Examples: `example-clawback.py`, `example-token-safety-check.py` (read-only pass/fail verdict over `token-intel`, exit-code friendly for scripts and CI)
+- Workflow playbooks: `skills/issuer-first-mint-flow.md` (minimal path), `skills/token-launch-flow.md` (full launch), `skills/clawback-flow.md` · Examples: `example-clawback.py`, `example-token-safety-check.py` (read-only pass/fail verdict over `token-intel`, exit-code friendly for scripts and CI)
 - **Token intelligence reports:** `token-intel CURRENCY rISSUER` implements the research workflow (≥5 live datapoints, confidence score, mandatory missing-data list, source labels) specified in `knowledge/64-token-intelligence-reports.md` with the quick card at `references/token-intelligence.md`.
 
 ## NFTs (XLS-20)
@@ -39,7 +39,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Query: `nft-info`, `nft-offers`
 - Build: `build-nft-mint`, `build-nft-create-offer`, `build-nft-accept-offer`, `build-nft-cancel-offer`, `build-nft-burn`
 - Knowledge: `06-xrpl-nfts.md`, `23-xrpl-nft-minting.md`, `39-xrpl-nft-ops.md`, `62-xrpl-nft-marketplace.md`
-- Examples: `example-mint-nft.py`, `example-nft-buy.py`
+- Workflow playbook: `skills/nft-operations-flow.md` · Examples: `example-mint-nft.py`, `example-nft-buy.py`
 
 ## AMMs
 
@@ -79,6 +79,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - `hooks-info` — live query of installed hooks on a Xahau account
 - `hooks-bitmask Payment OfferCreate …` — calculates the 256-bit Xahau `HookOn` transaction-type bitmap with active-low semantics (except SetHook). It outputs the hex value and the transaction types it will trigger on.
 - Knowledge: `32-xrpl-hooks-dev.md`, `43-xrpl-hooks-advanced.md`, `51-xrpl-xahau-hooks.md` (Hooks v3, URITokens, B2M), `54-xrpl-evernode-hosting.md` · Card: `references/xahau-hooks.md`
+- Workflow playbook: `skills/xahau-hook-setup-flow.md` (what the toolkit can/cannot do, HookOn calculation, manual SetHook template)
 
 ## Flare — price context
 
