@@ -50,11 +50,11 @@ If the deliverable is a single transaction signed by the user's wallet today, us
 | Status | Product archetype | Canonical file | Wedge deliverable |
 |---|---|---|---|
 | live | Umbrella product intake | `skills/build-xrpl-product-flow.md` | one-pager, 5-box architecture, primitive map, MVP/testnet/mainnet checklists |
-| planned | Wallet signing UX | `skills/wallet-signing-ux-product-flow.md` | reusable wallet login + decoded unsigned JSON handoff |
-| planned | Payment app | `skills/payment-app-product-flow.md` | payment request → wallet handoff → ledger receipt |
-| planned | Agentic payments / x402 | `skills/agentic-payments-product-flow.md` | 402 challenge + verified XRPL payment middleware |
-| planned | Token intelligence dashboard/API/bot | `skills/token-intelligence-product-flow.md` | live token report with confidence and missing-data list |
-| planned | Token launch platform | `skills/token-launch-product-flow.md` | non-custodial creator wizard driven by live ledger state |
+| live | Wallet signing UX | `skills/wallet-signing-ux-product-flow.md` | reusable wallet login + decoded unsigned JSON handoff |
+| live | Payment app | `skills/payment-app-product-flow.md` | payment request → wallet handoff → ledger receipt |
+| live | Agentic payments / x402 | `skills/agentic-payments-product-flow.md` | 402 challenge + verified XRPL payment middleware |
+| live | Token intelligence dashboard/API/bot | `skills/token-intelligence-product-flow.md` | live token report with confidence and missing-data list |
+| live | Token launch platform | `skills/token-launch-product-flow.md` | non-custodial creator wizard driven by live ledger state |
 | planned | Treasury/multisig tool | `skills/treasury-tool-product-flow.md` | read-only treasury cockpit + unsigned proposal workflow |
 | planned | NFT/community product | `skills/nft-community-product-flow.md` | mint/offer/holder-verification loop |
 | planned | AMM/DEX product | `skills/amm-dex-product-flow.md` | pool/orderbook explorer + timestamped quote view |

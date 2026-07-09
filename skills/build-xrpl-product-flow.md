@@ -90,11 +90,11 @@ After intake, produce:
 | Product intent sounds like | Playbook | Status | First wedge deliverable |
 |---|---|---|---|
 | "I want to build something on XRPL" | `skills/build-xrpl-product-flow.md` | live | Intake → one-pager → primitive map → MVP/testnet plan |
-| Wallet login, signing handoff, Xaman integration | `skills/wallet-signing-ux-product-flow.md` | planned | Reusable sign-in + decoded unsigned JSON handoff component |
-| Checkout, invoice, tipping, payment links, remittance | `skills/payment-app-product-flow.md` | planned | Non-custodial payment request → wallet handoff → ledger receipt |
-| Paid API, x402, agent-to-agent payments, monetize MCP | `skills/agentic-payments-product-flow.md` | planned | 402 challenge + verified XRPL payment middleware |
-| Token safety dashboard, holder dashboard, rug checker, analytics bot | `skills/token-intelligence-product-flow.md` | planned | Read-only token report API with confidence + missing-data list |
-| Launchpad, creator token wizard, token creator tool | `skills/token-launch-product-flow.md` | planned | Non-custodial issuer wizard driven by live ledger state |
+| Wallet login, signing handoff, Xaman integration | `skills/wallet-signing-ux-product-flow.md` | live | Reusable sign-in + decoded unsigned JSON handoff component |
+| Checkout, invoice, tipping, payment links, remittance | `skills/payment-app-product-flow.md` | live | Non-custodial payment request → wallet handoff → ledger receipt |
+| Paid API, x402, agent-to-agent payments, monetize MCP | `skills/agentic-payments-product-flow.md` | live | 402 challenge + verified XRPL payment middleware |
+| Token safety dashboard, holder dashboard, rug checker, analytics bot | `skills/token-intelligence-product-flow.md` | live | Read-only token report API with confidence + missing-data list |
+| Launchpad, creator token wizard, token creator tool | `skills/token-launch-product-flow.md` | live | Non-custodial issuer wizard driven by live ledger state |
 | DAO/project treasury, signer coordination, proposal flow | `skills/treasury-tool-product-flow.md` | planned | Read-only treasury cockpit + unsigned proposal workflow |
 | NFT mint site, holder-gated community, small marketplace | `skills/nft-community-product-flow.md` | planned | Mint/offer/holder-verification loop with wallet proof |
 | Swap UI, LP dashboard, DEX/AMM analytics | `skills/amm-dex-product-flow.md` | planned | Read-only pool/orderbook explorer + timestamped quote view |

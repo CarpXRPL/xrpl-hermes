@@ -69,10 +69,10 @@ For product altitude, ask at most the missing intake questions: **who uses it, c
 | Product intent sounds like | Start with | First wedge |
 |---|---|---|
 | "build something on XRPL" | `skills/build-xrpl-product-flow.md` | intake → architecture → primitive map |
-| payments app / checkout / tipping | `skills/payment-app-product-flow.md` (planned) | request → wallet handoff → ledger receipt |
-| paid API / x402 / agent payments | `skills/agentic-payments-product-flow.md` (planned) | 402 challenge + verified payment middleware |
-| token safety / holder dashboard | `skills/token-intelligence-product-flow.md` (planned) | live report + confidence/missing-data list |
-| launchpad / token creator platform | `skills/token-launch-product-flow.md` (planned) | non-custodial issuer wizard |
+| payments app / checkout / tipping | `skills/payment-app-product-flow.md` | request → wallet handoff → ledger receipt |
+| paid API / x402 / agent payments | `skills/agentic-payments-product-flow.md` | 402 challenge + verified payment middleware |
+| token safety / holder dashboard | `skills/token-intelligence-product-flow.md` | live report + confidence/missing-data list |
+| launchpad / token creator platform | `skills/token-launch-product-flow.md` | non-custodial issuer wizard |
 | treasury / multisig tool | `skills/treasury-tool-product-flow.md` (planned) | read-only cockpit + unsigned proposals |
 
 ### From MCP clients (Claude Code, Cursor, Codex, any MCP-capable agent)
