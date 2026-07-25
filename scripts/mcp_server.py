@@ -166,7 +166,9 @@ TOOLS = [
         "name": "xrpl_run",
         "description": "Run one agent-safe xrpl-hermes command with CLI-style args. Examples: "
                        "command='account' args=['rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe']; "
-                       "command='build-payment' args=['--from','rSRC','--to','rDST','--amount','1000000']; "
+                       "command='build-payment' args=['--from','rSRC','--to','rDST','--amount','1000000'] "
+                       "— --amount is integer drops, so 1000000 means 1 XRP; an issued "
+                       "currency is 'CUR:ISSUER:VALUE'; "
                        "command='amendment' args=['MPTokensV1']. Builders return signer-ready "
                        "JSON — they never ask for or use secret keys. Secret-touching and broadcast "
                        "commands are denied on this surface (see xrpl_list_commands); run those in the "

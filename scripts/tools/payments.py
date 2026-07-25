@@ -2,6 +2,7 @@
 """Payment tools: XRP/token payments, cross-currency payments, path finding."""
 from ._shared import (
     _request, json_out, note_out, json_tx_out, parse_amount_arg, usage_out,
+    validate_issued_currency_value,
     IssuedCurrencyAmount, _dispatch_build, make_amount,
     Payment, RipplePathFind, build_memos, to_uint32,
 )
@@ -9,10 +10,21 @@ from ._shared import (
 def tool_build_payment(frm: str, to: str, amount: str, cur: str = None,
                        iss: str = None, tag: int = None, memo: str = None,
                        source_tag: int = None, dest_tag: int = None):
-    if cur and cur.upper() != "XRP" and iss:
-        amt = IssuedCurrencyAmount(currency=cur, issuer=iss, value=amount)
-    else:
-        amt = amount
+    try:
+        if cur and cur.upper() != "XRP" and iss:
+            # 3-char codes are case-sensitive on-ledger, so `cur` passes through as typed.
+            amt = IssuedCurrencyAmount(
+                currency=cur, issuer=iss,
+                value=validate_issued_currency_value(amount),
+            )
+        else:
+            amt = parse_amount_arg(amount)
+    except ValueError as exc:
+        usage_out("build-payment",
+                  "build-payment --from rSRC --to rDST --amount DROPS "
+                  "[--cur CUR --iss rISSUER] | --amount CUR:ISSUER:VALUE. "
+                  f"{exc}")
+        return
     # `--dest-tag` is the explicit destination tag; `--tag` stays a back-compat alias for it.
     destination_tag = to_uint32(dest_tag if dest_tag is not None else tag, "destination tag")
     src_tag = to_uint32(source_tag, "source tag")
@@ -26,6 +38,8 @@ def tool_build_payment(frm: str, to: str, amount: str, cur: str = None,
         kwargs["memos"] = memos
     tx = Payment(**kwargs)
     note_out("# Payment TX JSON - signer-ready JSON - paste into Xaman Developer tab")
+    if isinstance(amt, str):
+        note_out(f"# Amount is {amt} drops (XRP amounts are integer drops; 1 XRP = 1000000 drops)")
     json_tx_out(tx)
 
 def tool_build_cross_currency_payment(frm: str, to: str, deliver: str, send_max: str,

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Shared utilities for all xrpl-hermes tool modules."""
-import json, sys, os, hashlib
+import json, sys, os, hashlib, re
 from typing import Optional, Dict, Any, List
 from urllib.parse import quote
 from datetime import datetime, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import time
 
 # --- xrpl-py imports (with helpful error) ---
@@ -28,6 +28,8 @@ try:
     from xrpl.models.transactions.oracle_set import PriceData
     from xrpl.models.currencies import XRP as XRPCurrency, IssuedCurrency
     from xrpl.models.amounts import IssuedCurrencyAmount
+    from xrpl.core.binarycodec.exceptions import XRPLBinaryCodecException
+    from xrpl.core.binarycodec.types.amount import verify_iou_value as _xrpl_verify_iou_value
 except ImportError as e:
     print(f'ERROR: xrpl-py missing ({e}). Run: uv pip install xrpl-py')
     sys.exit(1)
@@ -169,19 +171,59 @@ def _parse_value_slash_asset(arg: str):
 def _is_numeric_text(arg: str) -> bool:
     return bool(arg) and arg.replace(".", "", 1).isdigit()
 
+XRP_DROPS_HINT = (
+    "XRP amounts are integer drops (1 XRP = 1000000 drops): pass 1000000, not 1.0. "
+    "For an issued currency use CUR:ISSUER:VALUE."
+)
+
+_PLAIN_ISSUED_VALUE_RE = re.compile(r"^-?[0-9]+(?:\.[0-9]+)?$")
+
+def validate_issued_currency_value(value: str) -> str:
+    """Return an XRPL-binary-codec-valid issued value without changing its text."""
+    if not isinstance(value, str) or not _PLAIN_ISSUED_VALUE_RE.fullmatch(value):
+        raise ValueError(
+            f"Invalid issued currency value '{value}'. Use plain decimal notation "
+            "within XRPL's issued-currency precision and exponent limits."
+        )
+    try:
+        _xrpl_verify_iou_value(value)
+    except (XRPLBinaryCodecException, InvalidOperation, ValueError) as exc:
+        raise ValueError(
+            f"Invalid issued currency value '{value}': not representable by the XRPL binary codec."
+        ) from exc
+    return value
+
+def _is_drops_text(arg) -> bool:
+    """True for an integer drops amount. XRP has no unit smaller than a drop."""
+    return isinstance(arg, str) and arg.isascii() and arg.isdigit()
+
 def parse_amount_arg(arg: str):
+    if "/" in arg:
+        value, asset = arg.split("/", 1)
+        if not value or asset.count(":") != 1:
+            raise ValueError(f"Invalid issued currency value '{arg}'. Use VALUE/CUR:ISSUER.")
     slash = _parse_value_slash_asset(arg)
     if slash:
         cur, iss, val = slash
-        return IssuedCurrencyAmount(currency=cur.upper(), issuer=iss, value=val)
-    if _is_numeric_text(arg):
+        return IssuedCurrencyAmount(
+            currency=cur, issuer=iss, value=validate_issued_currency_value(val)
+        )
+    if _is_drops_text(arg):
         return arg
     parts = arg.split(":", 2)
     if parts[0].upper() == "XRP":
-        return parts[1] if len(parts) >= 2 else arg
+        if len(parts) != 2:
+            raise ValueError(f"Invalid XRP amount '{arg}'. {XRP_DROPS_HINT}")
+        drops = parts[1]
+        if _is_drops_text(drops):
+            return drops
+        raise ValueError(f"Invalid XRP amount '{arg}'. {XRP_DROPS_HINT}")
     if len(parts) == 3:
-        return IssuedCurrencyAmount(currency=parts[0].upper(), issuer=parts[1], value=parts[2])
-    return arg
+        return IssuedCurrencyAmount(
+            currency=parts[0], issuer=parts[1],
+            value=validate_issued_currency_value(parts[2]),
+        )
+    raise ValueError(f"Invalid amount '{arg}'. {XRP_DROPS_HINT}")
 
 def _parse_asset(arg: str):
     if _is_numeric_text(arg):
@@ -383,9 +425,11 @@ def _dispatch_build(min_pairs: int, fn):
                  'count', 'tick_size', 'transfer_rate', 'set_flag', 'clear_flag'):
             try: v = int(v)
             except: pass
-        elif v.replace('.','',1).lstrip('-').isdigit() and '.' in v:
-            try: v = float(v)
-            except: pass
+        # Everything else stays the operator's exact text. The dispatcher has no
+        # currency context, so it cannot tell drops from an issued decimal value;
+        # float() truncated exact decimals and re-rendered extremes in exponent
+        # notation, which is not a valid XRPL amount. Amount validation belongs
+        # in the builders, which know the currency.
         kwargs[k] = v
     if len(kwargs) < min_pairs:
         print(f"Need at least {min_pairs} arguments for {sys.argv[1]}")
