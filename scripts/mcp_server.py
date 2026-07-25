@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 """xrpl-hermes MCP server — stdio transport, stdlib only.
 
-Exposes the 73-command dispatcher and the full knowledge base to any
-MCP client (Claude Code, OpenClaw, Cursor, etc.):
+Exposes an agent-safe subset of the CLI dispatcher plus the full knowledge base
+to any MCP client (Claude Code, OpenClaw, Cursor, etc.):
 
     claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
 
 Tools:
-    xrpl_list_commands   — list every dispatcher command
-    xrpl_run             — run one command (same args as the CLI)
+    xrpl_list_commands   — list the agent-safe command allowlist
+    xrpl_run             — run one allowlisted command (same args as the CLI)
     xrpl_knowledge_index — list knowledge/reference/workflow files with titles
     xrpl_knowledge       — read one knowledge/reference/workflow file
 
-Commands run in a subprocess so a tool crash can never take down the
-server. No secrets are read or stored; signing stays with the user.
+Agent boundary (positive allowlist, default-deny). The MCP surface exposes
+read-only live queries and unsigned/signer-ready transaction builders only.
+Secret-touching commands (`wallet-generate`, `wallet-from-seed`), broadcast
+commands (`submit`, `submit-multisigned`), and external signing-request creation
+(`xaman-payload`) are denied here and remain in the local developer CLI.
+Any command not on the allowlist — including future additions — is denied until
+a maintainer explicitly adds it, so the boundary is a maintainable invariant
+rather than a one-time patch.
+
+Commands run in a subprocess so a tool crash can never take down the server.
+No secrets are read, accepted, or stored; signing stays with the user.
 """
 import json
 import subprocess
@@ -22,10 +31,68 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xrpl-hermes", "version": "1.8.2"}
+SERVER_INFO = {"name": "xrpl-hermes", "version": "1.8.3"}
 RUN_TIMEOUT_SECONDS = 90
 
 _KNOWLEDGE_DIRS = ("knowledge", "references", "skills")
+
+# Positive, default-deny agent boundary for xrpl_run. Only names in this set are
+# runnable over MCP. Anything else — including any command added to the dispatcher
+# later — is denied until a maintainer explicitly adds it here. This keeps the
+# boundary a maintainable invariant: a new secret-touching command is safe by default.
+_ALLOWED_COMMANDS = frozenset({
+    # Tier R — read-only live queries (no keys, no writes).
+    "account", "balance", "trustlines", "account_objects", "account-tx",
+    "book-offers", "path-find", "ledger", "ledger-entry", "server-info",
+    "tx-info", "decode", "amendments", "amendment", "amendment-status",
+    "amm-info", "token-intel", "nft-info", "nft-offers", "evm-balance",
+    "evm-bridge", "hooks-info", "flare-price", "flare-ftso", "bridge-status",
+    "bridge-tx", "arweave-cost", "validate-address", "subscribe",
+    # Tier B — unsigned builders. Emit signer-ready JSON only; never sign or submit.
+    "build-account-delete", "build-account-set", "build-amm-bid",
+    "build-amm-create", "build-amm-deposit", "build-amm-vote",
+    "build-amm-withdraw", "build-check-cancel",
+    "build-check-cash", "build-check-create", "build-clawback",
+    "build-credential-accept", "build-credential-create",
+    "build-credential-delete", "build-cross-currency-payment",
+    "build-deposit-preauth", "build-escrow-cancel", "build-escrow-create",
+    "build-escrow-finish", "build-mpt-authorize", "build-mpt-issuance-create",
+    "build-nft-accept-offer", "build-nft-burn", "build-nft-cancel-offer",
+    "build-nft-create-offer", "build-nft-mint", "build-offer",
+    "build-paychannel-claim", "build-paychannel-create", "build-paychannel-fund",
+    "build-payment", "build-set-oracle", "build-set-regular-key",
+    "build-signer-list-set", "build-ticket-create", "build-trustset",
+    "evm-contract", "hooks-bitmask",
+    # NOTE: `build-batch` (XLS-56) is intentionally absent — the Batch builder was retired
+    # (obsolete amendment after the February 2026 security disclosure; see
+    # scripts/tools/batch.py and CHANGELOG.md). It is also unregistered in the dispatcher,
+    # so a request for it is default-denied as an unknown command.
+})
+
+# Denied on the agent surface, with the reason to relay to the client. These stay
+# available in the local developer CLI (developer-owned, explicit, shell-audited).
+_DENIED_COMMANDS = {
+    "wallet-generate": "generates a wallet and emits a secret seed",
+    "wallet-from-seed": "takes a secret seed as input",
+    "submit": "broadcasts an already-signed transaction blob to a live network",
+    "submit-multisigned": "broadcasts an already-signed multisigned transaction to a live network",
+    "xaman-payload": "creates a real external wallet signing request",
+}
+
+
+def _deny_reason(command: str, known: bool) -> str:
+    """Human-readable denial for a non-allowlisted command, redirecting to the CLI."""
+    reason = _DENIED_COMMANDS.get(command)
+    if reason:
+        return (f"'{command}' is not available over MCP: it {reason}. XRPL-Hermes keeps "
+                "key material and broadcasting out of the agent boundary. Run it yourself in "
+                f"the local developer CLI: python3 -m scripts.xrpl_tools {command} …")
+    if not known:
+        return (f"unknown command '{command}'. Use xrpl_list_commands to see the "
+                "agent-safe surface.")
+    return (f"'{command}' is not on the MCP agent allowlist (default-deny). This surface "
+            "exposes read-only live queries and unsigned transaction builders only. "
+            "Use xrpl_list_commands, or run it in the local developer CLI.")
 
 
 def _command_names():
@@ -71,8 +138,9 @@ def _run_command(command: str, args) -> str:
     names, err = _command_names()
     if err:
         raise ValueError(err)
-    if command not in names:
-        raise ValueError(f"unknown command '{command}'. Use xrpl_list_commands.")
+    # Default-deny gate — enforced before any subprocess launch.
+    if command not in _ALLOWED_COMMANDS:
+        raise ValueError(_deny_reason(command, known=command in names))
     if not isinstance(args, list) or not all(isinstance(a, str) for a in args):
         raise ValueError("args must be a list of strings")
     proc = subprocess.run(
@@ -88,17 +156,21 @@ def _run_command(command: str, args) -> str:
 TOOLS = [
     {
         "name": "xrpl_list_commands",
-        "description": "List all xrpl-hermes commands (live XRPL queries, signer-ready "
-                       "transaction builders, amendment checks, EVM/Xahau/Flare helpers).",
+        "description": "List the agent-safe xrpl-hermes commands exposed over MCP: live XRPL "
+                       "queries, signer-ready (unsigned) transaction builders, amendment checks, "
+                       "and EVM/Xahau/Flare helpers. Key-management, broadcast, and Xaman signing "
+                       "request creation are not exposed here — they live in the local developer CLI.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {
         "name": "xrpl_run",
-        "description": "Run one xrpl-hermes command with CLI-style args. Examples: "
+        "description": "Run one agent-safe xrpl-hermes command with CLI-style args. Examples: "
                        "command='account' args=['rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe']; "
                        "command='build-payment' args=['--from','rSRC','--to','rDST','--amount','1000000']; "
                        "command='amendment' args=['MPTokensV1']. Builders return signer-ready "
-                       "JSON — they never ask for or use secret keys.",
+                       "JSON — they never ask for or use secret keys. Secret-touching and broadcast "
+                       "commands are denied on this surface (see xrpl_list_commands); run those in the "
+                       "local developer CLI.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -135,7 +207,9 @@ def _call_tool(name: str, arguments: dict) -> str:
         names, err = _command_names()
         if err:
             raise ValueError(err)
-        return json.dumps({"count": len(names), "commands": names}, indent=2)
+        # Reflect the agent boundary: only allowlisted commands are runnable here.
+        allowed = sorted(n for n in names if n in _ALLOWED_COMMANDS)
+        return json.dumps({"count": len(allowed), "commands": allowed}, indent=2)
     if name == "xrpl_run":
         return _run_command(arguments.get("command", ""), arguments.get("args", []))
     if name == "xrpl_knowledge_index":

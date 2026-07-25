@@ -1,6 +1,8 @@
 # ☤ xrpl-hermes
 
-Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 73 CLI commands — plus an MCP server that exposes all of it to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 72 CLI commands — plus an MCP server that exposes the agent-safe subset of them, and the whole knowledge base, to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+
+**Custody boundary:** all 72 commands run locally. Over MCP, an agent gets 67 of them — read-only queries and unsigned builders. The five that touch key material, broadcast, or create an external signing request (`wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, `xaman-payload`) are refused over MCP and stay in your local CLI. See [MCP agent boundary](#mcp-agent-boundary).
 
 **Staying current:** xrpl-hermes ships with markdown knowledge, but agents are instructed to verify live ledger state and current official docs before making claims (`knowledge/65-agent-freshness-and-source-policy.md`). Stale-able facts in the knowledge base are date-stamped where they appear.
 
@@ -83,7 +85,7 @@ not a shipped feature.
 | Bots & monitors | Treasury/AMM monitor playbooks, Telegram/Discord examples, WebSocket `subscribe` | CLI + pattern |
 | Wallets & auth | Xaman/Joey/Privy/MetaMask login + signer handoff (`xaman-payload`, `knowledge/53`) | live tool + ref |
 | MPT operations | MPT issuance/authorization payloads with live amendment checks (`build-mpt-*`) | CLI |
-| Treasury & escrow | Multisig, tickets, checks, escrow, payment channels, batch (`build-*`, `submit-multisigned`) | CLI |
+| Treasury & escrow | Multisig, tickets, checks, escrow, payment channels (`build-*`, `submit-multisigned`) | CLI |
 | EVM Sidechain | Balance, contract-deploy JSON, bridge status (`evm-balance`, `evm-contract`, `evm-bridge`) | live tool + ref |
 | Xahau Hooks | HookOn bitmask calculator + hooks lookup (`hooks-bitmask`, `hooks-info`) | CLI + live tool |
 | Flare price context | On-chain FTSOv2 oracle reads + a public price fallback (`flare-ftso`, `flare-price`) | live tool |
@@ -123,7 +125,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
 | [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
 | [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md) | Freshness cadence and the exact verification commands that keep the repo current |
-| [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 73-command list: `SKILL.md` tool table) |
+| [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 72-command list: `SKILL.md` tool table) |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
 | [`docs/BUILD-BENCHMARK.md`](docs/BUILD-BENCHMARK.md) | Build-proof benchmark — L1→L3 + adversarial safety tasks proving an agent builds on XRPL safely (complements the tool matrix) |
@@ -131,11 +133,11 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 
 ## Command coverage
 
-73 commands are split across focused Python modules in `scripts/tools/`.
+72 commands are split across focused Python modules in `scripts/tools/`. All 72 run locally; 67 of them are also reachable over MCP (see [MCP agent boundary](#mcp-agent-boundary)).
 
 | Ecosystem | Count | Commands |
 |---|---:|---|
-| XRPL L1 core and ops | 42 | `account`, `balance`, `account_objects`, `account-tx`, `trustlines`, `build-payment`, `build-trustset`, `build-offer`, `book-offers`, `path-find`, `ledger`, `ledger-entry`, `server-info`, `tx-info`, `decode`, `submit`, `submit-multisigned`, `build-account-set`, `build-account-delete`, `build-set-regular-key`, `build-deposit-preauth`, `build-signer-list-set`, `build-ticket-create`, `build-escrow-create`, `build-escrow-finish`, `build-escrow-cancel`, `build-check-create`, `build-check-cash`, `build-check-cancel`, `build-paychannel-create`, `build-paychannel-fund`, `build-paychannel-claim`, `build-clawback`, `build-cross-currency-payment`, `build-batch`, `build-set-oracle`, `build-credential-create`, `build-credential-accept`, `build-credential-delete`, `build-mpt-issuance-create`, `build-mpt-authorize`, `subscribe` |
+| XRPL L1 core and ops | 41 | `account`, `balance`, `account_objects`, `account-tx`, `trustlines`, `build-payment`, `build-trustset`, `build-offer`, `book-offers`, `path-find`, `ledger`, `ledger-entry`, `server-info`, `tx-info`, `decode`, `submit`, `submit-multisigned`, `build-account-set`, `build-account-delete`, `build-set-regular-key`, `build-deposit-preauth`, `build-signer-list-set`, `build-ticket-create`, `build-escrow-create`, `build-escrow-finish`, `build-escrow-cancel`, `build-check-create`, `build-check-cash`, `build-check-cancel`, `build-paychannel-create`, `build-paychannel-fund`, `build-paychannel-claim`, `build-clawback`, `build-cross-currency-payment`, `build-set-oracle`, `build-credential-create`, `build-credential-accept`, `build-credential-delete`, `build-mpt-issuance-create`, `build-mpt-authorize`, `subscribe` |
 | Amendment status | 3 | `amendments`, `amendment`, `amendment-status` |
 | NFT marketplace | 7 | `nft-info`, `nft-offers`, `build-nft-mint`, `build-nft-create-offer`, `build-nft-accept-offer`, `build-nft-cancel-offer`, `build-nft-burn` |
 | AMM liquidity | 6 | `amm-info`, `build-amm-create`, `build-amm-deposit`, `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid` |
@@ -181,7 +183,7 @@ activate xrpl-hermes
 
 ## MCP server (Claude Code, OpenClaw, Cursor, any MCP client)
 
-`scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (any of the 73 commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
+`scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (the 67 agent-safe commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
 
 ```bash
 # Claude Code
@@ -201,12 +203,40 @@ Generic MCP client config:
 }
 ```
 
-Commands run in a subprocess with a 90s timeout; knowledge reads are sandboxed to `knowledge/` and `references/`. The server never asks for or stores secret keys.
+Commands run in a subprocess with a 90s timeout; knowledge reads are sandboxed to `knowledge/`, `references/`, and `skills/`. The server never asks for or stores secret keys.
+
+## MCP agent boundary
+
+`xrpl_run` is a **positive allowlist with default-deny**. The 72 local CLI commands partition
+exactly into 67 that an agent may run and 5 that it may not:
+
+| Surface | Count | What it covers |
+|---|---:|---|
+| **Local CLI** — `python3 -m scripts.xrpl_tools` | **72** | Every registered command |
+| **MCP-safe** — `xrpl_run` / `xrpl_list_commands` | **67** | Read-only live queries and unsigned, signer-ready builders |
+| **Denied over MCP** — local CLI only | **5** | `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, `xaman-payload` |
+
+Those five are the custody and broadcast surface: two touch secret key material
+(`wallet-generate` emits a seed, `wallet-from-seed` consumes one), two broadcast to a live
+network, and one creates a real external wallet signing request. They still work exactly as
+before when *you* run them locally — they are simply not something an agent can reach.
+
+- A denied command is refused **before any subprocess is spawned**, so it never executes and no
+  MCP response can carry a seed. The refusal names the local CLI invocation to use instead.
+- `xrpl_list_commands` lists only the agent-safe set, so a client cannot discover a denied
+  command and try it.
+- The allowlist is positive: any command not on it — **including commands added in future
+  releases** — is denied until a maintainer classifies it. New key-touching commands are safe by
+  default rather than exposed by accident.
+
+`tests/test_mcp_server.py` enforces this as an invariant: the allowlist and deny-list must be
+disjoint and must exactly cover the dispatcher, so a new command cannot ship unclassified.
 
 ## Safety model
 
 - No hardcoded wallet seeds or private keys.
 - Transaction builders output JSON for external signing.
+- Key-management, broadcast, and Xaman signing-request commands are local-CLI-only and denied over MCP.
 - `submit` exists for advanced users with signed blobs only.
 - Amendment-dependent builders check live XRPL mainnet status or emit build-only warnings.
 - Flare price output is labeled by source: `flare-price` is a public price fallback, while `flare-ftso` performs live read-only FTSOv2 `eth_call` lookups.

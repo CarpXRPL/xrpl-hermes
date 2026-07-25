@@ -25,12 +25,12 @@ xrpl-hermes/
 ├── tests/                   # pytest: CLI regressions, tool outputs, MCP end-to-end
 ├── deploy/                  # rippled/Clio docker-compose for a private node
 ├── SKILL.md                 # Hermes Agent master prompt (agent behavior rules live here)
-└── STANDALONE.md            # in-depth CLI usage for humans (full 73-command list: SKILL.md)
+└── STANDALONE.md            # in-depth CLI usage for humans (full 72-command list: SKILL.md)
 ```
 
 ### Dispatcher pattern
 
-`scripts/xrpl_tools.py` imports every module in `scripts/tools/` and merges their `COMMANDS` dicts (`command-name -> zero-arg callable that reads sys.argv`). It contains no tool logic itself. The MCP server, the CLI, the dev-test matrix, and the tests all consume this single registry, so a command added to one module is automatically available everywhere.
+`scripts/xrpl_tools.py` imports every module in `scripts/tools/` and merges their `COMMANDS` dicts (`command-name -> zero-arg callable that reads sys.argv`). It contains no tool logic itself. The CLI, dev-test matrix, and tests consume this registry directly. The MCP server applies a second, positive allowlist: a newly registered command is local-CLI-only by default until a maintainer explicitly classifies it as agent-safe.
 
 ### Dual-stack boundary (Python engine, language-neutral output)
 
@@ -46,9 +46,9 @@ The CLI and MCP server are **Python (`xrpl-py`) by design** — that is the engi
 ### Safety invariants (do not break these)
 
 1. `build-*` commands emit **unsigned, signer-ready JSON only**. No builder may accept, derive, or require a seed.
-2. Amendment-gated builders (`MPT`, `Credential`, `Oracle`, `Batch`) check live mainnet status and print an explicit note; new builders for not-yet-enabled features must do the same.
+2. Amendment-gated builders (`MPT`, `Credential`, `Oracle`) check live mainnet status and print an explicit note; new builders for not-yet-enabled features must do the same. XLS-56 `Batch` is retired and must remain unregistered.
 3. No fabricated data: a failed lookup reports the failing endpoint, never a plausible guess.
-4. `wallet-generate` / `wallet-from-seed` are local-only utilities and must never transmit anything.
+4. `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, and `xaman-payload` remain local-CLI-only and are denied over MCP before any subprocess spawn.
 
 ## Adding a command (checklist)
 

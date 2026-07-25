@@ -125,11 +125,11 @@ python3 examples/example-build-payment.py
 claude mcp add xrpl-hermes -- python3 "$(pwd)/scripts/mcp_server.py"
 ```
 
-Your agent gets `xrpl_run` (all 73 commands), `xrpl_list_commands`, and the full knowledge base via `xrpl_knowledge`.
+Your agent gets `xrpl_run` (the 67 agent-safe commands), `xrpl_list_commands`, and the full knowledge base via `xrpl_knowledge`. Five key-management, broadcast, or signing-request commands remain local-CLI-only; see `SECURITY.md`.
 
 ## Next Steps
 
-- **All tools**: the complete 73-command list is the tool table in `SKILL.md`; `STANDALONE.md` has in-depth usage for the common commands
+- **All tools**: the complete 72-command local CLI list is the tool table in `SKILL.md`; `STANDALONE.md` has in-depth usage for the common commands
 - **Deploy your own node**: see `deploy/README.md`
 - **Bot examples**: `examples/example-telegram-bot.py`, `examples/example-discord-bot.py`
 - **Private node**: set `XRPL_PRIVATE_RPC=http://localhost:5005` to use your own Clio/rippled

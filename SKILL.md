@@ -1,8 +1,8 @@
 ---
 name: xrpl-hermes
 description: >
-  ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (65 files, 33K+ lines) + 73 working tools + MCP server covering L1, EVM Sidechain, Xahau Hooks (incl. HookOn calculator), Flare FTSOv2 on-chain reads, Axelar bridge status, Arweave cost estimates, Evernode, RLUSD, RWA tokenization, signer-separated agentic payments (XRP + RLUSD) and x402/HTTP-402, token intelligence, and live amendment checks. Dual-stack: Python (xrpl-py) + TypeScript/JavaScript (xrpl.js). The open-source XRPL agent stack — self-hosted, keys stay yours.
-version: 1.8.2
+  ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (65 files, 33K+ lines) + 72 working tools (67 agent-safe over MCP; key-management and broadcast stay in the local CLI) + MCP server covering L1, EVM Sidechain, Xahau Hooks (incl. HookOn calculator), Flare FTSOv2 on-chain reads, Axelar bridge status, Arweave cost estimates, Evernode, RLUSD, RWA tokenization, signer-separated agentic payments (XRP + RLUSD) and x402/HTTP-402, token intelligence, and live amendment checks. Dual-stack: Python (xrpl-py) + TypeScript/JavaScript (xrpl.js). The open-source XRPL agent stack — self-hosted, keys stay yours.
+version: 1.8.3
 author: CarpXRPL
 activation:
   - user says "/xrpl-hermes"
@@ -79,7 +79,7 @@ For product altitude, ask at most the missing intake questions: **who uses it, c
 
 - **Start with `xrpl_knowledge_index`** when unsure which file maps to the user's intent — it lists `knowledge/`, `references/`, and `skills/` files with titles.
 - **`xrpl_knowledge`** reads the selected knowledge / reference / workflow file.
-- **`xrpl_run`** executes read-only live checks and signer-ready builders (same names and args as the tool table below; `xrpl_list_commands` enumerates them). It never signs: `submit` / `submit-multisigned` accept **already-signed** blobs/JSON only — never create, request, or handle key material to produce one.
+- **`xrpl_run`** executes read-only live checks and signer-ready builders (same names and args as the tool table below; `xrpl_list_commands` enumerates the 67 it will accept). It never signs, and it is a default-deny allowlist: `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, and `xaman-payload` are **refused over MCP** and remain local-CLI-only. Never create, request, or handle key material; when a user needs one of the five, give them the local CLI invocation instead.
 
 ### Intent routing table
 
@@ -173,9 +173,11 @@ Full access to `./knowledge/` and `./references/`. Always read the most relevant
 → skill_manage(action='create') for reusable patterns
 ```
 
-## Loaded Tools (73 Working + Hermes Built-ins)
+## Loaded Tools (72 Working + Hermes Built-ins)
 
-The `scripts/xrpl_tools.py` dispatcher provides 73 XRPL-native commands through `terminal()` or `python3 -m scripts.xrpl_tools`.
+The `scripts/xrpl_tools.py` dispatcher provides 72 XRPL-native commands through `terminal()` or `python3 -m scripts.xrpl_tools`. Entry 36 (the XLS-56 Batch builder) is **retired** and unregistered — the table row is kept, marked retired, so the numbering stays stable.
+
+**Agent boundary:** 67 of these are exposed over MCP (`xrpl_run`). Five stay local-CLI-only and are refused over MCP: `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, `xaman-payload`. The MCP surface is a positive allowlist with default-deny, so anything not classified — including future commands — is refused until a maintainer adds it. See the **MCP agent boundary** section below.
 
 | # | Tool | Command | Purpose |
 |---|------|---------|---------|
@@ -214,7 +216,7 @@ The `scripts/xrpl_tools.py` dispatcher provides 73 XRPL-native commands through 
 | 33 | Build PayChannel Claim | `build-paychannel-claim --from rADDR --channel-id HEX` | Claim channel payment |
 | 34 | Build Clawback | `build-clawback --from rISS --destination rHOLDER --currency CUR --amount VAL` | Issuer clawback JSON |
 | 35 | Build Cross-Currency Payment | `build-cross-currency-payment --from rSRC --to rDST --deliver CUR:rISS:VAL --send-max XRP:DROPS [--source-tag N] [--dest-tag N] [--memo TEXT]` | Path payment JSON; `--source-tag`/`--memo` for agent attribution |
-| 36 | Build Batch | `build-batch --from rADDR --inner-txs '[{...}]'` | Batch TX JSON |
+| 36 | Batch (XLS-56) — **retired** | _unregistered; not a runnable builder_ | Batch amendment is obsolete after the Feb 2026 security disclosure; do not use. `BatchV1_1` is not available. Implementation preserved unregistered in `scripts/tools/batch.py` |
 | 37 | Build Oracle Set | `build-set-oracle --from rADDR --oracle-doc-id N --provider HEX --asset-class HEX --last-update-time EPOCH` | Oracle data JSON |
 | 38 | Build Credential Create | `build-credential-create --from rISS --subject rHOLDER --credential-type HEX` | Credential issue |
 | 39 | Build Credential Accept | `build-credential-accept --from rHOLDER --issuer rISS --credential-type HEX` | Credential accept |
@@ -254,6 +256,28 @@ The `scripts/xrpl_tools.py` dispatcher provides 73 XRPL-native commands through 
 | 73 | Arweave Cost | `arweave-cost SIZE` | Permanent-storage cost estimate (e.g. `arweave-cost 1MB`); never uploads |
 
 **Preference:** Use CLI tools for transactions. Build it → output JSON + Xaman URL → explain risks and next steps. For amendment-dependent builders, check `amendment NAME` first or rely on the tool's live warning.
+
+### MCP agent boundary (72 local · 67 agent-safe · 5 local-only)
+
+`xrpl_run` is a **positive allowlist with default-deny**. The 72 dispatcher commands partition
+exactly into 67 agent-safe commands and 5 that are refused over MCP:
+
+| Surface | Count | What it covers |
+|---|---:|---|
+| Local CLI (`python3 -m scripts.xrpl_tools`) | 72 | Everything the dispatcher registers |
+| MCP-safe (`xrpl_run`, `xrpl_list_commands`) | 67 | Read-only live queries + unsigned/signer-ready builders |
+| Denied over MCP — local CLI only | 5 | `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, `xaman-payload` |
+
+Why those five: two touch secret key material (`wallet-generate` emits a seed, `wallet-from-seed`
+takes one), two broadcast to a live network (`submit`, `submit-multisigned`), and one creates a real
+external wallet signing request (`xaman-payload`). They stay in the local developer CLI, where the
+operator runs them explicitly.
+
+A denial is enforced **before any subprocess is spawned**, so a denied command never executes and its
+response can never carry a seed. Anything not on the allowlist — including commands added to the
+dispatcher in future releases — is denied until a maintainer classifies it. When a user asks for one
+of the five from an MCP client, explain the boundary and hand them the local CLI invocation; do not
+try to reconstruct the behavior out of allowlisted commands.
 
 ## Agentic Payments (XRP + RLUSD + x402) — first-class
 

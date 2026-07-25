@@ -1,7 +1,29 @@
 #!/usr/bin/env python3
-"""Batch transaction tool (XLS-56)."""
+"""Batch transaction tool (XLS-56) — RETIRED 2026-07-11.
+
+The XLS-56 `Batch` builder is intentionally NOT registered as a command. Official XRPL
+material lists the `Batch` amendment as **obsolete** following the February 2026
+signature-validation (unauthorized-inner-transaction) disclosure: the amendment was
+disabled, and its proposed replacement `BatchV1_1` has no released implementation, no
+finalized specification, and no live mainnet activation. A live `feature` response may
+still report `supported: true` for the historical amendment ID — that raw flag does NOT
+override the official obsolete/security lifecycle status.
+
+The implementation below (`tool_build_batch`) is preserved unchanged as a historical /
+internal artifact so the retirement stays auditable and reversible, but it is unreachable:
+`COMMANDS` is empty, so `build-batch` is absent from CLI dispatch, from the MCP allowlist
+and its listing, and from the dev-test matrix. Do NOT re-register it, and do NOT substitute
+`BatchV1_1`, until a released implementation, an official specification, and independently
+verified live amendment status all exist.
+
+Sources (verified live 2026-07-11):
+- https://xrpl.org/blog/2026/vulnerabilitydisclosurereport-bug-feb2026
+- https://xrpl.org/resources/known-amendments
+
+See also `SECURITY.md` (agent boundary) and the v1.8.3 entry in `CHANGELOG.md`.
+"""
 from ._shared import (
-    json_out, note_out, json_tx_out, _dispatch_build, warn_if_amendment_not_enabled,
+    json_out, note_out, json_tx_out, warn_if_amendment_not_enabled,
     Payment, TrustSet, OfferCreate, NFTokenMint, NFTokenCreateOffer,
     AMMCreate, AMMDeposit, AMMWithdraw, AMMVote, AMMBid,
     Clawback, AccountSet, SignerListSet,
@@ -109,6 +131,10 @@ def tool_build_batch(frm: str, inner_txs: str = None, flags: str = None, txns: s
     note_out("# Batch TX JSON - each inner tx must be signed separately")
     json_tx_out(tx)
 
-COMMANDS = {
-    "build-batch": lambda: _dispatch_build(2, tool_build_batch),
-}
+# RETIRED: no reachable command. `build-batch` is intentionally left unregistered (see the
+# module docstring). Keeping COMMANDS empty removes it from the CLI dispatcher, the MCP
+# allowlist listing, and the dev-test matrix, while `tool_build_batch` above is preserved as a
+# historical artifact. A request for `build-batch` is therefore default-denied as an unknown
+# command on every surface. Re-enabling requires a released BatchV1_1 implementation, an official
+# spec, and independently verified live amendment status — not a raw `supported: true` flag.
+COMMANDS: dict = {}

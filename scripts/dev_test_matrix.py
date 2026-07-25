@@ -4,6 +4,11 @@
 This script intentionally avoids submitting real transactions or printing wallet
 seeds. It validates live read commands, transaction builders, registry wiring,
 and safety behavior for dangerous commands.
+
+Retired commands (see RETIRED below) are never executed: they are unregistered in
+the dispatcher, so the matrix loop cannot reach them. Commands in SKIPPED_SAFETY stay
+registered but are also never executed because there is no safe invocation. Both classes
+are reported explicitly so safety is auditable instead of hidden behind output redaction.
 """
 from __future__ import annotations
 import json
@@ -42,10 +47,6 @@ TESTS = {
     "build-amm-deposit": ["build-amm-deposit", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount", "1000000"],
     "build-amm-vote": ["build-amm-vote", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--trading-fee", "500"],
     "build-amm-withdraw": ["build-amm-withdraw", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount1", "XRP:500000"],
-    "build-batch": ["build-batch", "--from", R, "--inner-txs", json.dumps([
-        {"TransactionType":"Payment","Account":R,"Destination":GENESIS,"Amount":"1"},
-        {"TransactionType":"Payment","Account":R,"Destination":GENESIS,"Amount":"1"},
-    ])],
     "build-check-cancel": ["build-check-cancel", "--from", R, "--check-id", ZERO_HASH],
     "build-check-cash": ["build-check-cash", "--from", R, "--check-id", ZERO_HASH, "--amount", "1"],
     "build-check-create": ["build-check-create", "--from", R, "--to", GENESIS, "--amount", "1"],
@@ -96,8 +97,27 @@ TESTS = {
     "tx-info": ["tx-info", ZERO_HASH],
     "validate-address": ["validate-address", R],
     "wallet-from-seed": ["wallet-from-seed"],
-    "wallet-generate": ["wallet-generate"],
-    "xaman-payload": ["xaman-payload", '{"TransactionType":"Payment","Account":"%s","Destination":"%s","Amount":"1"}' % (R, GENESIS)],
+}
+
+# Registered commands for which even a no-argument invocation performs the sensitive action.
+# Never execute these in an automated matrix. In particular, redacting a generated seed after
+# the fact is not a safety control — the seed must not be created at all.
+SKIPPED_SAFETY = {
+    "wallet-generate": "Not executed: invoking this command creates and prints a live wallet seed. "
+                       "MCP denial is covered by tests/test_mcp_server.py.",
+    "xaman-payload": "Not executed: when Xaman credentials are configured, invoking this command "
+                     "creates a real external wallet signing request. MCP denial is covered by "
+                     "tests/test_mcp_server.py.",
+}
+
+# Commands deliberately withdrawn from the toolkit. They are unregistered in the dispatcher, so
+# the matrix loop below never reaches them; this mapping keeps the retirement visible in the
+# generated report instead of letting a command silently vanish between releases.
+RETIRED = {
+    "build-batch": "XLS-56 Batch builder retired 2026-07-11 — the Batch amendment is officially "
+                   "obsolete after the February 2026 signature-validation disclosure, and "
+                   "BatchV1_1 has no released implementation or finalized spec. Implementation "
+                   "preserved unregistered in scripts/tools/batch.py for audit history.",
 }
 
 
@@ -117,8 +137,20 @@ def run(cmd):
 # Import command registry after writing TESTS so we catch drift.
 import scripts.xrpl_tools as registry
 commands = sorted(registry.COMMANDS)
+# A retired command must stay unregistered — if one reappears, fail loudly rather than
+# quietly executing a withdrawn builder.
+still_registered = sorted(set(RETIRED) & set(commands))
+if still_registered:
+    raise SystemExit(f"retired command(s) re-registered in the dispatcher: {still_registered}")
+missing_safety_skip = sorted(set(SKIPPED_SAFETY) - set(commands))
+if missing_safety_skip:
+    raise SystemExit(f"safety-skipped command(s) are no longer registered: {missing_safety_skip}")
 rows = []
 for name in commands:
+    if name in SKIPPED_SAFETY:
+        rows.append({"command": name, "argv": "(not executed)", "exit": "-", "seconds": 0,
+                     "status": "SKIPPED-SAFETY", "sample": SKIPPED_SAFETY[name]})
+        continue
     cmd = TESTS.get(name, [name])
     code, seconds, sample = run(cmd)
     dangerous_ok = name in {"submit", "submit-multisigned", "wallet-from-seed"} and (code in (0, 1) or "Usage" in sample or "Need" in sample or "Error" in sample)
@@ -128,7 +160,8 @@ for name in commands:
     rows.append({"command": name, "argv": " ".join(shlex.quote(x) for x in cmd), "exit": code, "seconds": seconds, "status": "PASS" if ok else "FAIL", "sample": sample})
 
 passed = sum(1 for r in rows if r["status"] == "PASS")
-failed = len(rows) - passed
+skipped_safety = sum(1 for r in rows if r["status"] == "SKIPPED-SAFETY")
+failed = sum(1 for r in rows if r["status"] == "FAIL")
 md = [
     "# XRPL-Hermes dev-test matrix",
     "",
@@ -136,8 +169,9 @@ md = [
     f"Commands registered: {len(commands)}",
     f"Passed: {passed}",
     f"Failed: {failed}",
+    f"Skipped for safety: {skipped_safety}",
     "",
-    "Dangerous commands are tested for safe failure/usage behavior only. `subscribe` is treated as pass when it starts and times out because it is a long-running stream.",
+    "Commands that would create a secret or an external signing request are never executed and are marked SKIPPED-SAFETY. Other dangerous commands are tested only for safe failure/usage behavior. `subscribe` is treated as pass when it starts and times out because it is a long-running stream.",
     "",
     "| Command | Status | Exit | Seconds | Test argv | Output sample |",
     "|---|---|---:|---:|---|---|",
@@ -146,8 +180,25 @@ for r in rows:
     sample = r["sample"].replace("|", "\\|")
     md.append(f"| `{r['command']}` | {r['status']} | `{r['exit']}` | {r['seconds']} | `{r['argv']}` | {sample} |")
 
+if RETIRED:
+    md += [
+        "",
+        "## Retired commands (not executed)",
+        "",
+        "Unregistered in the dispatcher and denied on every surface. Listed here so the retirement "
+        "stays visible in the audit record rather than looking like a dropped command.",
+        "",
+        "| Command | Status | Reason |",
+        "|---|---|---|",
+    ]
+    for name, reason in sorted(RETIRED.items()):
+        why = reason.replace("|", "\\|")
+        md.append(f"| `{name}` | RETIRED | {why} |")
+
 Path(ROOT / "AUDIT-tool-matrix.md").write_text("\n".join(md) + "\n")
-print(json.dumps({"commands": len(commands), "passed": passed, "failed": failed, "report": "AUDIT-tool-matrix.md"}, indent=2))
+print(json.dumps({"commands": len(commands), "passed": passed, "failed": failed,
+                  "skipped_safety": sorted(SKIPPED_SAFETY), "retired": sorted(RETIRED),
+                  "report": "AUDIT-tool-matrix.md"}, indent=2))
 if failed:
     print("FAILED COMMANDS:")
     for r in rows:

@@ -22,6 +22,10 @@ for mod in (accounts, payments, trustlines, dex, amm, nfts, escrow,
             flare, xaman, amendments, token_intel, arweave, axelar):
     COMMANDS.update(getattr(mod, 'COMMANDS', {}))
 
+# NOTE: scripts.tools.batch is imported but intentionally contributes no command — the XLS-56
+# `build-batch` builder is retired (obsolete amendment; see scripts/tools/batch.py). Its module
+# is kept so the preserved implementation stays importable; its COMMANDS dict is empty by design.
+
 # path-find is dispatched via _shared._dispatch_path_find
 def _path_find_wrapper():
     from scripts.tools._shared import _dispatch_path_find

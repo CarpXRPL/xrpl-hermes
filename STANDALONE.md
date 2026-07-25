@@ -1,9 +1,10 @@
 # XRPL-Hermes — Complete CLI Reference
 
 This guide documents the most common commands in depth. The **complete, authoritative list of all
-73 commands** is the tool table in `SKILL.md` (and `python3 scripts/xrpl_tools.py --help`). Every
-command runs via `python3 scripts/xrpl_tools.py <command> [args]`, or from any MCP client through
-`scripts/mcp_server.py` (`xrpl_run` takes the same command names and args).
+72 local CLI commands** is the tool table in `SKILL.md` (and `python3 scripts/xrpl_tools.py --help`).
+Every command runs via `python3 scripts/xrpl_tools.py <command> [args]`. The MCP server exposes the
+67 agent-safe commands through `xrpl_run`; five key-management, broadcast, or signing-request
+commands remain local-CLI-only. See `SECURITY.md`.
 
 ---
 

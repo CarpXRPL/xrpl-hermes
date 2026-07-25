@@ -1,5 +1,73 @@
 # Changelog
 
+## v1.8.3 — MCP agent boundary (default-deny) + XLS-56 Batch retirement — Security Hotfix (2026-07-24)
+
+A narrowly scoped security hotfix. Through v1.8.2 the MCP server ran **any** dispatcher command,
+so an MCP client could reach `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`,
+and `xaman-payload` — key material, live broadcast, and external signing-request creation were
+inside the agent boundary. They now are not. Separately, the XLS-56 `Batch` builder is retired.
+
+No transaction-builder behavior changed, and the local CLI is unchanged apart from the retired
+Batch command. **Dispatcher: 73 → 72 commands. MCP surface: 73 → 67.**
+
+### Security
+- `scripts/mcp_server.py`: `xrpl_run` is now a **positive allowlist with default-deny**
+  (`_ALLOWED_COMMANDS`), replacing the previous "any registered command" behavior. The 72
+  dispatcher commands partition exactly into **67 allowed + 5 denied**, disjoint and exhaustive.
+- Five commands are denied on the MCP surface and remain local-CLI-only, each with a reason
+  relayed to the client (`_DENIED_COMMANDS`): `wallet-generate` (emits a secret seed),
+  `wallet-from-seed` (consumes one), `submit` and `submit-multisigned` (broadcast to a live
+  network), and `xaman-payload` (creates a real external wallet signing request).
+- Denial is enforced **before `subprocess.run` is reached**, so a denied command never executes
+  and no MCP response can carry a seed. The refusal names the local CLI invocation instead.
+- Unknown and future commands are denied by the same gate: anything absent from the allowlist —
+  including commands added to the dispatcher in later releases — is refused until a maintainer
+  classifies it, so a new secret-touching command is safe on arrival rather than exposed by
+  oversight.
+- `xrpl_list_commands` now returns only the agent-safe set, so a client cannot discover a denied
+  command through the listing.
+
+### Removed
+- `build-batch` (XLS-56 Batch) is **unregistered** — the dispatcher no longer exposes it, on any
+  surface. Official XRPL material lists the `Batch` amendment as obsolete following the
+  February 2026 signature-validation (unauthorized-inner-transaction) disclosure; the proposed
+  `BatchV1_1` replacement has no released implementation, no finalized specification, and no live
+  mainnet activation. A live `feature` response reporting `supported: true` for the historical
+  amendment ID does not override that lifecycle status.
+- `scripts/tools/batch.py` is **kept, not deleted**: `tool_build_batch` is preserved unchanged as a
+  historical/audit artifact with the retirement rationale and sources in the module docstring, and
+  `COMMANDS` is empty by design. Re-enabling requires a released implementation, an official
+  specification, and independently verified live amendment status.
+
+### Changed
+- `scripts/dev_test_matrix.py`: records the retirement in a `RETIRED` mapping and reports it in its
+  own "Retired commands (not executed)" section of the generated matrix, instead of letting a
+  withdrawn command silently disappear. The matrix never executes a retired command, and it now
+  fails loudly if one is ever re-registered.
+- `scripts/xrpl_tools.py`: notes that `scripts.tools.batch` is imported but intentionally
+  contributes no command.
+- Docs now distinguish the three surfaces — 72 local CLI commands, 67 MCP-safe, 5 denied
+  local-only — with the reasoning: `README.md` (new **MCP agent boundary** section), `SECURITY.md`
+  (new **The agent boundary (MCP)** section), `LIMITATIONS.md`, `SKILL.md` (boundary table plus the
+  retired Batch row, numbering preserved), `pyproject.toml`.
+- Version surfaces to 1.8.3: `pyproject.toml`, `SKILL.md`, MCP `SERVER_INFO`.
+
+### Tests
+- `tests/test_mcp_server.py`: the allowlist/deny-list must be disjoint and must exactly cover the
+  dispatcher (72 = 67 + 5) — this fails the build the day a command ships unclassified; each of the
+  five denied commands is refused with `subprocess.run` patched to fail on invocation, proving the
+  gate fires before any spawn; an injected future dispatcher command is default-denied the same
+  way; `xrpl_list_commands` returns exactly 67; every raw-stdio denial returns `isError: true` and
+  is checked for decodable seeds; version surfaces report 1.8.3.
+- `tests/test_batch.py` (new): `build-batch` is absent from the dispatcher, the MCP allowlist, and
+  the deny-list; the CLI reports it as unknown and emits no Batch payload; `scripts.tools.batch`
+  imports with an empty `COMMANDS`; the preserved source states a clear retirement reason and cites
+  its official sources; the dev-test matrix records it as retired and holds no argv for it.
+
+### Note for readers of older entries
+Entries below this one describe releases that genuinely shipped 73 commands with an unrestricted
+MCP surface. They are left unchanged as an accurate historical record; this entry is the change.
+
 ## v1.8.2 — Product Builder Mode + XRPL product playbooks — FABLE 5 Audited (2026-07-09)
 
 A docs/prompt-layer foundation for product-altitude XRPL work: route vague app/platform/dashboard/API requests to a structured Product Builder Mode before emitting transaction JSON. **No CLI/tool behavior changes** (still 73 commands, builders remain unsigned); no runtime, custody, or hosting scope added.

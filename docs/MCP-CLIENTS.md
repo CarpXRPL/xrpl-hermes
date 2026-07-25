@@ -1,12 +1,12 @@
 # MCP Client Guide — Claude Code, Cursor, Codex, Hermes, and any MCP client
 
-`scripts/mcp_server.py` is a stdio MCP server written in stdlib-only Python (no extra dependencies beyond the repo's own requirements for the commands it runs). Point any MCP-capable client at it and the agent gets the full toolkit.
+`scripts/mcp_server.py` is a stdio MCP server written in stdlib-only Python (no extra dependencies beyond the repo's own requirements for the commands it runs). Point any MCP-capable client at it and the agent gets the knowledge base plus the agent-safe command subset.
 
 ## The four tools every client gets
 
 | Tool | What it does |
 |---|---|
-| `xrpl_list_commands` | Lists all 73 CLI commands by name |
+| `xrpl_list_commands` | Lists the 67 agent-safe CLI commands exposed over MCP |
 | `xrpl_run` | Runs one command with CLI-style args (e.g. `command="account"`, `args=["rADDR"]`) |
 | `xrpl_knowledge_index` | Lists the 65 knowledge files, 15 reference cards, and `skills/` workflow flows with titles |
 | `xrpl_knowledge` | Reads one knowledge/reference/workflow file (sandboxed to `knowledge/`, `references/`, and `skills/`) |
@@ -14,7 +14,7 @@
 Design properties worth knowing before you wire it up:
 
 - **Subprocess isolation.** Each `xrpl_run` call executes in a child process with a 90-second timeout, so a crashing or hanging command never takes down the server.
-- **No secrets, ever.** The server has no tool that accepts a seed or key. Builders return signer-ready JSON for external signing.
+- **Default-deny custody boundary.** The server refuses `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, and `xaman-payload` before execution. Builders return signer-ready JSON for external signing.
 - **Knowledge reads are sandboxed.** `xrpl_knowledge` rejects paths outside `knowledge/`, `references/`, and `skills/` (covered by tests).
 - **Live-network commands need the repo's Python deps.** `xrpl_list_commands`, `xrpl_knowledge_index`, and `xrpl_knowledge` work even without `xrpl-py` installed; `xrpl_run` needs `pip install -r requirements.txt` done once in the Python that runs the server.
 
