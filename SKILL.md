@@ -205,7 +205,7 @@ The `scripts/xrpl_tools.py` dispatcher provides 72 XRPL-native commands through 
 | 22 | Build Deposit Preauth | `build-deposit-preauth --from rADDR --authorize rSENDER` | DepositAuth allowlist |
 | 23 | Build Signer List Set | `build-signer-list-set --from rADDR --quorum N --signers rA:W,rB:W` | Multisig signer list |
 | 24 | Build Ticket Create | `build-ticket-create --from rADDR --count N` | Ticket sequence slots |
-| 25 | Build Escrow Create | `build-escrow-create --from rADDR --to rDST --amount DROPS` | Create escrow |
+| 25 | Build Escrow Create | `build-escrow-create --from rADDR --to rDST --amount DROPS --finish-after N` | Create protocol-valid time/conditional escrow |
 | 26 | Build Escrow Finish | `build-escrow-finish --from rADDR --owner rOWN --offer-sequence N` | Finish escrow |
 | 27 | Build Escrow Cancel | `build-escrow-cancel --from rADDR --owner rOWN --offer-sequence N` | Cancel escrow |
 | 28 | Build Check Create | `build-check-create --from rADDR --to rDST --amount DROPS` | Create check |
@@ -225,7 +225,7 @@ The `scripts/xrpl_tools.py` dispatcher provides 72 XRPL-native commands through 
 | 42 | Build MPT Authorize | `build-mpt-authorize --from rADDR --mpt-issuance-id HEX` | MPT holder auth |
 | 43 | NFT Info | `nft-info NFT_ID` | NFT metadata lookup |
 | 44 | NFT Offers | `nft-offers NFT_ID [sell|buy]` | NFT sell/buy offers |
-| 45 | Build NFT Mint | `build-nft-mint --from rADDR --taxon N --uri URI` | NFT mint JSON |
+| 45 | Build NFT Mint | `build-nft-mint --from rADDR --taxon N [--uri TEXT \| --uri-hex HEX]` | NFT mint JSON; encoding is explicit |
 | 46 | Build NFT Create Offer | `build-nft-create-offer --from rADDR --nftoken-id ID --amount DROPS` | NFT offer JSON |
 | 47 | Build NFT Accept Offer | `build-nft-accept-offer --from rADDR --sell-offer INDEX` | Accept NFT offer |
 | 48 | Build NFT Cancel Offer | `build-nft-cancel-offer --from rADDR --offers INDEX` | Cancel NFT offers |

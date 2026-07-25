@@ -6,6 +6,7 @@ from ._shared import (
     fmt_xrp, short, drops_to_xrp, parse_amount_arg, IssuedCurrencyAmount,
     _dispatch_build, AccountInfo, AccountObjects, AccountTx, SignerListSet, SignerEntry,
     SetRegularKey, AccountDelete, DepositPreauth, TicketCreate, AccountSet,
+    to_uint32, validate_xrpl_address,
 )
 
 def tool_account(address: str):
@@ -74,8 +75,45 @@ def tool_build_set_regular_key(frm: str, regular_key: str = None):
     note_out("# SetRegularKey TX JSON - signer-ready JSON - paste into Xaman Developer tab")
     json_tx_out(tx)
 
-def tool_build_account_delete(frm: str, to: str):
-    tx = AccountDelete(account=frm, destination=to)
+ACCOUNT_DELETE_WARNING = """\
+# =====================================================================
+# WARNING - DESTRUCTIVE: AccountDelete removes {frm} from the ledger.
+# The deletion is irreversible. All remaining XRP is sent to {to}, and
+# ledger entries that do not block deletion (Offers, Tickets, SignerLists,
+# DepositPreauth) are destroyed along with the account.
+#
+# This builder is offline and CANNOT prove the ledger preconditions. Verify
+# each of the following against the live ledger before signing:
+#   1. Sequence + 256 is below the current ledger index (account_info, ledger).
+#   2. The account owns no deletion-blocking objects - e.g. Escrow, Check,
+#      PayChannel, trust lines (RippleState), NFTokenPage - and not more than
+#      1000 objects in total (account_objects).
+#   3. The transaction pays a special cost of at least the current
+#      owner reserve increment (read it from server_info) - far above a
+#      normal fee. A failed AccountDelete still burns that cost.
+#   4. The destination account already exists, can receive XRP (DepositAuth
+#      off, or this sender preauthorized), and if it requires a destination
+#      tag you must supply --dest-tag.
+# The list above follows xrpl.org; treat it as the minimum to check, not as
+# proof that the delete will succeed.
+# ====================================================================="""
+
+def tool_build_account_delete(frm: str, to: str, dest_tag=None, destination_tag=None):
+    try:
+        frm = validate_xrpl_address(frm, "source account")
+        to = validate_xrpl_address(to, "destination account")
+        tag = to_uint32(dest_tag if dest_tag is not None else destination_tag,
+                        "destination tag")
+    except ValueError as exc:
+        usage_out("build-account-delete",
+                  "build-account-delete --from rSRC --to rDST [--dest-tag N]. "
+                  f"{exc}")
+        return
+    kwargs = dict(account=frm, destination=to)
+    if tag is not None:
+        kwargs["destination_tag"] = tag
+    tx = AccountDelete(**kwargs)
+    note_out(ACCOUNT_DELETE_WARNING.format(frm=frm, to=to))
     note_out("# AccountDelete TX JSON - signer-ready JSON - paste into Xaman Developer tab")
     json_tx_out(tx)
 
@@ -126,9 +164,18 @@ def tool_build_account_set(frm: str, set_flag: int = None, clear_flag: int = Non
         else:
             kwargs["domain"] = domain.encode().hex().upper()
     if transfer_rate is not None:
-        rate = int(transfer_rate)
-        if rate < 1_000_000_000 or rate > 2_000_000_000:
-            json_out({"Error": "InvalidTransferRate", "Message": "transfer_rate must be 1000000000 (0%) to 2000000000 (100%)"})
+        try:
+            rate = int(transfer_rate)
+        except (TypeError, ValueError):
+            json_out({"Error": "InvalidTransferRate",
+                      "Message": f"transfer_rate must be an integer (got {transfer_rate!r})"})
+            return
+        # 0 is the documented shortcut for 1000000000 (no transfer fee) and the
+        # only way an issuer can clear an existing rate.
+        if rate != 0 and not (1_000_000_000 <= rate <= 2_000_000_000):
+            json_out({"Error": "InvalidTransferRate",
+                      "Message": "transfer_rate must be 0 (clear/no fee) or "
+                                 "1000000000 (0%) to 2000000000 (100%)"})
             return
         kwargs["transfer_rate"] = rate
     if tick_size is not None:

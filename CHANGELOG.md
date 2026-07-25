@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased — transaction correctness work targeting v1.9.0
+
+### Transaction correctness
+- Amount builders preserve exact issued-currency decimal text, enforce XRPL precision/range rules,
+  reject malformed/negative values, and enforce XRP's integer-drops maximum.
+- Payment channels are XRP-only; token escrows enforce the official field matrix and
+  PREIMAGE-SHA-256 conditions/fulfillments are structurally parsed and matched before emission.
+  AMM amounts and auction bounds receive transaction-specific validation.
+- AMM deposit/withdraw modes now enforce their exact XRPL flag/field matrices. The default
+  `two-asset` mode requires both amounts; one-amount automation must explicitly use
+  `--mode single-asset`. Two-asset amounts are matched to the pool as an unordered issue set,
+  and unknown modes no longer silently fall back to `two-asset`.
+- Three-character currency identifiers preserve case; 4–20 character symbols normalize to their
+  160-bit hexadecimal representation without silently retargeting assets. Case variants such as
+  lowercase `xrp` use their equivalent 160-bit representation because only exact uppercase `XRP`
+  denotes the native asset.
+- `build-mpt-authorize` now requires the protocol's 48-hex-character `UInt192` issuance ID;
+  MPT issuance scale, supply, transfer fee, flags, holder, and address fields receive controlled
+  transaction-semantic validation.
+- The generated development matrix now requires every successful `build-*` payload to pass required
+  envelope checks, xrpl-py transaction-model validation, and `encode_for_signing()`. Exit code 0 and
+  an error-free JSON envelope are no longer enough for PASS.
+
+### Breaking CLI clarification — NFT URI encoding
+- `build-nft-mint --uri TEXT` now always treats its value as text and UTF-8 hex-encodes it once.
+- Existing automation that passed pre-encoded hex to `--uri` must migrate to `--uri-hex HEX`.
+  This deliberate split removes the unsafe guess that any even-length hex-looking text was already
+  encoded; for example, the text URI `cafe` is now correctly encoded as `63616665`.
+- `--uri` and `--uri-hex` are mutually exclusive. Invalid or ambiguous input returns `UsageError`
+  without emitting a transaction.
+
 ## v1.8.3 — MCP agent boundary (default-deny) + XLS-56 Batch retirement — Security Hotfix (2026-07-24)
 
 A narrowly scoped security hotfix. Through v1.8.2 the MCP server ran **any** dispatcher command,

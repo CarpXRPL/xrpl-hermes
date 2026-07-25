@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """NFT tools: info, offers (sell/buy), mint, create-offer, accept-offer, cancel-offer, burn."""
 from ._shared import (
-    _request, json_out, note_out, json_tx_out, parse_amount_arg, ENDPOINTS,
+    _request, json_out, note_out, json_tx_out, parse_amount_arg, usage_out, ENDPOINTS,
     IssuedCurrencyAmount, _dispatch_build, NFTInfo, NFTSellOffers, NFTBuyOffers,
     NFTokenMint, NFTokenCreateOffer, NFTokenAcceptOffer, NFTokenCancelOffer, NFTokenBurn,
     JsonRpcClient,
@@ -39,14 +39,37 @@ def tool_nft_offers(nft_id: str, side: str = "sell"):
     except Exception as e:
         json_out({"Error": "NFTOffersError", "Message": str(e), "NFTokenID": nft_id})
 
+_URI_USAGE = (
+    "build-nft-mint --from rSRC --taxon N [--uri TEXT | --uri-hex HEX]. "
+    "--uri is always UTF-8 hex-encoded for you; pass --uri-hex only for a value "
+    "that is already hex. The two are mutually exclusive."
+)
+
+def _encode_nft_uri(uri: str, uri_hex: str):
+    """Resolve the URI under an explicit contract.
+
+    Guessing "even-length and hex-looking means pre-encoded" turned the text
+    'cafe' into a literal URI of 'cafe'. NFT URIs are immutable for the token's
+    life, so the guess is permanent: the caller declares the encoding instead.
+    """
+    if uri and uri_hex:
+        raise ValueError("--uri and --uri-hex are mutually exclusive: pass exactly one.")
+    if uri_hex is not None:
+        if not uri_hex or len(uri_hex) % 2 or not all(c in "0123456789abcdefABCDEF" for c in uri_hex):
+            raise ValueError(f"--uri-hex '{uri_hex}' is not an even-length hex string.")
+        return uri_hex.upper()
+    if not uri:
+        return None
+    return uri.encode("utf-8").hex().upper()
+
 def tool_build_nft_mint(frm: str, taxon: int = 0, uri: str = "",
                         transfer_fee: int = 0, flags: int = 8,
-                        issuer: str = None):
-    if uri:
-        hex_chars = set('0123456789abcdefABCDEF')
-        is_already_hex = all(c in hex_chars for c in uri) and len(uri) % 2 == 0
-        if not is_already_hex:
-            uri = uri.encode().hex().upper()
+                        issuer: str = None, uri_hex: str = None):
+    try:
+        uri = _encode_nft_uri(uri, uri_hex)
+    except ValueError as exc:
+        usage_out("build-nft-mint", f"{_URI_USAGE} {exc}")
+        return
     tx = NFTokenMint(account=frm, nftoken_taxon=taxon,
                      uri=uri if uri else None,
                      transfer_fee=transfer_fee, flags=flags,
@@ -57,7 +80,13 @@ def tool_build_nft_mint(frm: str, taxon: int = 0, uri: str = "",
 def tool_build_nft_create_offer(frm: str, nftoken_id: str, amount: str,
                                  flags: int = 1, destination: str = None,
                                  expiration: int = None, owner: str = None):
-    amt = parse_amount_arg(amount)
+    try:
+        amt = parse_amount_arg(amount)
+    except ValueError as exc:
+        usage_out("build-nft-create-offer",
+                  "build-nft-create-offer --from rSRC --nftoken-id ID --amount DROPS "
+                  f"| CUR:ISSUER:VALUE. {exc}")
+        return
     kwargs = dict(account=frm, nftoken_id=nftoken_id, amount=amt, flags=int(flags))
     if destination: kwargs["destination"] = destination
     if expiration: kwargs["expiration"] = int(expiration)
@@ -71,7 +100,13 @@ def tool_build_nft_accept_offer(frm: str, sell_offer: str = None, buy_offer: str
     kwargs = dict(account=frm)
     if sell_offer: kwargs["nftoken_sell_offer"] = sell_offer
     if buy_offer: kwargs["nftoken_buy_offer"] = buy_offer
-    if broker_fee: kwargs["nftoken_broker_fee"] = parse_amount_arg(broker_fee)
+    if broker_fee:
+        try:
+            kwargs["nftoken_broker_fee"] = parse_amount_arg(broker_fee)
+        except ValueError as exc:
+            usage_out("build-nft-accept-offer",
+                      f"--broker-fee takes DROPS or CUR:ISSUER:VALUE. {exc}")
+            return
     tx = NFTokenAcceptOffer(**kwargs)
     note_out("# NFTokenAcceptOffer TX JSON - signer-ready JSON")
     json_tx_out(tx)

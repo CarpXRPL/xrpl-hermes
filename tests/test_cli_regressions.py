@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -204,32 +205,14 @@ DECIMAL_VALUE_BUILDERS = {
                           "--asset2", f"USD:{ISSUER}", "--amount1", "1.5"),
 }
 
-# All six should reject decimal XRP amounts. Three builders still own inline amount
-# parsing outside this mission's file allowlist; strict xfails make that debt visible
-# and turn into XPASS failures as soon as Mission 3 fixes the implementation.
-DECIMAL_XRP_REJECTION_CASES = (
-    "build-payment",
-    "build-nft-create-offer",
-    "build-amm-deposit",
-    pytest.param(
-        "build-check-create",
-        marks=pytest.mark.xfail(strict=True, reason="Mission 3: route CheckCreate through drops validation"),
-    ),
-    pytest.param(
-        "build-escrow-create",
-        marks=pytest.mark.xfail(strict=True, reason="Mission 3: route EscrowCreate through drops validation"),
-    ),
-    pytest.param(
-        "build-paychannel-fund",
-        marks=pytest.mark.xfail(strict=True, reason="Mission 3: route PaymentChannelFund through drops validation"),
-    ),
-)
+# All six reject decimal XRP amounts. check-create, escrow-create and
+# paychannel-fund were strict xfails while their inline amount parsing sat outside
+# Mission 2's file allowlist; Mission 3 owns those files, so the xfails are gone.
+DECIMAL_XRP_REJECTION_CASES = tuple(sorted(DECIMAL_VALUE_BUILDERS))
 
 
 @pytest.mark.parametrize("command", sorted(DECIMAL_VALUE_BUILDERS))
 def test_value_builders_never_leak_internal_errors_on_decimal_input(command):
-    # Transitional floor while Mission 3 replaces the remaining invalid-payload
-    # paths with explicit drops guidance.
     assert_no_internal_error(run_cli(command, *DECIMAL_VALUE_BUILDERS[command]))
 
 
@@ -238,8 +221,324 @@ def test_value_builders_reject_decimal_xrp_with_drops_guidance(command):
     result = run_cli(command, *DECIMAL_VALUE_BUILDERS[command])
     data = parse_json_stdout(result)
 
-    # build-payment answers with a UsageError envelope; builders that call the
-    # shared parser directly surface its ValueError. Both must suppress a payload
-    # and name the required unit.
+    # Every value builder answers with a controlled envelope that suppresses the
+    # payload and names the required unit.
     assert "TransactionType" not in data
     assert "drops" in json.dumps(data).lower()
+
+
+# --- TX-4: currency identity across every builder path this mission touches ---
+
+RLUSD_HEX = "524C555344000000000000000000000000000000"
+LONG_SYMBOL = "RLUSD"   # 4-20 char ASCII symbol -> 160-bit hex on-ledger
+SHORT_CODE = "usd"      # 3-char code -> case-sensitive, must survive verbatim
+
+# (label, argv template containing the CUR placeholder, path to the emitted code)
+CURRENCY_IDENTITY_PATHS = (
+    ("build-payment --cur/--iss",
+     ("build-payment", "--from", SRC, "--to", DST, "--amount", "10",
+      "--cur", "{CUR}", "--iss", ISSUER),
+     ("Amount", "currency")),
+    ("build-payment colon amount",
+     ("build-payment", "--from", SRC, "--to", DST, "--amount", "{CUR}:" + ISSUER + ":10"),
+     ("Amount", "currency")),
+    ("build-trustset",
+     ("build-trustset", "--from", SRC, "--currency", "{CUR}",
+      "--issuer", ISSUER, "--value", "1000"),
+     ("LimitAmount", "currency")),
+    ("build-clawback",
+     ("build-clawback", "--from", ISSUER, "--destination", DST,
+      "--currency", "{CUR}", "--amount", "100"),
+     ("Amount", "currency")),
+    ("build-check-create",
+     ("build-check-create", "--from", SRC, "--to", DST,
+      "--amount", "{CUR}:" + ISSUER + ":100"),
+     ("SendMax", "currency")),
+    ("build-escrow-create",
+     ("build-escrow-create", "--from", SRC, "--to", DST,
+      "--amount", "{CUR}:" + ISSUER + ":100",
+      "--condition", "A0258020E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855810100",
+      "--cancel-after", "900000000"),
+     ("Amount", "currency")),
+    ("build-nft-create-offer",
+     ("build-nft-create-offer", "--from", SRC, "--nftoken-id", NFT_ID,
+      "--amount", "{CUR}:" + ISSUER + ":100"),
+     ("Amount", "currency")),
+    ("build-amm-deposit",
+     ("build-amm-deposit", "--from", SRC, "--asset1", "XRP",
+      "--asset2", "{CUR}:" + ISSUER, "--amount1", "1000000",
+      "--amount2", "{CUR}:" + ISSUER + ":1"),
+     ("Asset2", "currency")),
+    ("build-cross-currency-payment",
+     ("build-cross-currency-payment", "--from", SRC, "--to", DST,
+      "--deliver", "{CUR}:" + ISSUER + ":10", "--send-max", "XRP:2000000"),
+     ("Amount", "currency")),
+)
+
+
+def emitted_currency(argv_template, path, code):
+    argv = [a.replace("{CUR}", code) for a in argv_template]
+    data = parse_json_stdout(run_cli(*argv))
+    node = data
+    for key in path:
+        assert key in node, data
+        node = node[key]
+    return node
+
+
+@pytest.mark.parametrize(
+    ("label", "argv", "path"), CURRENCY_IDENTITY_PATHS,
+    ids=[c[0] for c in CURRENCY_IDENTITY_PATHS],
+)
+def test_long_symbol_normalizes_to_160bit_hex_on_every_touched_path(label, argv, path):
+    # A 4-20 char ASCII symbol has no 3-byte slot on-ledger: it must travel as the
+    # zero-padded 160-bit hex code, or the payload names an asset that cannot exist.
+    assert emitted_currency(argv, path, LONG_SYMBOL) == RLUSD_HEX
+
+
+@pytest.mark.parametrize(
+    ("label", "argv", "path"), CURRENCY_IDENTITY_PATHS,
+    ids=[c[0] for c in CURRENCY_IDENTITY_PATHS],
+)
+def test_three_char_code_case_is_preserved_on_every_touched_path(label, argv, path):
+    # 3-char codes are case-sensitive on-ledger: usd and USD are different assets.
+    # Uppercasing here silently retargets the transaction at another issuer's token.
+    assert emitted_currency(argv, path, SHORT_CODE) == SHORT_CODE
+
+
+# --- TX-2: AMM auction bid protocol shape ---
+
+def test_build_amm_bid_emits_nested_auth_account_objects():
+    data = parse_json_stdout(run_cli(
+        "build-amm-bid", "--from", SRC, "--asset1", "XRP",
+        "--asset2", f"USD:{ISSUER}", "--auth-accounts", DST))
+
+    # AuthAccounts is an array of inner objects. A raw lowercase dict bypasses
+    # model validation and is not the wire shape rippled parses.
+    assert data["AuthAccounts"] == [{"AuthAccount": {"Account": DST}}]
+
+
+def test_build_amm_bid_rejects_malformed_bid_min_instead_of_dropping_it():
+    result = run_cli("build-amm-bid", "--from", SRC, "--asset1", "XRP",
+                     "--asset2", f"USD:{ISSUER}", "--bid-min", "100")
+    data = parse_json_stdout(result)
+
+    # A silently discarded bid ceiling turns a bounded auction bid into an
+    # unbounded one, so it must fail loudly rather than build without the limit.
+    assert "TransactionType" not in data
+    assert "BidMin" not in json.dumps(data)
+    assert_no_internal_error(result)
+
+
+# --- TX-3: NFT URI encoding contract ---
+
+def test_build_nft_mint_hex_encodes_hex_lookalike_text_uri():
+    data = parse_json_stdout(run_cli(
+        "build-nft-mint", "--from", SRC, "--taxon", "0", "--uri", "cafe"))
+
+    # "cafe" is ordinary text that happens to be even-length hex. NFT URIs are
+    # immutable for the token's life, so guessing here is permanent.
+    assert data["URI"] == "63616665"
+
+
+def test_build_nft_mint_hex_encodes_ordinary_uri_text():
+    uri = "https://example.com/1.json"
+    data = parse_json_stdout(run_cli(
+        "build-nft-mint", "--from", SRC, "--taxon", "0", "--uri", uri))
+
+    assert bytes.fromhex(data["URI"]).decode("utf-8") == uri
+
+
+def test_build_nft_mint_accepts_explicit_pre_encoded_uri():
+    data = parse_json_stdout(run_cli(
+        "build-nft-mint", "--from", SRC, "--taxon", "0", "--uri-hex", "63616665"))
+
+    assert data["URI"] == "63616665"
+
+
+def test_build_nft_mint_rejects_ambiguous_double_uri():
+    data = parse_json_stdout(run_cli(
+        "build-nft-mint", "--from", SRC, "--taxon", "0",
+        "--uri", "cafe", "--uri-hex", "63616665"))
+
+    assert data["Error"] == "UsageError"
+    assert "TransactionType" not in data
+
+
+@pytest.mark.parametrize("bad_hex", ["zz", "abc", ""])
+def test_build_nft_mint_rejects_invalid_pre_encoded_uri(bad_hex):
+    data = parse_json_stdout(run_cli(
+        "build-nft-mint", "--from", SRC, "--taxon", "0", "--uri-hex", bad_hex))
+
+    assert data["Error"] == "UsageError"
+    assert "TransactionType" not in data
+
+
+# --- TX-5: token amounts where the ledger supports them ---
+
+@pytest.mark.parametrize(
+    ("command", "argv", "field"),
+    [
+        ("build-check-create",
+         ("--from", SRC, "--to", DST, "--amount", f"USD:{ISSUER}:100"), "SendMax"),
+        ("build-escrow-create",
+         ("--from", SRC, "--to", DST, "--amount", f"USD:{ISSUER}:100",
+          "--condition", "A0258020E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855810100",
+          "--cancel-after", "900000000"), "Amount"),
+    ],
+)
+def test_token_amounts_are_accepted_by_check_and_escrow(command, argv, field):
+    result = run_cli(command, *argv)
+    data = parse_json_stdout(result)
+
+    assert data[field] == {"currency": "USD", "issuer": ISSUER, "value": "100"}
+    # "Signer-ready" is a binary-codec property, not merely a JSON shape.
+    assert encode_for_signing(data)
+    assert_no_internal_error(result)
+
+
+# --- TX-6: AccountDelete guardrails ---
+
+def run_cli_verbose(*args: str) -> subprocess.CompletedProcess[str]:
+    """Run without XRPL_TOOLS_QUIET so stderr guidance is observable."""
+    env = {k: v for k, v in os.environ.items() if k != "XRPL_TOOLS_QUIET"}
+    return subprocess.run(
+        [sys.executable, str(CLI), *args],
+        cwd=ROOT, text=True, capture_output=True, timeout=10, check=False, env=env,
+    )
+
+
+def test_build_account_delete_emits_destructive_precondition_guidance():
+    result = run_cli_verbose("build-account-delete", "--from", SRC, "--to", DST)
+    data = json.loads(result.stdout)
+
+    assert data["TransactionType"] == "AccountDelete"
+    guidance = result.stderr
+    assert "DESTRUCTIVE" in guidance.upper()
+    assert "irreversible" in guidance.lower()
+    # The builder is offline: it must say it cannot prove the preconditions.
+    assert "cannot" in guidance.lower()
+    for precondition in ("Sequence", "256", "owner reserve", "destination"):
+        assert precondition.lower() in guidance.lower(), guidance
+    assert_no_internal_error(result)
+
+
+def test_build_account_delete_includes_destination_tag():
+    data = parse_json_stdout(run_cli(
+        "build-account-delete", "--from", SRC, "--to", DST, "--dest-tag", "12345"))
+
+    assert data["DestinationTag"] == 12345
+    assert isinstance(data["DestinationTag"], int)
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ("--from", "not-an-address", "--to", DST),
+        ("--from", SRC, "--to", "rNOTVALID"),
+        ("--from", SRC, "--to", DST, "--dest-tag", "4294967296"),
+        ("--from", SRC, "--to", DST, "--dest-tag", "abc"),
+    ],
+)
+def test_build_account_delete_validates_fields(argv):
+    result = run_cli("build-account-delete", *argv)
+    data = parse_json_stdout(result)
+
+    assert "TransactionType" not in data
+    assert_no_internal_error(result)
+
+
+# --- TX-10: no silently dropped CLI arguments ---
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ("build-payment", "--from", SRC, "--to", DST, "--amount", "1000000", "--memo"),
+        ("build-trustset", "--from", SRC, "--currency", "USD", "--issuer", ISSUER, "--value"),
+        ("build-account-set", "--from", SRC, "--transfer-rate"),
+    ],
+)
+def test_missing_value_after_flag_is_a_usage_error(argv):
+    result = run_cli(*argv)
+    data = parse_json_stdout(result)
+
+    assert data["Error"] == "UsageError"
+    assert argv[-1] in data["Usage"]
+    # Silently dropping the pair emitted a payload that omitted what was asked for.
+    assert "TransactionType" not in data
+    assert_no_internal_error(result)
+
+
+def test_positional_argument_without_flag_is_a_usage_error():
+    data = parse_json_stdout(run_cli(
+        "build-payment", "--from", SRC, "--to", DST, "1000000"))
+
+    assert data["Error"] == "UsageError"
+    assert "TransactionType" not in data
+
+
+# --- TX-11: TransferRate clear/reset shortcut ---
+
+def test_build_account_set_accepts_transfer_rate_zero():
+    data = parse_json_stdout(run_cli("build-account-set", "--from", SRC, "--transfer-rate", "0"))
+
+    # 0 is the documented shortcut for 1000000000 (no fee): the only way an issuer
+    # can clear an existing transfer rate.
+    assert data["TransactionType"] == "AccountSet"
+    assert data["TransferRate"] == 0
+
+
+@pytest.mark.parametrize("rate", ["1", "999999999", "2000000001", "-1"])
+def test_build_account_set_still_rejects_invalid_nonzero_transfer_rate(rate):
+    data = parse_json_stdout(run_cli("build-account-set", "--from", SRC, "--transfer-rate", rate))
+
+    assert data["Error"] == "InvalidTransferRate"
+    assert "TransactionType" not in data
+
+
+# --- TX-19: NaN / infinity / negative / malformed amount forms ---
+
+NON_FINITE = ["nan", "NaN", "inf", "-inf", "Infinity", "-Infinity"]
+
+
+@pytest.mark.parametrize("value", NON_FINITE + ["-1000000", "1e400"])
+def test_native_amount_rejects_non_finite_and_negative_values(value):
+    result = run_cli("build-payment", "--from", SRC, "--to", DST, "--amount", value)
+    data = parse_json_stdout(result)
+
+    assert "TransactionType" not in data
+    assert_no_internal_error(result)
+
+
+@pytest.mark.parametrize("value", NON_FINITE + ["-100", "1e400"])
+def test_clawback_rejects_non_finite_and_negative_values(value):
+    result = run_cli("build-clawback", "--from", ISSUER, "--destination", DST,
+                     "--currency", "USD", "--amount", value)
+    data = parse_json_stdout(result)
+
+    assert "TransactionType" not in data
+    assert_no_internal_error(result)
+
+
+@pytest.mark.parametrize(
+    "amount",
+    ["USD::100", f":{ISSUER}:100", f"USD:{ISSUER}:", f"USD:{ISSUER}:100:200",
+     "USD:not-an-address:100", f"USD:{ISSUER}"],
+)
+def test_malformed_colon_amount_forms_are_rejected(amount):
+    result = run_cli("build-payment", "--from", SRC, "--to", DST, "--amount", amount)
+    data = parse_json_stdout(result)
+
+    assert data["Error"] == "UsageError"
+    assert "TransactionType" not in data
+    assert_no_internal_error(result)
+
+
+def test_build_payment_currency_without_issuer_is_rejected():
+    # --cur used to be dropped when --iss was absent, emitting the value as drops:
+    # a token payment silently became an XRP payment.
+    data = parse_json_stdout(run_cli(
+        "build-payment", "--from", SRC, "--to", DST, "--amount", "10", "--cur", "usd"))
+
+    assert data["Error"] == "UsageError"
+    assert "TransactionType" not in data

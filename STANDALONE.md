@@ -282,8 +282,12 @@ Withdraw from an AMM pool. `--mode` is `two-asset`, `single-asset`, `lp-token`, 
 python3 scripts/xrpl_tools.py build-amm-withdraw \
   --from rACCOUNT \
   --asset1 XRP --asset2 USD:rISSUER \
-  --amount1 XRP:500000
+  --amount1 XRP:500000 --amount2 USD:rISSUER:50
 ```
+
+The default `two-asset` mode requires both amounts. `single-asset` requires `--amount1`
+only, `lp-token` requires the matching LP-token field only, and `withdraw-all` accepts no
+amount fields. Unknown modes and mixed field combinations are rejected before JSON is emitted.
 
 ---
 
@@ -448,7 +452,8 @@ python3 scripts/xrpl_tools.py build-escrow-create \
 # With crypto-condition (PREIMAGE-SHA-256)
 python3 scripts/xrpl_tools.py build-escrow-create \
   --from rACCOUNT --to rDEST --amount 10000000 \
-  --condition A0258020...
+  --condition A0258020BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD810103 \
+  --cancel-after 1900000000
 ```
 
 ---
@@ -462,8 +467,14 @@ python3 scripts/xrpl_tools.py build-escrow-finish \
 
 python3 scripts/xrpl_tools.py build-escrow-finish \
   --from rACCOUNT --owner rESCROW_OWNER --offer-sequence 42 \
-  --condition A025... --fulfillment A022...
+  --condition A0258020BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD810103 \
+  --fulfillment A0058003616263
 ```
+
+The condition/fulfillment pair above uses the public preimage `abc` for deterministic
+documentation only. Generate a fresh secret with a maintained crypto-conditions library for
+real use. The builder accepts only canonical PREIMAGE-SHA-256 binary DER and verifies a supplied
+fulfillment against its condition; placeholders such as `A025...` are rejected.
 
 ---
 
@@ -568,8 +579,12 @@ python3 scripts/xrpl_tools.py build-nft-mint \
   --from rACCOUNT \
   --taxon 42 \
   --transfer-fee 5000 \
-  --uri 697066733A2F2F...
+  --uri ipfs://example
 ```
+
+`--uri` always treats its input as text and UTF-8 hex-encodes it exactly once. If you already
+have an even-length hex URI, use `--uri-hex 697066733A2F2F...` instead. This explicit split avoids
+silently misinterpreting ordinary text such as `cafe`, and avoids double-encoding pre-encoded URIs.
 
 ---
 

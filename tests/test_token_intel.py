@@ -19,8 +19,11 @@ RLUSD_HEX = "524C555344000000000000000000000000000000"
 # --- currency normalization ---
 
 def test_normalize_three_char_passthrough():
+    # 3-char codes occupy three raw bytes on-ledger and are case-sensitive, so
+    # they pass through verbatim. This test previously asserted usd -> USD, which
+    # is the retargeting defect itself: usd and USD are different assets.
     assert normalize_currency_code("USD") == "USD"
-    assert normalize_currency_code("usd") == "USD"
+    assert normalize_currency_code("usd") == "usd"
     assert normalize_currency_code("XRP") == "XRP"
 
 

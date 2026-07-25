@@ -26,6 +26,7 @@ try:
         CredentialCreate, CredentialAccept, CredentialDelete, Batch, Memo
     from xrpl.models.transactions.signer_list_set import SignerEntry
     from xrpl.models.transactions.oracle_set import PriceData
+    from xrpl.models.auth_account import AuthAccount
     from xrpl.models.currencies import XRP as XRPCurrency, IssuedCurrency
     from xrpl.models.amounts import IssuedCurrencyAmount
     from xrpl.core.binarycodec.exceptions import XRPLBinaryCodecException
@@ -95,9 +96,17 @@ def parse_currency_arg(arg: str) -> tuple:
         return parts[0], parts[1], parts[2]
 
 def make_amount(currency: str, issuer: Optional[str], value: str) -> dict:
-    if currency.upper() == "XRP" and not issuer:
+    if currency == "XRP":
+        if issuer:
+            raise ValueError("XRP does not take an issuer")
         return value if value is not None else currency
-    return {"currency": currency, "issuer": issuer, "value": value}
+    if not issuer:
+        raise ValueError(f"issued currency {currency!r} requires an issuer")
+    return {
+        "currency": normalize_currency_code(currency),
+        "issuer": validate_xrpl_address(issuer, "issuer"),
+        "value": value,
+    }
 
 def to_uint32(value, name: str = "tag"):
     """Coerce a CLI-supplied tag to a UInt32 int, or None. Raises on out-of-range."""
@@ -197,6 +206,57 @@ def _is_drops_text(arg) -> bool:
     """True for an integer drops amount. XRP has no unit smaller than a drop."""
     return isinstance(arg, str) and arg.isascii() and arg.isdigit()
 
+XRP_MAX_DROPS = 100_000_000_000_000_000
+
+def validate_drops_amount(value, field: str = "amount") -> str:
+    """Return a nonnegative integer drops string for an XRP-only field, or raise."""
+    if not _is_drops_text(value):
+        raise ValueError(f"Invalid XRP {field} '{value}'. {XRP_DROPS_HINT}")
+    if int(value) > XRP_MAX_DROPS:
+        raise ValueError(
+            f"Invalid XRP {field} '{value}': maximum is {XRP_MAX_DROPS} drops."
+        )
+    return value
+
+def validate_positive_drops_amount(value, field: str = "amount") -> str:
+    """Return a strictly positive integer drops string, or raise."""
+    text = validate_drops_amount(value, field)
+    if int(text) <= 0:
+        raise ValueError(f"Invalid XRP {field} '{value}': amount must be positive.")
+    return text
+
+def validate_nonnegative_issued_value(value: str, field: str = "amount") -> str:
+    """Validate an issued value for transaction fields that permit zero."""
+    text = validate_issued_currency_value(value)
+    if Decimal(text) < 0:
+        raise ValueError(f"Invalid {field} '{value}': amount must be nonnegative.")
+    return text
+
+def validate_positive_issued_value(value: str, field: str = "amount") -> str:
+    """Validate an issued value that must be strictly positive."""
+    text = validate_issued_currency_value(value)
+    if Decimal(text) <= 0:
+        raise ValueError(f"Invalid {field} '{value}': amount must be positive.")
+    return text
+
+def validate_positive_amount(amount, field: str = "amount"):
+    """Validate a parsed XRP or issued amount as strictly positive."""
+    value = amount if isinstance(amount, str) else amount.value
+    if Decimal(value) <= 0:
+        raise ValueError(f"Invalid {field} '{value}': amount must be positive.")
+    return amount
+
+def validate_xrpl_address(value, field: str = "address") -> str:
+    """Return a classic address valid in a raw transaction AccountID field.
+
+    X-addresses embed a tag and network bit. Accepting one without decoding it
+    would discard those semantics when emitting raw transaction JSON.
+    """
+    from xrpl.core.addresscodec import is_valid_classic_address
+    if isinstance(value, str) and is_valid_classic_address(value):
+        return value
+    raise ValueError(f"Invalid XRPL {field} '{value}': expected a classic r-address.")
+
 def parse_amount_arg(arg: str):
     if "/" in arg:
         value, asset = arg.split("/", 1)
@@ -206,51 +266,70 @@ def parse_amount_arg(arg: str):
     if slash:
         cur, iss, val = slash
         return IssuedCurrencyAmount(
-            currency=cur, issuer=iss, value=validate_issued_currency_value(val)
+            currency=normalize_currency_code(cur),
+            issuer=validate_xrpl_address(iss, "issuer"),
+            value=validate_nonnegative_issued_value(val),
         )
     if _is_drops_text(arg):
-        return arg
+        return validate_drops_amount(arg)
     parts = arg.split(":", 2)
-    if parts[0].upper() == "XRP":
+    if parts[0] == "XRP":
         if len(parts) != 2:
             raise ValueError(f"Invalid XRP amount '{arg}'. {XRP_DROPS_HINT}")
         drops = parts[1]
         if _is_drops_text(drops):
-            return drops
+            return validate_drops_amount(drops)
         raise ValueError(f"Invalid XRP amount '{arg}'. {XRP_DROPS_HINT}")
     if len(parts) == 3:
         return IssuedCurrencyAmount(
-            currency=parts[0], issuer=parts[1],
-            value=validate_issued_currency_value(parts[2]),
+            currency=normalize_currency_code(parts[0]),
+            issuer=validate_xrpl_address(parts[1], "issuer"),
+            value=validate_nonnegative_issued_value(parts[2]),
         )
     raise ValueError(f"Invalid amount '{arg}'. {XRP_DROPS_HINT}")
 
 def _parse_asset(arg: str):
+    """Legacy asset parser. `parse_asset_normalized` is the live path for every
+    caller; this is kept only so the normalization rule has one definition."""
     if _is_numeric_text(arg):
         return XRPCurrency()
     slash = _parse_value_slash_asset(arg)
     if slash:
         currency, issuer, _value = slash
-        return IssuedCurrency(currency=currency.upper(), issuer=issuer)
+        return IssuedCurrency(currency=normalize_currency_code(currency), issuer=issuer)
     parts = arg.split(":", 2)
-    if parts[0].upper() == "XRP":
+    if parts[0] == "XRP":
         return XRPCurrency()
     if len(parts) >= 2:
-        return IssuedCurrency(currency=parts[0].upper(), issuer=parts[1])
+        return IssuedCurrency(currency=normalize_currency_code(parts[0]), issuer=parts[1])
     raise ValueError(f"Invalid asset '{arg}'. Use 'XRP' or 'CUR:ISSUER'")
 
 def normalize_currency_code(code: str) -> str:
     """Normalize a currency code to its on-ledger form.
 
-    3-char ISO-style codes (and XRP) pass through uppercased; 40-char hex
-    passes through uppercased; 4-20 char ASCII symbols become the 160-bit
-    hex code (zero-padded), e.g. RLUSD -> 524C555344...0000.
+    3-char ISO-style codes pass through **unchanged**: they occupy three raw
+    bytes on-ledger and are case-sensitive, so `usd` and `USD` are different
+    assets and uppercasing one silently retargets the transaction at the other.
+    40-char hex passes through uppercased (hex case is not significant); 4-20
+    char ASCII symbols become the 160-bit hex code (zero-padded), e.g.
+    RLUSD -> 524C555344...0000, because there is no 3-byte slot to hold them.
     """
     code = (code or "").strip()
     if not code:
         raise ValueError("Empty currency code")
     if len(code) == 3:
-        return code.upper()
+        permitted = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!@#$%^&*<>(){}[]|")
+        if any(char not in permitted for char in code):
+            raise ValueError(
+                f"Invalid currency '{code}': standard codes require 3 permitted ASCII characters"
+            )
+        if code != "XRP" and code.upper() == "XRP":
+            # xrpl-py rejects case variants in its 3-character model path even
+            # though consensus reserves only exact uppercase XRP. This is the
+            # equivalent 160-bit standard-code representation and preserves
+            # the original three bytes on-ledger.
+            return (b"\x00" * 12 + code.encode("ascii") + b"\x00" * 5).hex().upper()
+        return code
     if len(code) == 40:
         try:
             bytes.fromhex(code)
@@ -268,22 +347,25 @@ def normalize_currency_code(code: str) -> str:
 def parse_asset_normalized(arg: str):
     """Like _parse_asset but normalizes 4+ char symbols to 160-bit hex (e.g. RLUSD:rISS)."""
     parts = arg.split(":", 1)
-    if parts[0].upper() == "XRP" and len(parts) == 1:
-        return XRPCurrency()
+    if parts[0] == "XRP":
+        if len(parts) == 1:
+            return XRPCurrency()
+        raise ValueError("XRP cannot have an issuer")
     if len(parts) == 2:
-        return IssuedCurrency(currency=normalize_currency_code(parts[0]), issuer=parts[1])
+        return IssuedCurrency(
+            currency=normalize_currency_code(parts[0]),
+            issuer=validate_xrpl_address(parts[1], "issuer"),
+        )
     raise ValueError(f"Invalid asset '{arg}'. Use 'XRP' or 'CUR:ISSUER'")
 
 def _parse_amount_for_amm(arg: str):
-    parsed = parse_amount_arg(arg)
-    if not isinstance(parsed, str) or _is_numeric_text(parsed):
-        return parsed
-    parts = arg.split(":", 2)
-    if parts[0].upper() == "XRP":
-        return parts[1] if len(parts) >= 2 else arg
-    if len(parts) == 3:
-        return IssuedCurrencyAmount(currency=parts[0].upper(), issuer=parts[1], value=parts[2])
-    raise ValueError(f"Invalid amount '{arg}'. Use 'XRP:DROPS' or 'CUR:ISSUER:VALUE'")
+    """AMM amounts use the same grammar as every other amount.
+
+    The former fallback re-parsed the argument with `.upper()` applied to the
+    currency; it was unreachable (`parse_amount_arg` either returns a drops
+    string, returns an IssuedCurrencyAmount, or raises) and case-retargeting.
+    """
+    return parse_amount_arg(arg)
 
 # --- Dispatch Helpers ---
 
@@ -415,10 +497,24 @@ def warn_if_amendment_not_enabled(feature_name: str):
 
 
 def _dispatch_build(min_pairs: int, fn):
+    command = sys.argv[1] if len(sys.argv) > 1 else "build"
+    argv = sys.argv[2:]
     kwargs = {}
-    for i in range(2, len(sys.argv) - 1, 2):
-        k = sys.argv[i].lstrip("--").replace("-", "_")
-        v = sys.argv[i + 1]
+    # Arguments are --flag VALUE pairs. The old range stopped one short of the
+    # end, so a trailing flag with no value was dropped without a word and the
+    # builder emitted a payload missing what the operator asked for.
+    for i in range(0, len(argv), 2):
+        flag = argv[i]
+        if not flag.startswith("--"):
+            usage_out(command, f"Unexpected argument '{flag}' for {command}: "
+                               "arguments are --flag VALUE pairs.")
+            return
+        if i + 1 >= len(argv):
+            usage_out(command, f"Missing value after '{flag}' for {command}: "
+                               "arguments are --flag VALUE pairs.")
+            return
+        k = flag.lstrip("--").replace("-", "_")
+        v = argv[i + 1]
         if k in ('taxon', 'transfer_fee', 'flags', 'fee', 'settle_delay', 'trading_fee',
                  'oracle_doc_id', 'last_update_time', 'expiration', 'cancel_after',
                  'finish_after', 'offer_sequence', 'quorum', 'scale', 'asset_scale',

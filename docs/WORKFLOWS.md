@@ -116,7 +116,9 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 - `arweave-cost 1MB` — estimates permanent storage cost from the public Arweave gateway. It never uploads data or handles wallet keys.
 - Knowledge: `47-xrpl-arweave-storage.md` · Card: `references/arweave-storage.md`
-- Pairs with: `build-nft-mint --uri <hex of ar://...>`
+- Pairs with: `build-nft-mint --uri 'ar://...'` for text (encoded once by the builder),
+  or `--uri-hex HEX` only when the input is already encoded. Never pass pre-encoded hex to
+  `--uri`; NFT URIs are immutable and that would encode the hex characters a second time.
 
 ## XRPL EVM Sidechain
 

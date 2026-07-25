@@ -21,11 +21,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from scripts.matrix_validation import builder_wire_error
+
 TOOL = [sys.executable, "scripts/xrpl_tools.py"]
 R = "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe"
 GENESIS = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"
 BITSTAMP = "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
 ZERO_HASH = "0" * 64
+MPT_ISSUANCE_ID = "0" * 48
 NFT_ID = "00080000B4F4D3D64E2FEA45A8B1406B20C106625E7793090000099B00000000"
 CHANNEL = "5DB01BDF4AB2D996B7B8E3A7B7D91E0A4C8B6A6B5F2D2B9E0A1C2D3E4F506070"
 TXBLOB = "1200002280000000240000000161400000000000000168400000000000000A73210300000000000000000000000000000000000000000000000000000000000000008114" + "0"*40 + "8314" + "0"*40
@@ -44,9 +47,9 @@ TESTS = {
     "build-account-set": ["build-account-set", "--from", R, "--set-flag", "8"],
     "build-amm-bid": ["build-amm-bid", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}"],
     "build-amm-create": ["build-amm-create", "--from", R, "--amount1", "XRP:1000000", "--amount2", f"USD:{BITSTAMP}:1", "--fee", "500"],
-    "build-amm-deposit": ["build-amm-deposit", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount", "1000000"],
+    "build-amm-deposit": ["build-amm-deposit", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount1", "1000000", "--amount2", f"USD:{BITSTAMP}:1"],
     "build-amm-vote": ["build-amm-vote", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--trading-fee", "500"],
-    "build-amm-withdraw": ["build-amm-withdraw", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount1", "XRP:500000"],
+    "build-amm-withdraw": ["build-amm-withdraw", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}", "--amount1", "XRP:500000", "--amount2", f"USD:{BITSTAMP}:0.5"],
     "build-check-cancel": ["build-check-cancel", "--from", R, "--check-id", ZERO_HASH],
     "build-check-cash": ["build-check-cash", "--from", R, "--check-id", ZERO_HASH, "--amount", "1"],
     "build-check-create": ["build-check-create", "--from", R, "--to", GENESIS, "--amount", "1"],
@@ -57,15 +60,15 @@ TESTS = {
     "build-cross-currency-payment": ["build-cross-currency-payment", "--from", R, "--to", GENESIS, "--deliver", f"USD:{BITSTAMP}:1", "--send-max", "XRP:1000000"],
     "build-deposit-preauth": ["build-deposit-preauth", "--from", R, "--authorize", GENESIS],
     "build-escrow-cancel": ["build-escrow-cancel", "--from", R, "--owner", GENESIS, "--offer-sequence", "1"],
-    "build-escrow-create": ["build-escrow-create", "--from", R, "--to", GENESIS, "--amount", "1"],
+    "build-escrow-create": ["build-escrow-create", "--from", R, "--to", GENESIS, "--amount", "1", "--finish-after", "900000000"],
     "build-escrow-finish": ["build-escrow-finish", "--from", R, "--owner", GENESIS, "--offer-sequence", "1"],
-    "build-mpt-authorize": ["build-mpt-authorize", "--from", R, "--mpt-issuance-id", ZERO_HASH],
+    "build-mpt-authorize": ["build-mpt-authorize", "--from", R, "--mpt-issuance-id", MPT_ISSUANCE_ID],
     "build-mpt-issuance-create": ["build-mpt-issuance-create", "--from", R, "--asset-scale", "6", "--maximum-amount", "1000"],
     "build-nft-accept-offer": ["build-nft-accept-offer", "--from", R, "--sell-offer", ZERO_HASH],
     "build-nft-burn": ["build-nft-burn", "--from", R, "--nftoken-id", NFT_ID],
     "build-nft-cancel-offer": ["build-nft-cancel-offer", "--from", R, "--offers", ZERO_HASH],
     "build-nft-create-offer": ["build-nft-create-offer", "--from", R, "--nftoken-id", NFT_ID, "--amount", "1"],
-    "build-nft-mint": ["build-nft-mint", "--from", R, "--taxon", "1", "--uri", "697066733a2f2f6578616d706c65"],
+    "build-nft-mint": ["build-nft-mint", "--from", R, "--taxon", "1", "--uri", "ipfs://example"],
     "build-offer": ["build-offer", "--from", R, "--sell", "XRP:1000000", "--buy", f"USD:{BITSTAMP}:1"],
     "build-paychannel-claim": ["build-paychannel-claim", "--from", R, "--channel-id", CHANNEL],
     "build-paychannel-create": ["build-paychannel-create", "--from", R, "--to", GENESIS, "--amount", "1", "--settle-delay", "60", "--public-key", "ED" + "0"*64],
@@ -125,14 +128,16 @@ def run(cmd):
     start = time.time()
     try:
         p = subprocess.run(TOOL + cmd, cwd=ROOT, text=True, capture_output=True, timeout=12)
+        stdout = p.stdout.strip()
         out = (p.stdout + p.stderr).strip()
         out = re.sub(r'\bs[a-zA-Z0-9]{25,}\b', 's████REDACTED_TEST_SEED████', out)
-        return p.returncode, round(time.time() - start, 2), out[:500].replace("\n", " ")
+        return (p.returncode, round(time.time() - start, 2),
+                out[:500].replace("\n", " "), stdout)
     except subprocess.TimeoutExpired as e:
         stdout = e.stdout.decode(errors="ignore") if isinstance(e.stdout, bytes) else (e.stdout or "")
         stderr = e.stderr.decode(errors="ignore") if isinstance(e.stderr, bytes) else (e.stderr or "")
         out = (stdout + stderr).strip()
-        return "timeout", 12, out[:500].replace("\n", " ")
+        return "timeout", 12, out[:500].replace("\n", " "), stdout
 
 # Import command registry after writing TESTS so we catch drift.
 import scripts.xrpl_tools as registry
@@ -152,10 +157,13 @@ for name in commands:
                      "status": "SKIPPED-SAFETY", "sample": SKIPPED_SAFETY[name]})
         continue
     cmd = TESTS.get(name, [name])
-    code, seconds, sample = run(cmd)
+    code, seconds, sample, stdout = run(cmd)
     dangerous_ok = name in {"submit", "submit-multisigned", "wallet-from-seed"} and (code in (0, 1) or "Usage" in sample or "Need" in sample or "Error" in sample)
     long_ok = name == "subscribe" and code == "timeout"
-    builder_error = name.startswith("build-") and '"Error"' in sample
+    wire_error = builder_wire_error(name, stdout) if code == 0 else None
+    builder_error = name.startswith("build-") and ('"Error"' in sample or wire_error)
+    if wire_error:
+        sample = f"{sample} [WIRE ERROR: {wire_error}]"
     ok = (code == 0 or dangerous_ok or long_ok) and "Traceback" not in sample and not builder_error
     rows.append({"command": name, "argv": " ".join(shlex.quote(x) for x in cmd), "exit": code, "seconds": seconds, "status": "PASS" if ok else "FAIL", "sample": sample})
 

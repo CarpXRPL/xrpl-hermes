@@ -41,11 +41,19 @@ def test_build_nft_mint_hex_encodes_text_uri():
     assert tx["URI"] == "ipfs://example".encode().hex().upper()
 
 
-def test_build_nft_mint_passes_through_existing_hex_uri():
+def test_build_nft_mint_passes_through_explicitly_pre_encoded_uri():
     already_hex = "ipfs://example".encode().hex().upper()
-    tx = capture_json(tool_build_nft_mint, SRC, taxon=1, uri=already_hex)
-    # Already-hex input is not double-encoded — it passes through uppercased.
+    tx = capture_json(tool_build_nft_mint, SRC, taxon=1, uri_hex=already_hex)
+    # Pre-encoded input is not double-encoded — but it must be declared as hex.
+    # This used to be inferred from --uri looking like even-length hex, which
+    # made the text "cafe" mint as a literal URI of "cafe"; NFT URIs are
+    # immutable for the token's life, so the guess was permanent.
     assert tx["URI"] == already_hex
+
+
+def test_build_nft_mint_hex_encodes_uri_text_that_looks_like_hex():
+    tx = capture_json(tool_build_nft_mint, SRC, taxon=1, uri="cafe")
+    assert tx["URI"] == "63616665"
 
 
 def test_build_nft_mint_receipt_data_uri_round_trips():

@@ -12,12 +12,12 @@ def tool_book_offers(taker_gets: str, taker_pays: str):
         return (parts[0], parts[1] if len(parts) == 2 else None)
     gets_cur, gets_iss = parse_book_side(taker_gets)
     pays_cur, pays_iss = parse_book_side(taker_pays)
-    if gets_cur.upper() == "XRP":
+    if gets_cur == "XRP":
         gets_param = {"currency": "XRP"}
     else:
         gets_param = {"currency": gets_cur}
         if gets_iss: gets_param["issuer"] = gets_iss
-    if pays_cur.upper() == "XRP":
+    if pays_cur == "XRP":
         pays_param = {"currency": "XRP"}
     else:
         pays_param = {"currency": pays_cur}

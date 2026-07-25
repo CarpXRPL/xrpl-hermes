@@ -1,25 +1,30 @@
 #!/usr/bin/env python3
 """Clawback tool."""
 from ._shared import (
-    json_out, note_out, json_tx_out, IssuedCurrencyAmount, _dispatch_build, Clawback,
+    json_out, note_out, json_tx_out, usage_out, IssuedCurrencyAmount,
+    normalize_currency_code, validate_positive_issued_value, validate_xrpl_address,
+    _dispatch_build, Clawback,
 )
-import re
 
 def tool_build_clawback(frm: str, destination: str, currency: str,
                          amount: str, memo: str = None):
+    # float() accepted 'nan' and turned '1e400' into inf, so both passed the
+    # positivity guard and reached the payload. .upper() on the code retargeted
+    # case-sensitive 3-char codes and rejected every 4-20 char symbol outright.
     try:
-        amt_val = float(amount)
-        if amt_val <= 0:
-            print("Error: amount must be positive")
-            return
-    except ValueError:
-        print(f"Error: invalid amount '{amount}'")
+        currency_code = normalize_currency_code(currency)
+        if currency_code == "XRP":
+            raise ValueError("XRP is native and cannot be clawed back as an issued currency")
+        amount_obj = IssuedCurrencyAmount(
+            currency=currency_code,
+            issuer=validate_xrpl_address(destination, "holder account"),
+            value=validate_positive_issued_value(amount),
+        )
+    except ValueError as exc:
+        usage_out("build-clawback",
+                  "build-clawback --from rISSUER --destination rHOLDER --currency CUR "
+                  f"--amount VALUE. {exc}")
         return
-    cur = currency.upper()
-    if not (re.match(r'^[A-Z0-9]{3}$', cur) or re.match(r'^[0-9A-F]{40}$', cur)):
-        print(f"Error: currency must be 3-letter ISO code or 40-char hex, got '{currency}'")
-        return
-    amount_obj = IssuedCurrencyAmount(currency=cur, issuer=destination, value=amount)
     kwargs: dict = dict(account=frm, amount=amount_obj)
     if memo:
         memo_hex = memo.encode("utf-8").hex().upper()

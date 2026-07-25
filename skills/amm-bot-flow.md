@@ -131,8 +131,8 @@ python3 scripts/xrpl_tools.py build-offer \
 # Then deposit to AMM (single-asset deposit)
 python3 scripts/xrpl_tools.py build-amm-deposit \
   --from rBOT \
-  --asset1 XRP \
-  --asset2 USD:rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq \
+  --asset1 USD:rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq \
+  --asset2 XRP \
   --amount1 USD:rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq:50 \
   --mode single-asset
 ```
