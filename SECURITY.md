@@ -42,4 +42,4 @@ Any API keys you configure (`XRPLSCAN_API_KEY`, `XRPL_TO_API_KEY`, `XRPL_PRIVATE
 
 ## Reporting
 
-Report vulnerabilities by opening a GitHub Issue tagged `security`.
+Report vulnerabilities privately through [GitHub Security Advisories](https://github.com/CarpXRPL/xrpl-hermes/security/advisories/new). Do not open a public issue for an undisclosed vulnerability.
