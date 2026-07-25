@@ -13,7 +13,7 @@ Open-source XRPL tooling for AI agents and Python users. It combines a 65-file X
 
 ## What this is
 
-xrpl-hermes is a practical builder kit. It does not ask for wallet seeds, it does not submit transactions for you by default, and it does not pretend draft features are live. The normal flow is:
+xrpl-hermes is a practical builder kit. The agent/MCP flow never accepts wallet seeds or broadcasts transactions, and it does not pretend draft features are live. Optional key and broadcast utilities remain local-CLI-only and outside the agent boundary. The normal flow is:
 
 1. read the relevant knowledge file,
 2. check live network/amendment status when the feature depends on one,
@@ -62,7 +62,7 @@ XRPL-native agents — pre-trained on the ledger, able to launch tokens, deploy 
 
 - **Bring your own runtime.** Works as a Hermes Agent skill, or in OpenClaw, Claude Code, Cursor, and anything else that speaks MCP.
 - **Bring your own infrastructure.** Your machine, your VPS, or your own rippled/Clio node — public endpoints work out of the box.
-- **Keys stay yours.** Builders emit signer-ready JSON for your wallet; nothing here asks for or stores a seed.
+- **Keys stay yours.** Builders and MCP tools emit signer-ready JSON without accepting or storing a seed. Optional local-only wallet utilities are never exposed to agents.
 - **MIT licensed.** Use it, fork it, ship it inside your own product.
 
 If a hosted platform fits you better, use it — this repo exists so that self-hosting is a real option, not a compromise.
@@ -127,7 +127,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md) | Freshness cadence and the exact verification commands that keep the repo current |
 | [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 72-command list: `SKILL.md` tool table) |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
-| [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — every command, live-tested |
+| [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — safe commands exercised, side-effect commands explicitly skipped, zero failures |
 | [`docs/BUILD-BENCHMARK.md`](docs/BUILD-BENCHMARK.md) | Build-proof benchmark — L1→L3 + adversarial safety tasks proving an agent builds on XRPL safely (complements the tool matrix) |
 | [`skills/agent-receipt-flow.md`](skills/agent-receipt-flow.md) · [`references/track-agent-behavior.md`](references/track-agent-behavior.md) | Agent provenance: record a run as an unsigned on-chain receipt, and attribute/monitor behavior (SourceTag · Memos · WebSocket) |
 
@@ -149,7 +149,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | Wallet utils | 3 | `wallet-generate`, `wallet-from-seed`, `validate-address` |
 | Xaman Platform | 1 | `xaman-payload` |
 
-`build-batch` now warns when Batch is not enabled on XRPL mainnet. MPT, Credential, and Oracle builders also check the live amendment state before emitting JSON.
+`build-batch` is retired and unregistered because XLS-56 Batch is not enabled on XRPL mainnet. MPT, Credential, and Oracle builders check the live amendment state before emitting JSON.
 
 ## Knowledge map
 
@@ -248,7 +248,7 @@ python3 -m pytest -q
 python3 scripts/dev_test_matrix.py
 ```
 
-The dev-test matrix writes `AUDIT-tool-matrix.md` and verifies all registered commands without sending real transactions.
+The dev-test matrix writes `AUDIT-tool-matrix.md`, exercises the safe registered commands without sending real transactions, and explicitly records commands skipped to prevent seed generation or external signing requests.
 
 ## Contributing
 
