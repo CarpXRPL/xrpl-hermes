@@ -537,281 +537,59 @@ interface SubmitResult {
 
 ---
 
-## 16. Xahau Hooks with xrpl.js
+## 16. Xahau and JavaScript — Compatibility Boundary
 
-Xahau is a sidechain of the XRPL with native smart-contract support via **Hooks**. Hooks are small WASM modules attached to an account that execute on inbound/outbound transactions. xrpl.js can build, install, and read hooks against `wss://xahau.network`.
+Xahau is not an XRPL Mainnet endpoint. It uses Xahau network IDs (`21337` Mainnet, `21338` Testnet), Xahau-specific transaction definitions, and amendment state that can differ between its networks.
 
-### 16.1 Installing a Hook (`SetHook` transaction)
+Do **not** assume a generic `xrpl.js` installation can serialize Xahau-only types such as `SetHook`, `Invoke`, `Remit`, or URIToken transactions. Use a current Xahau-maintained JavaScript client/codec and pin its version. Validate the exact unsigned transaction against the target network's current `server_definitions.json` and `simulate` before signing.
 
-```javascript
-const xrpl = require('xrpl');
+XRPL-Hermes does not ship a JavaScript Xahau runtime or a `SetHook` builder. Its certified Xahau support is intentionally narrower:
 
-// Connect to Xahau (NOT XRPL mainnet)
-const client = new xrpl.Client('wss://xahau.network');
-await client.connect();
-
-const wallet = xrpl.Wallet.fromSeed('sn...');
-
-// CreateCode is the WASM bytecode (hex-encoded)
-const wasmHex = '0061736D01000000...'.toUpperCase();
-
-const setHookTx = {
-  TransactionType: 'SetHook',
-  Account: wallet.address,
-  Hooks: [{
-    Hook: {
-      CreateCode: wasmHex,
-      HookOn: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFE',
-      // HookOn bitmap: which transaction types trigger the hook.
-      // Each bit (inverted) represents a TT. 0xBFFFFE fires on Payment.
-      HookNamespace: 'A'.repeat(64),  // 32-byte hex namespace
-      HookApiVersion: 0,
-      Flags: 1,                        // hsfOverride — replace existing hook at this slot
-      HookParameters: [{
-        HookParameter: {
-          HookParameterName: xrpl.convertStringToHex('THRESHOLD'),
-          HookParameterValue: '00000000000F4240'  // 1,000,000 drops
-        }
-      }],
-      HookGrants: []                   // optional: grant other hooks state access
-    }
-  }]
-};
-
-const prepared = await client.autofill(setHookTx);
-const { tx_blob, hash } = wallet.sign(prepared);
-const result = await client.submitAndWait(tx_blob);
-
-console.log('SetHook result:', result.result.meta.TransactionResult);
-console.log('Hash:', hash);
-
-await client.disconnect();
+```bash
+python3 scripts/xrpl_tools.py hooks-bitmask Payment Invoke
+python3 scripts/xrpl_tools.py hooks-info rACCOUNT testnet
 ```
 
-**Key fields:**
-- `CreateCode` — WASM bytecode (compiled from C with hookapi.h, or AssemblyScript). Omit or set `''` to delete a hook slot.
-- `HookOn` — 256-bit bitmap, **inverted**: bit set = does NOT fire. Default `'F'.repeat(64)` fires on nothing.
-- `HookNamespace` — 32-byte hex string isolating this hook's state from others on the same account.
-- `HookApiVersion` — currently `0`.
-- `HookParameters` — runtime config readable from inside the hook via `hook_param`.
+Never adapt an XRPL example by only changing the endpoint or `TransactionType`. Never pass a seed to a node, script example, or agent.
 
-### 16.2 Querying Installed Hooks (`account_objects`)
+### Reading Xahau data from JavaScript
 
-```javascript
-// List all hooks on an account
-const resp = await client.request({
-  command: 'account_objects',
-  account: 'rN7n...',
-  type: 'hook',
-  ledger_index: 'validated'
-});
+For production code:
 
-for (const hookObj of resp.result.account_objects) {
-  console.log('Hook count:', hookObj.Hooks.length);
-  for (const h of hookObj.Hooks) {
-    const hk = h.Hook;
-    console.log('  Namespace:', hk.HookNamespace);
-    console.log('  HookHash:', hk.HookHash);  // sha256 of CreateCode
-    console.log('  HookOn:', hk.HookOn);
-    console.log('  Params:', hk.HookParameters);
-  }
-}
+1. use a current Xahau-aware library;
+2. connect to the explicit target endpoint;
+3. call `server_info` and require the expected `network_id`;
+4. request validated ledger state;
+5. treat top-level/result RPC errors as failures;
+6. preserve ledger index/hash and endpoint provenance.
 
-// Fetch the underlying HookDefinition (shared CreateCode)
-const def = await client.request({
-  command: 'ledger_entry',
-  hook_definition: 'ABCDEF...HookHash',
-  ledger_index: 'validated'
-});
-console.log('CreateCode size:', def.result.node.CreateCode.length / 2, 'bytes');
-console.log('Fee:', def.result.node.Fee);  // execution fee in drops
-```
+Installed Hooks are represented by Hook ledger objects, not fields embedded in `account_info`. The released Python CLI already applies this error/provenance discipline.
 
-### 16.3 Reading & Writing Hook State
+### Writing Xahau transactions
 
-Hook state is a per-namespace key-value store. **Writes happen inside the hook** (via `state_set`); JS reads it from outside.
+A safe JavaScript workflow is architectural, not copy-paste transaction JSON:
 
-```javascript
-// Read a single state entry
-const stateResp = await client.request({
-  command: 'ledger_entry',
-  hook_state: {
-    account: 'rN7n...',                          // hook owner
-    key: '0'.repeat(56) + '4F574E4552',           // 32-byte hex key, e.g. "OWNER" right-padded
-    namespace_id: 'A'.repeat(64)
-  },
-  ledger_index: 'validated'
-});
+1. prepare with a pinned Xahau-aware model/codec;
+2. include the correct `NetworkID`;
+3. decode and review all Xahau-specific fields;
+4. compare serialization against current target-network definitions;
+5. call `simulate` where supported;
+6. hand the unsigned payload to a user-controlled compatible wallet;
+7. verify validated transaction and resulting ledger state.
 
-console.log('State value:', stateResp.result.node.HookStateData);
-// Hex — decode based on what the hook stored
+No key handling or broadcast path is provided by XRPL-Hermes.
 
-// List all state entries in a namespace
-async function getHookState(account, namespace) {
-  const all = [];
-  let marker;
-  do {
-    const r = await client.request({
-      command: 'account_objects',
-      account,
-      type: 'hook_state',
-      limit: 400,
-      ...(marker && { marker })
-    });
-    for (const obj of r.result.account_objects) {
-      if (obj.HookStateData && obj.Namespace === namespace) {
-        all.push({ key: obj.HookStateKey, value: obj.HookStateData });
-      }
-    }
-    marker = r.result.marker;
-  } while (marker);
-  return all;
-}
+## 17. Xahau-Specific Protocol Notes
 
-const entries = await getHookState('rN7n...', 'A'.repeat(64));
-entries.forEach(e => {
-  const keyStr = xrpl.convertHexToString(e.key.replace(/00+$/, ''));
-  console.log(`${keyStr} = ${e.value}`);
-});
-```
+- Hooks are native Xahau account logic installed with `SetHook`; they are not XRPL Mainnet Hooks.
+- `HookOn` is a 256-bit active-low mask except active-high `SetHook` bit 22.
+- Hook chains are positional and contain up to 10 slots.
+- URIToken transaction types are Xahau-specific and not interchangeable with XRPL NFTs.
+- `Invoke` and `Remit` are Xahau protocol transaction types, not generic xrpl.js patterns.
+- Amendment support differs by network. At the 2026-07-25 review, Testnet enabled HookOnV2/NamedHooks while Mainnet disabled/vetoed them.
+- Historic Xahau burn-to-mint distribution must not be described as a current general bridge API.
 
-To **write** state from JS, you submit a transaction that triggers the hook; the hook itself calls `state_set`. There is no direct "write hook state" RPC.
-
-### 16.4 Decoding HookEmittedTxns and Hook Execution Results
-
-```javascript
-// After submitting a tx that triggered a hook, inspect emitted txns
-const result = await client.submitAndWait(tx_blob);
-const meta = result.result.meta;
-
-// HookExecutions array — one entry per hook that ran
-if (meta.HookExecutions) {
-  for (const he of meta.HookExecutions) {
-    const ex = he.HookExecution;
-    console.log('Hook account:', ex.HookAccount);
-    console.log('Return code:', ex.HookReturnCode);  // 0 = ROLLBACK, >0 = ACCEPT
-    console.log('Return string:', xrpl.convertHexToString(ex.HookReturnString || ''));
-    console.log('Instructions:', ex.HookInstructionCount);
-    console.log('Emitted count:', ex.HookEmitCount);
-  }
-}
-
-// Emitted transactions appear as their own validated txns with EmitDetails set
-```
-
----
-
-## 17. Xahau-Specific Patterns
-
-### 17.1 Connecting to Xahau
-
-```javascript
-// Mainnet
-const xahau = new xrpl.Client('wss://xahau.network');
-
-// Testnet
-const xahauTest = new xrpl.Client('wss://xahau-test.net');
-
-await xahau.connect();
-
-// Verify you're on Xahau, not XRPL
-const serverInfo = await xahau.request({ command: 'server_info' });
-console.log('Network ID:', serverInfo.result.info.network_id);
-// Xahau mainnet network_id = 21337
-// Xahau testnet network_id = 21338
-```
-
-**Critical:** Xahau transactions require a `NetworkID` field for any network with `network_id >= 1024`. xrpl.js v4+ autofills this if the client is connected to that network — but verify.
-
-```javascript
-const tx = {
-  TransactionType: 'Payment',
-  Account: wallet.address,
-  Destination: 'rDEST...',
-  Amount: '1000000',
-  NetworkID: 21337   // explicit, in case autofill misses it
-};
-```
-
-### 17.2 XAH as Native Gas Token
-
-Xahau's native asset is **XAH**, not XRP. The drops/decimal conversion is identical (1 XAH = 1,000,000 drops), but xrpl.js's helper is named `xrpToDrops` for legacy reasons — it works fine for XAH since the math is the same.
-
-```javascript
-// Convert XAH amounts using the same helpers
-const oneXah = xrpl.xrpToDrops('1');  // '1000000'
-const balance = await xahau.getXrpBalance(wallet.address);
-console.log(`${balance} XAH`);   // returns XAH on Xahau, XRP on XRPL
-
-// Fee on Xahau is dynamic and depends on installed hooks.
-// autofill() queries the right base fee + hook fee automatically.
-const prepared = await xahau.autofill(tx);
-console.log('Computed Fee (drops of XAH):', prepared.Fee);
-```
-
-### 17.3 Differences from XRPL Mainnet
-
-| Concept | XRPL | Xahau |
-|---|---|---|
-| Native asset | XRP | XAH |
-| Reserves | base 1 XRP, owner 0.2 XRP | typically lower; check `server_state` |
-| Hooks | not supported | native (`SetHook` tx) |
-| Network ID | not required | required (21337 mainnet) |
-| URITokens | NFTokenMint/Burn | URITokenMint/Burn (different tx types) |
-| AMM | yes | not currently supported |
-| Genesis amendments | full XRPL set | Xahau-specific, includes Hooks, Import, URIToken |
-
-```javascript
-// URIToken (Xahau equivalent of NFToken)
-const uriMintTx = {
-  TransactionType: 'URITokenMint',
-  Account: wallet.address,
-  URI: xrpl.convertStringToHex('ipfs://QmXXX...'),
-  Digest: 'ABCD'.repeat(16),    // optional 32-byte sha512half of content
-  Flags: 1                       // tfBurnable
-};
-
-// Import — bridge XRP from XRPL into Xahau as XAH
-// Requires a sync tx from XRPL mainnet (the "blob") plus this Import tx
-const importTx = {
-  TransactionType: 'Import',
-  Account: wallet.address,
-  Blob: '...long hex from XRPL Burn2Mint tx...'
-};
-```
-
-### 17.4 Hook Namespace & Parameter Conventions
-
-```javascript
-// Namespace: 32-byte hex, often sha256 of an ASCII tag
-const crypto = require('crypto');
-const namespace = crypto
-  .createHash('sha256')
-  .update('my-app:vault-v1')
-  .digest('hex')
-  .toUpperCase();
-
-// Parameter encoding helpers
-function paramName(s) {
-  // Param names: max 32 bytes, ASCII hex
-  return xrpl.convertStringToHex(s).padEnd(64, '0').slice(0, 64);
-}
-function paramUint64(n) {
-  // 8-byte big-endian uint64 — common for thresholds, timestamps
-  return BigInt(n).toString(16).padStart(16, '0').toUpperCase();
-}
-
-const params = [
-  { HookParameter: {
-      HookParameterName: paramName('MIN'),
-      HookParameterValue: paramUint64(1_000_000)
-  }},
-  { HookParameter: {
-      HookParameterName: paramName('ADMIN'),
-      HookParameterValue: xrpl.decodeAccountID('rADMIN...').toString('hex').toUpperCase()
-  }}
-];
-```
+Use `references/xahau-hooks.md` and `knowledge/51-xrpl-xahau-hooks.md` for the pinned protocol facts and current capability boundary.
 
 ---
 

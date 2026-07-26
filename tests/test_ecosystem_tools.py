@@ -44,14 +44,30 @@ def test_hookon_combined_types():
     assert mask & (1 << 1)           # EscrowCreate untouched
 
 
+def test_xahau_transaction_type_map_matches_pinned_live_definitions():
+    # Mainnet and Testnet server_definitions.json were identical for these IDs
+    # when pinned on 2026-07-25. Drift must trigger an explicit source refresh.
+    assert len(xahau.HOOKON_TT) == 77
+    assert xahau.HOOKON_TT["Payment"] == 0
+    assert xahau.HOOKON_TT["SetHook"] == 22
+    assert xahau.HOOKON_TT["URITokenMint"] == 45
+    assert xahau.HOOKON_TT["XChainCreateBridge"] == 57
+    assert xahau.HOOKON_TT["MPTokenAuthorize"] == 66
+    assert xahau.HOOKON_TT["PermissionedDomainDelete"] == 72
+    assert xahau.HOOKON_TT["Invoke"] == 99
+    assert xahau.HOOKON_TT["UNLReport"] == 104
+
+
 def test_normalize_tt_names_aliases_and_ids():
     assert xahau._normalize_tt("Payment") == ("Payment", 0)
     assert xahau._normalize_tt("payment") == ("Payment", 0)
     assert xahau._normalize_tt("ttPAYMENT") == ("Payment", 0)
     assert xahau._normalize_tt("PAYCHAN_CREATE") == ("PaymentChannelCreate", 13)
     assert xahau._normalize_tt("ttHOOK_SET") == ("SetHook", 22)
+    assert xahau._normalize_tt("TTPAYMENT") == ("Payment", 0)
     assert xahau._normalize_tt("99") == ("Invoke", 99)
-    assert xahau._normalize_tt("60") == ("tt60", 60)  # unnamed but valid tt ID
+    assert xahau._normalize_tt("60") == ("OracleSet", 60)
+    assert xahau._normalize_tt("200") == ("tt200", 200)  # unnamed but in-range
 
 
 def test_normalize_tt_rejects_unknown():
@@ -59,6 +75,84 @@ def test_normalize_tt_rejects_unknown():
         xahau._normalize_tt("NotARealType")
     with pytest.raises(ValueError):
         xahau._normalize_tt("300")  # out of 0-255 range
+    with pytest.raises(ValueError):
+        xahau._normalize_tt("١٢")  # Unicode numerals are not protocol IDs
+
+
+def test_hookon_cli_value_is_hash256_without_0x(capsys):
+    xahau.tool_hooks_bitmask("Payment")
+    out = json.loads(capsys.readouterr().out)
+    assert out["HookOn"] == "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFE"
+    assert len(out["HookOn"]) == 64
+    bytes.fromhex(out["HookOn"])
+
+
+def test_hookon_rejects_duplicates_and_invalid_ids(capsys):
+    xahau.tool_hooks_bitmask("Payment", "0")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "InvalidTransactionType"
+    with pytest.raises(ValueError):
+        xahau.compute_hookon([-1])
+    with pytest.raises(ValueError):
+        xahau.compute_hookon([True])
+
+
+def test_hooks_info_flattens_chain_and_reports_provenance(monkeypatch, capsys):
+    def fake_rpc(endpoint, method, params):
+        if method == "server_info":
+            return {"status": "success", "info": {
+                "network_id": 21338, "build_version": "review-test",
+            }}
+        assert endpoint == "https://xahau-test.net"
+        assert params["type"] == "hook"
+        return {
+            "status": "success", "validated": True, "ledger_index": 123,
+            "ledger_hash": "A" * 64,
+            "account_objects": [{
+                "LedgerEntryType": "Hook",
+                "Hooks": [
+                    {"Hook": {"HookHash": "B" * 64, "Flags": 0}},
+                    {"Hook": {}},
+                    {"Hook": {"HookHash": "C" * 64}},
+                ],
+            }],
+        }
+
+    monkeypatch.setattr(xahau, "_rpc", fake_rpc)
+    xahau.tool_hooks_info("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "testnet")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Network"] == "testnet"
+    assert out["NetworkID"] == 21338
+    assert out["Validated"] is True
+    assert out["HookCount"] == 2
+    assert [hook["Slot"] for hook in out["Hooks"]] == [0, 2]
+
+
+def test_hooks_info_never_turns_rpc_error_into_zero_hooks(monkeypatch, capsys):
+    monkeypatch.setattr(
+        xahau,
+        "_live_network_metadata",
+        lambda config: {"Network": "mainnet", "NetworkID": 21337},
+    )
+    monkeypatch.setattr(
+        xahau,
+        "_rpc",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("actNotFound: Account not found.")),
+    )
+    xahau.tool_hooks_info("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "RuntimeError"
+    assert "actNotFound" in out["Message"]
+    assert "HookCount" not in out
+
+
+def test_hooks_info_rejects_unknown_network_and_x_address(capsys):
+    xahau.tool_hooks_info("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "devnet")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "ValueError"
+    xahau.tool_hooks_info("XV5kHfQmzDQjbFNv4jX3FX9Y7ig5Qh97nmiT13NvP34UcNg", "testnet")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "ValueError"
 
 
 # --- Arweave size parsing ---

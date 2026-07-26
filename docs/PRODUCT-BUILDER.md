@@ -58,7 +58,7 @@ If the deliverable is a single transaction signed by the user's wallet today, us
 | live | Treasury/multisig tool | `skills/treasury-tool-product-flow.md` | read-only treasury cockpit + unsigned proposal workflow |
 | live | NFT/community product | `skills/nft-community-product-flow.md` | mint/offer/holder-verification loop |
 | live | AMM/DEX product | `skills/amm-dex-product-flow.md` | pool/orderbook explorer + timestamped quote view |
-| live | Xahau Hook app | `skills/xahau-hook-app-product-flow.md` | hook use-case plan + HookOn calculation + install verification |
+| partial/planning | Xahau Hook app | `skills/xahau-hook-app-product-flow.md` | use-case plan + HookOn calculation + validated install inspection; external compile/deploy |
 | live | RWA/compliance rails | `skills/rwa-compliance-product-flow.md` | technical issuance rails with counsel boundary |
 | live | Self-hosted XRPL agent stack | `skills/xrpl-agent-stack-product-flow.md` | MCP-powered read-only agent job + human-signed builder loop |
 

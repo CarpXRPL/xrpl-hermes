@@ -1,7 +1,7 @@
 ---
 name: xrpl-hermes
 description: >
-  ☤ XRPL-Hermes — Your AI. On-Ledger. Full ecosystem knowledge (65 files, 33K+ lines) + 72 working tools (67 agent-safe over MCP; key-management and broadcast stay in the local CLI) + MCP server covering L1, EVM Sidechain, Xahau Hooks (incl. HookOn calculator), Flare FTSOv2 on-chain reads, Axelar bridge status, Arweave cost estimates, Evernode, RLUSD, RWA tokenization, signer-separated agentic payments (XRP + RLUSD) and x402/HTTP-402, token intelligence, and live amendment checks. Dual-stack: Python (xrpl-py) + TypeScript/JavaScript (xrpl.js). The open-source XRPL agent stack — self-hosted, keys stay yours.
+  ☤ XRPL-Hermes — Your AI. On-Ledger. Curated XRPL knowledge (65 files, 27K+ lines) + 72 CLI commands (67 agent-safe over MCP; key-management and broadcast stay local). Certified XRPL L1 reads and unsigned builders, partial Xahau HookOn/chain inspection, and explicitly labeled experimental/external EVM Sidechain, Flare, Axelar, and Arweave reads. Includes signer-separated XRP/RLUSD payment workflows, token intelligence, and live amendment checks. Non-custodial: keys stay yours; your wallet signs; the agent verifies.
 version: 1.8.3
 author: CarpXRPL
 activation:
@@ -97,7 +97,7 @@ For product altitude, ask at most the missing intake questions: **who uses it, c
 | Account settings / delete / regular key / deposit preauth | `skills/account-access-safety-flow.md` + `knowledge/01`, `60` | `account rADDR`, `build-account-set`, `build-account-delete`, `build-set-regular-key`, `build-deposit-preauth` |
 | Clawback / freeze | `skills/clawback-flow.md` + `knowledge/07` | `account rISS` (flags), `trustlines`, `build-clawback`; freeze = TrustSet with a hand-added `Flags` field (`build-trustset` takes no flags — see note below) |
 | NFTs — mint / offers / accept / cancel / burn | `skills/nft-operations-flow.md` + `knowledge/06`, `23`, `39`, `62` | `nft-info`, `nft-offers`, `build-nft-mint/-create-offer/-accept-offer/-cancel-offer/-burn` |
-| Xahau Hooks setup / HookOn | `skills/xahau-hook-setup-flow.md` + `knowledge/51`, `32`, `43` | `hooks-bitmask TXTYPE…`, `hooks-info rADDR` |
+| Xahau Hooks planning / inspection | `skills/xahau-hook-setup-flow.md` + `references/xahau-hooks.md` | `hooks-bitmask TXTYPE…`, `hooks-info rADDR [mainnet|testnet]`; no compile/build/sign/deploy |
 | EVM Sidechain | `knowledge/50`, `33`, `29` + `references/xrpl-evm-sidechain.md` | `evm-balance`, `evm-contract`, `evm-bridge` |
 | Flare / FTSO prices | `knowledge/49` + `references/flare-ftso.md` | `flare-ftso PAIR…` (on-chain read); `flare-price` (labeled public fallback) |
 | Axelar bridge status / transfer tracking | `knowledge/46` + `references/axelar-bridge.md` | `bridge-status`, `bridge-tx TXHASH` |
@@ -137,7 +137,7 @@ Full access to `./knowledge/` and `./references/`. Always read the most relevant
 | **5. Wallets** (26-30) | 5 files | Xaman, Joey, Privy, MetaMask, xrpl-py |
 | **6. Side Ecosystems** (31-35) | 5 files | xrpl.js, Hooks Dev, EVM Dev, AMM Bots, Full Interop |
 | **7. Advanced & Ecosystem** (36-45) | 10 files | XLS Standards, Amendments, Minting Ops, NFT Ops, Monitoring, Bot Patterns, Treasury, Hooks Advanced, EVM Advanced, Ecosystem Map |
-| **8. Cross-Chain & Infrastructure** (46-55) | 10 files | Axelar Bridge, Arweave, TX Ecosystem, Flare FTSO, EVM Sidechain, Xahau Hooks (v3+URITokens+B2M), L1 Reference, Wallets Auth, Evernode, Sidechain Interop |
+| **8. Cross-Chain & Infrastructure** (46-55) | 10 files | Axelar Bridge, Arweave, TX Ecosystem, Flare FTSO, EVM Sidechain, Xahau Hooks protocol/operations, L1 Reference, Wallets Auth, Evernode, Sidechain Interop |
 | **9. Community & Compliance** (56-63) | 8 files | Telegram Bots (56), Discord Bots (57), RLUSD Operations (58), RWA Tokenization (59), AccountSet (60), WebSocket Streams (61), NFT Marketplace (62), Xaman Platform (63) |
 | **9b. Agent Discipline** (64-65) | 2 files | Token Intelligence Reports (64), Freshness & Source Policy (65) |
 | **10. References** (15 files) | 15 files | Quick-reference cards: XRPL L1, EVM, Hooks, Flare, Axelar, Arweave, TX, Wallets, RLUSD, Amendments, Token Intelligence, Attention Bridge, **Agentic Payments**, **x402**, **Track Agent Behavior**. Depth lives in `knowledge/` — load a card first, then the deep file it points to. |
@@ -150,7 +150,7 @@ Full access to `./knowledge/` and `./references/`. Always read the most relevant
 | RWA token issuance / SPV / Reg D | `59-rwa-tokenization.md` |
 | Telegram bot integration | `56-telegram-xrpl-bots.md` |
 | Discord bot integration | `57-discord-xrpl-bots.md` |
-| Xahau Hooks v3 / URITokens / B2M | `51-xrpl-xahau-hooks.md` |
+| Xahau Hooks / URITokens / amendment drift | `51-xrpl-xahau-hooks.md` |
 | AMM liquidity / swaps | `05-xrpl-amm.md` |
 | MPT issuance | `08-xrpl-mpts.md` |
 | Clawback / freeze | `07-xrpl-clawback.md` |
@@ -243,7 +243,7 @@ The `scripts/xrpl_tools.py` dispatcher provides 72 XRPL-native commands through 
 | 60 | EVM Contract | `evm-contract --from 0xADDR --bytecode HEX` | Contract deploy JSON |
 | 61 | EVM Bridge | `evm-bridge [mainnet|testnet]` | Bridge status |
 | 62 | Hooks Bitmask | `hooks-bitmask TXTYPE [TXTYPE ...]` | Xahau HookOn bitmask for the given tx types (e.g. `hooks-bitmask Payment Invoke`) |
-| 63 | Hooks Info | `hooks-info rADDRESS` | Xahau hooks lookup |
+| 63 | Hooks Info | `hooks-info rADDRESS [mainnet|testnet]` | Validated Xahau Hook-chain lookup with network/ledger provenance |
 | 64 | Flare Price | `flare-price XRP BTC` | Price context using public fallback; not direct FTSO proof |
 | 65 | Amendments | `amendments [FILTER]` | Live XRPL mainnet amendment inventory |
 | 66 | Amendment | `amendment NAME_OR_ID` | One amendment's enabled/supported/vetoed status |
@@ -337,18 +337,18 @@ Every token assessment must state: the data gathered (with sources), a **confide
 
 Full methodology, risk-flag catalog, and report template: `knowledge/64-token-intelligence-reports.md` (quick card: `references/token-intelligence.md`).
 
-## Wallet Login Flows
+## Wallet Login and Signing Boundaries
 
-Sign-in and signing handoff are solved problems — don't reinvent them:
+Wallet handoff is an external integration, not a solved universal capability. Verify every wallet's current first-party API, target network, transaction type, and decoded signing behavior before use.
 
-| Wallet | Flow | File |
+| Wallet | Current posture | File |
 |---|---|---|
-| Xaman | Payload API + deep link (`xaman-payload` tool) | `knowledge/26-xrpl-xaman-deeplink.md`, `63-xrpl-xaman-platform.md` |
-| Joey | Wallet connect + signing handoff | `knowledge/27-xrpl-joey-wallet.md` |
-| Privy | Embedded wallet auth for web apps | `knowledge/28-xrpl-privy-auth.md` |
-| MetaMask | EVM Sidechain (chain ID 1440000 mainnet / 1449000 testnet) | `knowledge/29-xrpl-metamask-evm.md` |
+| Xaman | External Platform payload API via `xaman-payload`; requires configured application credentials; creating a payload is an external side effect | `knowledge/26-xrpl-xaman-deeplink.md`, `63-xrpl-xaman-platform.md` |
+| Joey | Unsupported/unverified; do not assume current XRPL, Xahau, or Hook transaction support | `knowledge/27-xrpl-joey-wallet.md` |
+| Privy | External embedded-wallet/auth dependency; custody and transaction support require separate acceptance | `knowledge/28-xrpl-privy-auth.md` |
+| MetaMask | External EVM wallet; require live chain-ID and decoded-call verification | `knowledge/29-xrpl-metamask-evm.md` |
 
-All four are covered end-to-end in `knowledge/53-xrpl-wallets-auth.md`.
+Canonical safety policy: `references/xrpl-wallets-auth.md`. Keys remain in the user's wallet; Hermes verifies the validated/finalized result.
 
 ## Behavior Patterns
 

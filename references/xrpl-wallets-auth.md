@@ -1,86 +1,61 @@
-# XRPL Wallets & Auth — Complete Reference
+# Wallet and Authentication — Safety Card
 
-## Xaman Wallet
-Formerly XUMM. Most popular XRPL mobile wallet.
+## Non-custodial rule
 
-### Key Features
-- Non-custodial (keys stored on device only)
-- XRPL L1 native
-- Deep-link signing (Pay URL scheme: https://xumm.app/detect/...)
-- Push notifications for transactions
-- NFT viewer and management
-- Multi-account support
-- In-app DEX and AMM access
+XRPL-Hermes is not a wallet. It must not receive, derive, print, persist, or transmit a seed, mnemonic, private key, or recovery secret. Hermes builds or reviews unsigned intent; the user's wallet shows and signs it; Hermes verifies the validated/finalized result.
 
-### Deep Link Format
-xumm://sign - Full signing request
-https://xumm.app/detect/ - Browser detection with auto-app-open
-Payload: JSON transaction object. Xaman parses, validates, signs, returns tx_blob.
+## Capability status
 
-### Signing Flow
-1. App creates signing payload (JSON tx)
-2. Generates a sign-in URL / QR code
-3. User opens in Xaman on phone
-4. Xaman validates, user reviews and signs
-5. Xaman returns signed tx_blob
-6. App submits blob to XRPL network via xrpl-py
+| Integration | Current posture |
+|---|---|
+| Xaman Platform payload | external API integration; requires user-supplied application credentials; external-side-effect command is safety-skipped by autonomous tests |
+| XRPL local CLI broadcast/key commands | excluded from MCP; only deliberate local use |
+| Joey | unsupported/unverified; do not assume current distribution, API, XRPL support, Xahau support, or Hook transaction support |
+| Crossmark | external wallet; verify current first-party API and target transaction support |
+| MetaMask / EVM wallet | external wallet; verify current chain ID and decoded call |
+| Privy or other embedded wallet | external/custodial-policy dependency; verify custody, export, recovery, region, and transaction-decoding behavior |
+| Hardware wallet | external dependency; verify exact network and transaction-type support |
 
-### API
-- Xaman API: (requires API key) for advanced features
-- Subscription: real-time tx status via WebSocket
+## Required handoff fields
 
-## Joey Wallet
-Lightweight XRPL web wallet by XRPL Labs.
+Before creating any signing request, show:
 
-### Key Features
-- Browser-based (no install required)
-- XRPL L1 and Hooks support
-- Trust line management
-- Transaction signing via browser extension
-- Xahau Hooks compatible
+- exact target network and network/chain ID;
+- transaction type or EVM method;
+- source account;
+- destination/account/contract;
+- asset/currency and issuer/contract;
+- gross amount, fees/gas, limits, and slippage where relevant;
+- destination tag, memo, Hook parameters, or calldata in decoded form;
+- expiration/last-ledger constraints;
+- why the action is needed and what state it changes.
 
-### Use Cases
-- Quick web dApp authentication
-- Hooks testing and deployment
-- Development and testing
+Reject network ambiguity, placeholder addresses, unverified issuers/contracts, hidden calldata, unsupported transaction types, and stale wallet capability assumptions.
 
-## Privy Auth
-Web3 authentication SDK. No seed phrases, no browser extensions.
+## Xahau boundary
 
-### Features
-- Email/social login + embedded wallet creation
-- Supports XRPL keys (Ed25519)
-- Wallet abstraction (user doesn't see keys)
-- Pre-built React components
-- Multi-chain support (ETH, SOL, XRPL)
+No wallet is certified by this reference for Xahau `SetHook`, `Invoke`, `Remit`, or URIToken signing. Xahau uses separate Mainnet/Testnet identity and definitions. Use a current Xahau-aware serializer and a currently documented Xahau-compatible wallet, verify decoded `NetworkID` and transaction fields, and keep all keys in the wallet.
 
-### Integration
-```javascript
-import { PrivyProvider, usePrivy } from '@privy-io/react-auth';
-usePrivy().login(); // Email, Google, Twitter, Discord
-usePrivy().getEthereumWallet(); // Ethers provider
-// XRPL signing via custom integration
-```
+XRPL-Hermes can only calculate legacy `HookOn` and inspect validated installed hook chains. See `references/xahau-hooks.md`.
 
-## MetaMask (EVM Sidechain)
-### Setup
-1. Add XRPL EVM Sidechain RPC
-2. Network Name: XRPL EVM Sidechain
-3. RPC URL: https://rpc.xrplevm.org
-4. Chain ID: 1440000
-5. Currency: wXRP
+## Callback and verification
 
-### Usage
-- Deploy and interact with Solidity contracts
-- Bridge XRP/RLUSD via sidechain bridge UI
-- Sign transactions for EVM dApps
-- WalletConnect for mobile
+1. Generate a unique application-side intent ID and nonce.
+2. Bind the wallet request to the authenticated user, expected account, exact network, and short expiry.
+3. Store no secrets in URLs, logs, analytics, or callbacks.
+4. Authenticate callback/webhook messages according to the wallet's current first-party specification.
+5. Treat wallet/API completion as provisional.
+6. Independently fetch the submitted transaction from the intended network.
+7. Require validated/finalized success and compare every material field with the approved intent.
+8. Record transaction hash, ledger/block, network, account, decoded fields, and verification time.
+9. Do not credit balances or unlock application state on an unvalidated callback alone.
 
-## Comparison
+## Xaman notes
 
-| Wallet | Type | Best For |
-|--------|------|----------|
-| Xaman | Mobile app | Daily XRPL use, payments, tokens, NFTs |
-| Joey | Browser plugin | Hooks dev, web dApps, fast auth |
-| Privy | SDK | Embedded wallets, social login, no seed phrase UX |
-| MetaMask | Browser plugin | EVM sidechain, Solidity dev, DeFi |
+Use `xaman-payload` only with valid Xaman Platform credentials and a complete, reviewed unsigned XRPL transaction. Creating a payload is an external side effect. Never expose the application secret client-side. Verify the returned payload UUID and then verify the final XRPL transaction independently.
+
+Current first-party documentation: <https://docs.xaman.dev/>
+
+## Acceptance requirement for any wallet claim
+
+A compatibility claim requires a current official source, pinned app/SDK version, exact network and transaction type, exercised unsigned-to-wallet flow, decoded review screen, user rejection test, validated-result verification, and documented failure/recovery behavior. Without that evidence, label it external/unverified.

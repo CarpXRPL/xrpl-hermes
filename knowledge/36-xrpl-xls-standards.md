@@ -322,8 +322,7 @@ commit = XChainCommit(
 
 ## Hooks (Smart Contracts — Xahau)
 
-**Status:** Draft — live on Xahau network, pending for XRPL mainnet  
-Hooks are small WebAssembly programs that execute on transaction acceptance. See `knowledge/43-xrpl-hooks-advanced.md` for full detail.
+**Status:** Native Xahau protocol feature. Xahau is a separate XRPL-protocol network; this file makes no claim that Hooks are pending or scheduled for XRPL Mainnet. See `references/xahau-hooks.md` for the certified Xahau boundary and current source pins.
 
 ---
 

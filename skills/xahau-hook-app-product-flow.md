@@ -1,73 +1,75 @@
 # Xahau Hook App Product Flow
 
-Use this playbook when the user wants a Xahau Hook app, on-ledger automation product, account firewall, auto-forwarder, savings rule, or Xahau-specific product.
+Use for a Xahau on-ledger automation product. This archetype is **partial/planning**, not a deployable end-to-end Hermes product.
 
-## Product promise
+## Product boundary
 
-A realistic Xahau Hook product plan with a hard boundary:
+XRPL-Hermes can produce a grounded product specification, calculate legacy `HookOn`, and inspect validated installed Hook state on Mainnet/Testnet. It does not compile, audit, serialize, sign, submit, or deploy Hooks.
 
-XRPL-Hermes can plan, calculate HookOn, and verify installed hook state. It does not compile, audit, or deploy hook C/WASM code; those steps happen in the Xahau toolchain outside this skill.
+## Intake
 
-## Triggers
+Capture:
 
-- "build a Xahau Hook app"
-- "on-ledger automation"
-- "account firewall hook"
-- "auto-forward hook"
-- "Xahau product"
-
-## Target user
-
-Advanced builders using Xahau for on-ledger logic.
-
-## XRPL/Xahau primitives
-
-- SetHook transaction structure
-- HookOn bitmask
-- installed hook state
-- Xahau reserves / account objects
-- URITokens where relevant
+- user and painful workflow;
+- one narrow Hook behavior;
+- Xahau Testnet account and chain slot;
+- intended and explicitly excluded transaction types;
+- accept/reject/state/emission behavior;
+- off-ledger UI/indexing/monitoring needs;
+- rollback and business model.
 
 ## Read first
 
 - `skills/build-xrpl-product-flow.md`
 - `skills/xahau-hook-setup-flow.md`
-- `knowledge/32-xrpl-hooks-dev.md`
-- `knowledge/43-xrpl-hooks-advanced.md`
-- `knowledge/51-xrpl-xahau-hooks.md`
+- `references/xahau-hooks.md`
 
-## Commands/tools
+## Grounding commands
 
-- `hooks-bitmask TXTYPE ...`
-- `hooks-info rADDR`
+```bash
+python3 scripts/xrpl_tools.py hooks-bitmask Payment Invoke
+python3 scripts/xrpl_tools.py hooks-info rACCOUNT testnet
+```
+
+Use `mainnet` only for read-only inspection until Testnet acceptance and independent audit are complete.
 
 ## MVP deliverable
 
-1. Pick one narrow hook behavior.
-2. State what happens on matching and non-matching transaction types.
-3. Calculate HookOn with `hooks-bitmask`.
-4. Hand hook code compile/deploy to Xahau tooling outside XRPL-Hermes.
-5. Verify install with `hooks-info`.
-6. Document rollback/delete plan.
+1. Product one-pager and user flow.
+2. Precise Hook behavior/non-behavior contract.
+3. Target network ID, account, chain slot, and current validated chain snapshot.
+4. Calculated legacy `HookOn` with resolved transaction IDs.
+5. Off-ledger architecture for UI, indexing, receipts, and monitoring.
+6. External-toolchain handoff: source, build, Xahau-aware serialization, simulation, wallet signing.
+7. Testnet acceptance plan: positive, negative, boundary, malformed-input, and rollback tests.
+8. Honest monetization/cost assumptions without inventing XAH fees or limits.
 
-## Testnet demo checklist
+## Testnet acceptance
 
-- Hook deployed through Xahau tooling on testnet.
-- `hooks-info` proves it is installed.
-- One triggering transaction behaves as expected.
-- One non-triggering transaction is unaffected.
-- HookOn bitmask is documented.
+- endpoint proves `NetworkID=21338`;
+- source and resulting WASM are independently reviewable;
+- exact unsigned `SetHook` passes current Xahau serialization and simulation;
+- user signs outside Hermes;
+- validated transaction and installed hash/slot match reviewed artifacts;
+- trigger and non-trigger behavior match the specification;
+- rollback succeeds and validated post-state is recorded.
 
-## Mainnet-safe checklist
+## Mainnet gate
 
-- Code audited externally before real funds.
-- Rollback/delete rehearsed on testnet.
-- Product docs clearly say Xahau Hooks are not XRPL mainnet Hooks.
-- The UI never claims Hermes compiled/deployed the hook.
+Do not call the product Mainnet-ready until:
 
-## Common failure modes
+- current Mainnet amendments support every used field;
+- independent security audit passes;
+- fees/reserves and operational risks are measured live;
+- monitoring and emergency recovery are implemented;
+- a human explicitly approves signing.
 
-- Assuming Hooks exist on XRPL mainnet.
-- HookOn active-low inversion mistakes.
-- Unaudited hook blocks or redirects funds unexpectedly.
-- Promising behavior that cannot be verified with `hooks-info`.
+## Failure modes
+
+- confusing Xahau with XRPL Mainnet;
+- hand-editing active-low masks;
+- using Testnet-only fields such as currently enabled HookOnV2/NamedHooks on Mainnet;
+- presenting a malformed `SetHook` template as signer-ready;
+- using opaque WASM or unpinned tooling;
+- counting an RPC error as an empty chain;
+- claiming Hermes compiled or deployed the Hook.

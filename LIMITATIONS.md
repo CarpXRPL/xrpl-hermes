@@ -32,5 +32,5 @@ The allowlist is default-deny, so any command not classified — including futur
 ## Honest coverage notes
 - Axelar and Arweave commands are read-only: `bridge-status`/`bridge-tx` inspect public status APIs, and `arweave-cost` estimates storage cost. They do not execute bridges, upload data, or touch keys.
 - `flare-price` uses a public price API fallback and is labeled as such; use `flare-ftso` for direct read-only FTSOv2 `eth_call` lookups.
-- `hooks-bitmask` calculates Xahau `HookOn` bitmasks, but builders should still verify transaction-type coverage against current Xahau docs before production use.
+- Xahau support is read/planning only: `hooks-bitmask` calculates legacy `HookOn`, and `hooks-info` reads validated Mainnet/Testnet Hook chains. XRPL-Hermes does not compile, serialize, build, sign, submit, or deploy Xahau transactions. Verify live transaction types and enabled amendments before use.
 - Never put a seed in a prompt, chat, or CLI argument. Builders emit unsigned, signer-ready JSON only — see `SECURITY.md`.

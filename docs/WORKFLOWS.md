@@ -17,7 +17,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Canonical umbrella: `skills/build-xrpl-product-flow.md`
 - Human hub: `docs/PRODUCT-BUILDER.md`
 - Product altitude test: if the deliverable is signed by the user's wallet today, use an operation flow; if it is software other people or agents will use, use Product Builder Mode first.
-- Live product playbooks: wallet-signing UX, payment app, agentic payments/x402, token intelligence, token launch platform, treasury/multisig tool, NFT/community product, AMM/DEX product, Xahau Hook app, RWA/compliance rails, and self-hosted XRPL agent stack.
+- Product playbooks include wallet-signing UX, payments, agentic payments/x402, token intelligence, token launch, treasury, NFTs, AMM/DEX, RWA, and self-hosted agents. Xahau Hook apps are partial/planning until external compilation and deployment are independently certified.
 - Live checks used during planning as needed: `server-info`, `account`, `tx-info`, `token-intel`, `amm-info`, `book-offers`, `path-find`, `amendment`.
 
 ---
@@ -86,12 +86,12 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 ## Xahau / Hooks
 
-**Coverage: partial — live HookOn calculator, one live query, deep references.**
+**Coverage: partial/certified boundary — HookOn calculation and validated Mainnet/Testnet Hook-chain inspection. No compile/build/sign/deploy.**
 
-- `hooks-info` — live query of installed hooks on a Xahau account
-- `hooks-bitmask Payment OfferCreate …` — calculates the 256-bit Xahau `HookOn` transaction-type bitmap with active-low semantics (except SetHook). It outputs the hex value and the transaction types it will trigger on.
-- Knowledge: `32-xrpl-hooks-dev.md`, `43-xrpl-hooks-advanced.md`, `51-xrpl-xahau-hooks.md` (Hooks v3, URITokens, B2M), `54-xrpl-evernode-hosting.md` · Card: `references/xahau-hooks.md`
-- Workflow playbook: `skills/xahau-hook-setup-flow.md` (what the toolkit can/cannot do, HookOn calculation, manual SetHook template)
+- `hooks-info rADDR [mainnet|testnet]` — validated installed-chain query with endpoint/network/ledger provenance and explicit RPC errors
+- `hooks-bitmask Payment OfferCreate …` — calculates the legacy 256-bit active-low bitmap (special active-high SetHook bit) as 64 hex characters without `0x`
+- Knowledge: `32-xrpl-hooks-dev.md`, `43-xrpl-hooks-advanced.md`, `51-xrpl-xahau-hooks.md` · pinned card: `references/xahau-hooks.md`
+- Workflow: `skills/xahau-hook-setup-flow.md` — external compiler/Xahau serializer/wallet handoff, Testnet evidence, rollback, and Mainnet approval gate
 
 ## Flare — price context
 

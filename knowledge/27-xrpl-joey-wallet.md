@@ -2,7 +2,7 @@
 
 ## Overview
 
-Joey is a browser-based XRPL wallet designed for developers and power users. It supports Hooks (on Xahau), trust line management, multi-account handling, Xahau compatibility, and quick authentication — making it ideal for development, testing, and advanced XRPL operations.
+This legacy article describes an unverified browser-wallet interface. Joey's current distribution, API, network support, and security posture were not certified during the v1.9.0 review. Do not treat the examples as an official SDK contract; verify every capability against a current first-party Joey source before use.
 
 ---
 
@@ -11,8 +11,7 @@ Joey is a browser-based XRPL wallet designed for developers and power users. It 
 | Feature | Description |
 |---------|-------------|
 | Browser-based | Chrome extension, no mobile required |
-| Hooks support | Interact with Xahau Hook accounts |
-| Xahau compatible | Works on both XRPL mainnet and Xahau |
+| Xahau/Hooks | Unsupported/unverified in XRPL-Hermes |
 | Trust line manager | View, create, and remove trust lines |
 | Multi-account | Manage multiple wallets in one interface |
 | Quick auth | One-click sign for dApp interactions |
@@ -143,62 +142,26 @@ async function checkTrustLine(account, currency, issuer) {
 
 ---
 
-## 6. Xahau Network Support
+## 6. Xahau Compatibility Boundary
 
-Joey can connect to Xahau (the Hooks-enabled XRPL sidechain):
+Do not assume the Joey wallet API supports Xahau, Xahau network switching, `SetHook`, or `Invoke`. The former examples were removed because their wallet methods, network selector, HookOn encoding, and signing behavior were not verified against a current official Joey source.
 
-```javascript
-// Switch to Xahau
-await window.xrpl.joey.request({
-  method: 'switchNetwork',
-  network: 'xahau'  // or 'mainnet', 'testnet', 'devnet'
-});
+For a Xahau flow:
 
-// Get current network
-const network = await window.xrpl.joey.request({
-  method: 'getNetwork'
-});
-console.log(network);  // { name: 'xahau', node: 'wss://xahau.network' }
-```
+1. use `references/xahau-hooks.md` for protocol facts;
+2. use a currently documented Xahau-compatible wallet;
+3. prepare and simulate the unsigned transaction with a current Xahau-aware serializer;
+4. show the exact decoded network ID, chain slot, flags, mask, namespace, parameters, grants, and code/hash to the user;
+5. let the user approve and sign in the wallet;
+6. verify validated post-state with `hooks-info rACCOUNT testnet`.
+
+XRPL-Hermes does not provide a Joey-to-Xahau signing adapter.
 
 ---
 
 ## 7. Hooks Interaction via Joey
 
-Hooks are smart contract-like programs on Xahau. Joey surfaces Hook data and can sign Hook-related transactions:
-
-```javascript
-// Sign HookSet (install a Hook on Xahau)
-async function installHook(hookDefinitionHash) {
-  const tx = {
-    TransactionType: 'SetHook',
-    Hooks: [
-      {
-        Hook: {
-          HookHash: hookDefinitionHash,
-          HookOn: '0000000000000000',  // trigger bitmask
-          HookNamespace: '0'.repeat(64),
-          HookApiVersion: 0,
-          Flags: 1  // hsfOVERRIDE
-        }
-      }
-    ]
-  };
-  
-  return window.xrpl.joey.signAndSubmit(tx);
-}
-
-// Sign invoke (call a Hook)
-async function invokeHook(hookAccount, blobData) {
-  const tx = {
-    TransactionType: 'Invoke',
-    Destination: hookAccount,
-    Blob: blobData
-  };
-  
-  return window.xrpl.joey.signAndSubmit(tx);
-}
-```
+**Status: unsupported/unverified.** Do not generate Joey `SetHook` or `Invoke` calls from this knowledge file. Consult current official Joey documentation and independently certify that capability before adding an integration.
 
 ---
 
@@ -315,7 +278,7 @@ await window.xrpl.joey.request({
 |---------|------|-------|---------|-----------|
 | Browser extension | ✅ | ❌ | ✅ | ✅ |
 | Mobile app | ❌ | ✅ | ✅ | ❌ |
-| Hooks/Xahau | ✅ | Partial | ❌ | ❌ |
+| Hooks/Xahau | Unverified | Unverified | Unverified | Unverified |
 | Push notifications | ❌ | ✅ | ❌ | ❌ |
 | Dev tools | ✅ | ❌ | Partial | ✅ |
 | Multi-account | ✅ | ✅ | ✅ | ✅ |

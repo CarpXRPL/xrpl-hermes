@@ -1,14 +1,29 @@
 #!/usr/bin/env python3
-"""Xahau Hooks tools: live hook inspection and HookOn bitmask calculation."""
-from ._shared import (
-    json_out, usage_out,
-)
-import httpx, sys
+"""Read-only Xahau network tools and deterministic HookOn calculation.
+
+No function in this module signs or submits a transaction.
+"""
+from datetime import datetime, timezone
+import re
+import sys
+from typing import Any
+
+import httpx
+from xrpl.core.addresscodec import is_valid_classic_address
+
+from ._shared import json_out, usage_out
+
+# Official public JSON-RPC endpoints and network IDs. The live server_info result
+# is checked on every hooks-info request so an endpoint cannot be silently
+# mislabeled.
+XAHAU_NETWORKS = {
+    "mainnet": {"endpoint": "https://xahau.network", "network_id": 21337},
+    "testnet": {"endpoint": "https://xahau-test.net", "network_id": 21338},
+}
 
 # Xahau transaction-type IDs for HookOn bit positions.
-# Source: Xahau HookOn docs (xahau.network/docs/hooks/concepts/hookon-field)
-# and the linked HookOn calculator. Bits are active-low (0 = hook fires),
-# except ttHOOK_SET (22), which is active-high (1 = hook fires on SetHook).
+# Protocol source (reviewed 2026-07-25):
+# https://github.com/Xahau/xahaud/blob/bb244ef7729503a0317bcff0f8fdaa93ca5cb7d2/include/xrpl/protocol/detail/transactions.macro
 HOOKON_TT = {
     "Payment": 0,
     "EscrowCreate": 1,
@@ -16,9 +31,12 @@ HOOKON_TT = {
     "AccountSet": 3,
     "EscrowCancel": 4,
     "SetRegularKey": 5,
+    "NicknameSet": 6,
     "OfferCreate": 7,
     "OfferCancel": 8,
+    "Contract": 9,
     "TicketCreate": 10,
+    "SpinalTap": 11,
     "SignerListSet": 12,
     "PaymentChannelCreate": 13,
     "PaymentChannelFund": 14,
@@ -30,23 +48,65 @@ HOOKON_TT = {
     "TrustSet": 20,
     "AccountDelete": 21,
     "SetHook": 22,
+    "NFTokenMint": 25,
+    "NFTokenBurn": 26,
+    "NFTokenCreateOffer": 27,
+    "NFTokenCancelOffer": 28,
+    "NFTokenAcceptOffer": 29,
     "Clawback": 30,
+    "AMMClawback": 31,
+    "AMMCreate": 35,
+    "AMMDeposit": 36,
+    "AMMWithdraw": 37,
+    "AMMVote": 38,
+    "AMMBid": 39,
+    "AMMDelete": 40,
     "URITokenMint": 45,
     "URITokenBurn": 46,
     "URITokenBuy": 47,
     "URITokenCreateSellOffer": 48,
     "URITokenCancelSellOffer": 49,
+    "XChainCreateClaimID": 50,
+    "XChainCommit": 51,
+    "XChainClaim": 52,
+    "XChainAccountCreateCommit": 53,
+    "XChainAddClaimAttestation": 54,
+    "XChainAddAccountCreateAttestation": 55,
+    "XChainModifyBridge": 56,
+    "XChainCreateBridge": 57,
+    "DIDSet": 58,
+    "DIDDelete": 59,
+    "OracleSet": 60,
+    "OracleDelete": 61,
+    "LedgerStateFix": 62,
+    "MPTokenIssuanceCreate": 63,
+    "MPTokenIssuanceDestroy": 64,
+    "MPTokenIssuanceSet": 65,
+    "MPTokenAuthorize": 66,
+    "CredentialCreate": 67,
+    "CredentialAccept": 68,
+    "CredentialDelete": 69,
+    "NFTokenModify": 70,
+    "PermissionedDomainSet": 71,
+    "PermissionedDomainDelete": 72,
     "Cron": 92,
     "CronSet": 93,
     "SetRemarks": 94,
     "Remit": 95,
+    "GenesisMint": 96,
     "Import": 97,
     "ClaimReward": 98,
     "Invoke": 99,
+    "EnableAmendment": 100,
+    "SetFee": 101,
+    "UNLModify": 102,
+    "EmitFailure": 103,
+    "UNLReport": 104,
 }
 
 _TT_HOOK_SET = 22
 _ALL_ONES_256 = (1 << 256) - 1
+_ASCII_UINT = re.compile(r"[0-9]+")
 
 # Accept ttPAYMENT / PAYCHAN_CREATE / payment etc. alongside canonical names.
 _TT_ALIASES = {
@@ -59,10 +119,17 @@ _TT_ALIASES = {
 }
 
 
+def _network_config(network: str) -> dict[str, Any]:
+    name = (network or "").strip().lower()
+    if name not in XAHAU_NETWORKS:
+        raise ValueError("network must be exactly 'mainnet' or 'testnet'")
+    return {"name": name, **XAHAU_NETWORKS[name]}
+
+
 def _normalize_tt(token: str):
-    """Resolve a transaction-type name or numeric ID to (canonical_name, tt_id)."""
+    """Resolve a transaction-type name or ASCII numeric ID."""
     raw = token.strip()
-    if raw.isdigit():
+    if _ASCII_UINT.fullmatch(raw):
         tt = int(raw)
         for name, num in HOOKON_TT.items():
             if num == tt:
@@ -70,7 +137,9 @@ def _normalize_tt(token: str):
         if 0 <= tt < 256:
             return f"tt{tt}", tt
         raise ValueError(f"transaction type ID {tt} out of range 0-255")
-    cleaned = raw[2:] if raw.startswith("tt") else raw
+    if not raw:
+        raise ValueError("transaction type must not be empty")
+    cleaned = raw[2:] if raw[:2].lower() == "tt" else raw
     cleaned = _TT_ALIASES.get(cleaned.upper().replace("-", "_"), cleaned)
     folded = cleaned.replace("_", "").replace("-", "").lower()
     for name, num in HOOKON_TT.items():
@@ -81,13 +150,14 @@ def _normalize_tt(token: str):
 
 
 def compute_hookon(tt_ids) -> int:
-    """Compute a Xahau HookOn value that fires on exactly the given tt IDs.
+    """Compute a HookOn value that fires on exactly the given type IDs.
 
-    Bits are active-low except bit 22 (ttHOOK_SET), which is active-high, so
-    the all-ones baseline must have bit 22 cleared to stay 'fires on nothing'.
+    HookOn is active-low except ttHOOK_SET bit 22, which is active-high.
     """
     mask = _ALL_ONES_256 & ~(1 << _TT_HOOK_SET)
     for tt in tt_ids:
+        if not isinstance(tt, int) or isinstance(tt, bool) or not 0 <= tt < 256:
+            raise ValueError("transaction type IDs must be integers in range 0-255")
         if tt == _TT_HOOK_SET:
             mask |= 1 << _TT_HOOK_SET
         else:
@@ -95,41 +165,113 @@ def compute_hookon(tt_ids) -> int:
     return mask
 
 
-def tool_hooks_info(address: str):
-    payload = {"method": "account_objects", "params": [{"account": address, "ledger_index": "validated", "type": "hook", "limit": 20}]}
+def _rpc(endpoint: str, method: str, params: dict[str, Any]) -> dict[str, Any]:
+    response = httpx.post(endpoint, json={"method": method, "params": [params]}, timeout=20)
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RuntimeError("Xahau RPC returned a non-object JSON payload")
+    result = payload.get("result")
+    if not isinstance(result, dict):
+        raise RuntimeError("Xahau RPC response is missing a result object")
+    if result.get("status") == "error" or result.get("error"):
+        code = result.get("error") or "rpcError"
+        message = result.get("error_message") or "Xahau RPC request failed"
+        raise RuntimeError(f"{code}: {message}")
+    return result
+
+
+def _live_network_metadata(config: dict[str, Any]) -> dict[str, Any]:
+    result = _rpc(config["endpoint"], "server_info", {})
+    info = result.get("info", {})
+    actual_id = info.get("network_id")
+    if actual_id != config["network_id"]:
+        raise RuntimeError(
+            f"endpoint network mismatch: expected {config['network_id']}, received {actual_id}"
+        )
+    return {
+        "Network": config["name"],
+        "NetworkID": actual_id,
+        "Endpoint": config["endpoint"],
+        "ServerVersion": info.get("build_version"),
+        "FetchedAt": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def tool_hooks_info(address: str, network: str = "mainnet"):
     try:
-        resp = httpx.post("https://xahau.network", json=payload, timeout=15)
-        data = resp.json()
-        hooks = data.get("result", {}).get("account_objects", [])
-        json_out({"Account": address, "HookCount": len(hooks), "Hooks": hooks, "Raw": data.get("result", data)})
-    except Exception as e:
-        json_out({"Error": "HooksInfoError", "Message": str(e), "Account": address})
+        config = _network_config(network)
+        if not is_valid_classic_address(address):
+            raise ValueError("account must be a valid classic r-address; X-addresses are not accepted")
+        metadata = _live_network_metadata(config)
+        result = _rpc(
+            config["endpoint"],
+            "account_objects",
+            {"account": address, "ledger_index": "validated", "type": "hook", "limit": 20},
+        )
+        chain = []
+        for ledger_object in result.get("account_objects", []):
+            if ledger_object.get("LedgerEntryType") != "Hook":
+                continue
+            for slot, wrapper in enumerate(ledger_object.get("Hooks", [])):
+                hook = wrapper.get("Hook", {}) if isinstance(wrapper, dict) else {}
+                if hook.get("HookHash"):
+                    chain.append({"Slot": slot, **hook})
+        json_out({
+            "Account": address,
+            "HookCount": len(chain),
+            "Hooks": chain,
+            "LedgerIndex": result.get("ledger_index"),
+            "LedgerHash": result.get("ledger_hash"),
+            "Validated": result.get("validated") is True,
+            **metadata,
+        })
+    except Exception as exc:
+        json_out({
+            "Error": exc.__class__.__name__,
+            "Message": str(exc),
+            "Account": address,
+            "Network": network,
+        })
 
 
 def tool_hooks_bitmask(*tokens: str):
     if not tokens:
-        usage_out("hooks-bitmask",
-                  "hooks-bitmask TXTYPE [TXTYPE ...]  (e.g. hooks-bitmask Payment URITokenMint, "
-                  "names like Payment/ttPAYMENT/Invoke or numeric tt IDs)")
+        usage_out(
+            "hooks-bitmask",
+            "hooks-bitmask TXTYPE [TXTYPE ...] (names such as Payment/ttPAYMENT/Invoke or ASCII numeric IDs)",
+        )
         return
     try:
-        resolved = [_normalize_tt(t) for t in tokens]
-    except ValueError as e:
-        json_out({"Error": "UnknownTransactionType", "Message": str(e)})
+        resolved = [_normalize_tt(token) for token in tokens]
+        ids = [tt for _, tt in resolved]
+        if len(ids) != len(set(ids)):
+            raise ValueError("duplicate transaction types are not allowed")
+        mask = compute_hookon(ids)
+    except ValueError as exc:
+        json_out({"Error": "InvalidTransactionType", "Message": str(exc)})
         return
-    mask = compute_hookon([tt for _, tt in resolved])
     json_out({
         "TriggersOn": [{"type": name, "tt": tt} for name, tt in resolved],
-        "FiresOnSetHook": any(tt == _TT_HOOK_SET for _, tt in resolved),
-        "HookOn": f"0x{mask:064X}",
-        "Semantics": "HookOn bits are active-low (0 = hook fires for that tt), except bit 22 "
-                     "(ttHOOK_SET) which is active-high. Put this value in the HookOn field of "
-                     "each Hook object in a SetHook transaction on Xahau.",
+        "FiresOnSetHook": _TT_HOOK_SET in ids,
+        # HookOn is a Hash256 field: exactly 64 hex characters, no 0x prefix.
+        "HookOn": f"{mask:064X}",
+        "Semantics": (
+            "HookOn is active-low (0 = fire) except bit 22 (ttHOOK_SET), which is active-high. "
+            "The value is exactly 64 hexadecimal characters for a SetHook Hook object."
+        ),
         "Source": "https://xahau.network/docs/hooks/concepts/hookon-field",
+        "ProtocolSource": (
+            "https://github.com/Xahau/xahaud/blob/"
+            "bb244ef7729503a0317bcff0f8fdaa93ca5cb7d2/include/xrpl/protocol/detail/transactions.macro"
+        ),
+        "ReviewedAt": "2026-07-25",
     })
 
 
 COMMANDS = {
-    "hooks-info": lambda: tool_hooks_info(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: hooks-info rADDRESS"),
+    "hooks-info": lambda: tool_hooks_info(
+        sys.argv[2], sys.argv[3] if len(sys.argv) >= 4 else "mainnet"
+    ) if len(sys.argv) >= 3 else usage_out("hooks-info", "hooks-info rADDRESS [mainnet|testnet]"),
     "hooks-bitmask": lambda: tool_hooks_bitmask(*sys.argv[2:]),
 }

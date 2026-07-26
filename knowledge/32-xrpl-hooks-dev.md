@@ -1,473 +1,108 @@
-# XRPL Hooks Development
+# Xahau Hooks Development — Safe Workflow
 
-## Overview
+## Capability boundary
 
-Hooks are small WebAssembly programs that execute on the Xahau network (the XRPL sidechain with Hooks enabled). They react to transactions before or after they're applied, allowing logic like: auto-routing, fee distribution, access control, and programmable escrow. Hooks are the primary "smart contract" mechanism for Xahau.
+XRPL-Hermes can help specify a Hook, calculate `HookOn`, review artifacts, and verify an installed chain. It does not currently compile Hook code or construct/serialize/sign/submit `SetHook` transactions. Those actions belong to the current official Xahau Hooks toolchain and a user-controlled signer.
 
----
+## Development stages
 
-## 1. Architecture
+### 1. Specification
 
-```
-Transaction arrives at Xahau node
-    │
-    ▼
-Hook executes (before tx is applied)
-    │
-    ├── accept()    → TX proceeds
-    ├── rollback()  → TX rejected with error
-    │
-    ▼
-Transaction applied to ledger
-    │
-    ▼
-Hook executes (after tx is applied, for emit)
-```
+Write a short behavior contract before coding:
 
-Hooks are:
-- Written in C, compiled to WebAssembly (WASM)
-- Installed on an account (not a contract address)
-- Triggered by incoming or outgoing transactions
-- Deterministic and sandboxed
+- target account role and target network;
+- exact incoming/outgoing transaction types;
+- accept/reject behavior;
+- state keys and update invariants;
+- emitted transaction types, if any;
+- parameters and grants;
+- failure behavior;
+- upgrade and rollback path.
 
----
+Avoid broad “account firewall” requirements until each permitted and denied flow is enumerated.
 
-## 2. Toolchain Setup
+### 2. Trigger calculation
 
 ```bash
-# Install clang with WebAssembly target
-apt install -y clang lld
-
-# Install wabt (WebAssembly Binary Toolkit)
-apt install -y wabt
-
-# Clone Hooks C library
-git clone https://github.com/XRPLF/hook-cleaner-c
-git clone https://github.com/XRPLF/xrpl-hook-toolkit
-
-# Or use the Docker development environment
-docker pull xrplf/xrpld-hooks:latest
-
-# Compile a hook
-clang \
-  --target=wasm32-unknown-unknown \
-  -O3 \
-  -o hook.wasm \
-  hook.c \
-  -I ./xrpl-hook-toolkit/includes \
-  --no-standard-libraries \
-  -Wl,--no-entry \
-  -Wl,--export=hook \
-  -Wl,--export=cbak
+python3 scripts/xrpl_tools.py hooks-bitmask Payment Invoke
 ```
 
----
+Review the returned transaction IDs and exact 64-character field. `HookOn` is active-low except `SetHook` bit 22, which is active-high. Testnet may support `HookOnIncoming`/`HookOnOutgoing` while Mainnet does not; confirm the target network's enabled amendments.
 
-## 3. Basic Hook Structure (C)
+### 3. Implementation and compilation
 
-```c
-#include "hookapi.h"
+Use only the current official Xahau documentation, Hook API headers, examples, and build tooling. The browser builder is documented at <https://builder.xahau.network/>; validate its current provenance before use.
 
-// Called when a transaction arrives at the Hook account
-int64_t hook(uint32_t reserved) {
-    TRACESTR("MyHook: Starting");
-    
-    // Get the transaction type
-    uint8_t txn_type[2];
-    otxn_field(SBUF(txn_type), sfTransactionType);
-    uint16_t txtype = (txn_type[0] << 8) + txn_type[1];
-    
-    // Only process Payment transactions
-    if (txtype != ttPAYMENT) {
-        ACCEPT("Not a payment, passing", 0);
-    }
-    
-    // Get the amount
-    uint8_t amount_buf[48];
-    int64_t amount_len = otxn_field(SBUF(amount_buf), sfAmount);
-    
-    if (amount_len != 8) {
-        // Token payment (not XRP)
-        ROLLBACK("Only XRP accepted", 50);
-    }
-    
-    int64_t drops = AMOUNT_TO_DROPS(amount_buf);
-    
-    if (drops < 1000000) {  // < 1 XRP
-        ROLLBACK("Minimum 1 XRP required", 51);
-    }
-    
-    ACCEPT("Payment accepted", 0);
-}
+A Hook module must meet current Xahau WebAssembly and Hook API constraints. Do not copy code from the superseded XRPL-Hermes articles: those snippets were quarantined because they contained incorrect imports, function signatures, undefined identifiers, and unverified limits.
 
-// Called after transaction is applied (for emitting new transactions)
-int64_t cbak(uint32_t reserved) {
-    return 0;
-}
-```
+Required review artifacts:
 
----
+- source commit/hash;
+- compiler/toolchain version;
+- deterministic build command or project manifest;
+- WASM SHA-256;
+- static/audit findings;
+- expected namespace, HookOn, parameters, grants, and chain slot.
 
-## 4. Hook API Reference
+### 4. Unsigned transaction preparation
 
-### Core Functions
+Prepare `SetHook` only with a current Xahau-aware serializer. `xrpl-py` transaction models are not proof that Xahau-only fields or transaction types serialize correctly. The transaction must contain the correct Xahau `NetworkID`.
 
-```c
-/* Accept the transaction */
-int64_t accept(uint32_t read_ptr, uint32_t read_len, int64_t error_code);
-#define ACCEPT(msg, code) accept(SBUF(msg), code)
+Before signing:
 
-/* Reject the transaction */
-int64_t rollback(uint32_t read_ptr, uint32_t read_len, int64_t error_code);
-#define ROLLBACK(msg, code) rollback(SBUF(msg), code)
+- validate all field encodings and lengths;
+- ensure `CreateCode` is hex WASM bytes;
+- verify install/update/delete operation classification;
+- inspect chain position and override/namespace-delete flags;
+- compare the resulting signing serialization with current Xahau tooling;
+- run Xahau `simulate` where supported and require successful preflight.
 
-/* Get field from originating transaction */
-int64_t otxn_field(uint32_t write_ptr, uint32_t write_len, uint32_t field_id);
+Never place a seed, secret, or private key in source, command arguments, environment examples, logs, MCP calls, or node RPC payloads.
 
-/* Get field from emitted transaction (in cbak) */
-int64_t etxn_field(uint32_t write_ptr, uint32_t write_len, uint32_t field_id);
+### 5. Testnet verification
 
-/* Get ledger object */
-int64_t slot_set(uint32_t read_ptr, uint32_t read_len, int32_t slot);
-int64_t slot_subfield(uint32_t read_ptr, uint32_t read_len, uint32_t field_id, int32_t slot);
-int64_t slot_size(int32_t slot);
-int64_t slot(uint32_t write_ptr, uint32_t write_len, int32_t slot);
-```
-
-### State Management
-
-```c
-/* Read hook state */
-int64_t state(
-    uint32_t write_ptr, uint32_t write_len,  // output buffer
-    uint32_t kread_ptr, uint32_t kread_len   // key buffer
-);
-
-/* Write hook state */
-int64_t state_set(
-    uint32_t read_ptr, uint32_t read_len,    // value buffer
-    uint32_t kread_ptr, uint32_t kread_len   // key buffer
-);
-
-/* State in another hook account's namespace */
-int64_t state_foreign(
-    uint32_t write_ptr, uint32_t write_len,
-    uint32_t kread_ptr, uint32_t kread_len,
-    uint32_t nread_ptr, uint32_t nread_len,  // namespace
-    uint32_t aread_ptr, uint32_t aread_len   // hook account
-);
-```
-
-### Emitting Transactions
-
-```c
-/* Prepare a new transaction to emit */
-int64_t etxn_reserve(uint32_t count);
-int64_t etxn_nonce(uint32_t write_ptr, uint32_t write_len);
-int64_t etxn_fee_base(uint32_t read_ptr, uint32_t read_len);
-
-/* Build and emit a transaction */
-int64_t emit(
-    uint32_t write_ptr, uint32_t write_len,  // emitted tx hash output
-    uint32_t read_ptr, uint32_t read_len     // serialized transaction
-);
-```
-
-### Utility
-
-```c
-/* Tracing (debug output) */
-int64_t trace(uint32_t mread_ptr, uint32_t mread_len,
-              uint32_t dread_ptr, uint32_t dread_len, uint32_t as_hex);
-#define TRACESTR(msg) trace(SBUF(msg), 0, 0, 0)
-#define TRACEHEX(data) trace("hex", 3, SBUF(data), 1)
-
-/* Float math */
-int64_t float_set(int32_t exponent, int64_t mantissa);
-int64_t float_multiply(int64_t float1, int64_t float2);
-int64_t float_divide(int64_t float1, int64_t float2);
-int64_t float_compare(int64_t float1, int64_t float2, uint32_t mode);
-int64_t float_one(); /* Returns 1.0 as XFL */
-```
-
----
-
-## 5. HookOn Bitmask
-
-HookOn controls which transaction types trigger the hook:
-
-```c
-// Transaction type bits (each bit = one transaction type)
-// Bit 0 = ttPAYMENT (type 0)
-// Bit 22 = ttAMM_DEPOSIT (type 35)
-// etc.
-
-// To trigger on Payment only:
-uint64_t hook_on = ~0ULL ^ (1ULL << ttPAYMENT);
-// (All 1s except the payment bit, which is 0 = "trigger")
-
-// To trigger on all transactions:
-uint64_t hook_on = 0ULL;  // all zeros = trigger on everything
-
-// To trigger on Payment AND OfferCreate:
-uint64_t hook_on = ~0ULL ^ (1ULL << ttPAYMENT) ^ (1ULL << ttOFFER_CREATE);
-```
-
-Transaction type numbers:
-```
-ttPAYMENT = 0
-ttESCROW_CREATE = 1
-ttESCROW_FINISH = 2
-ttACCOUNT_SET = 3
-ttESCROW_CANCEL = 4
-ttSET_REGULAR_KEY = 5
-ttOFFER_CREATE = 7
-ttOFFER_CANCEL = 8
-ttTICKET_CREATE = 10
-ttSIGNER_LIST_SET = 12
-ttPAYCHAN_CREATE = 15
-ttPAYCHAN_FUND = 16
-ttPAYCHAN_CLAIM = 17
-ttCHECK_CREATE = 16
-ttCHECK_CASH = 17
-ttCHECK_CANCEL = 18
-ttDEPOSIT_PREAUTH = 19
-ttTRUST_SET = 20
-ttACCOUNT_DELETE = 21
-ttHOOK_SET = 22
-ttNFTOKEN_MINT = 25
-ttNFTOKEN_BURN = 26
-ttNFTOKEN_CREATE_OFFER = 27
-ttNFTOKEN_CANCEL_OFFER = 28
-ttNFTOKEN_ACCEPT_OFFER = 29
-ttINVOKE = 99
-```
-
----
-
-## 6. HookSet Transaction
-
-Install a hook on an account:
-
-```json
-{
-  "TransactionType": "SetHook",
-  "Account": "rMYACCOUNT...",
-  "Hooks": [
-    {
-      "Hook": {
-        "CreateCode": "0061736D010000...",
-        "HookOn": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFFF",
-        "HookNamespace": "0000000000000000000000000000000000000000000000000000000000000000",
-        "HookApiVersion": 0,
-        "Flags": 1
-      }
-    }
-  ],
-  "Fee": "100000",
-  "Sequence": 1
-}
-```
-
-| Field | Description |
-|-------|-------------|
-| `CreateCode` | WASM bytecode (hex) |
-| `HookOn` | 256-bit bitmask of triggering tx types |
-| `HookNamespace` | 32-byte namespace for state isolation |
-| `HookApiVersion` | Always 0 for now |
-| `Flags` | `hsfOVERRIDE` = 1 (update existing) |
-
-### Installing via xrpl-py
-
-```python
-import binascii
-
-with open("hook.wasm", "rb") as f:
-    wasm_bytes = f.read()
-    wasm_hex = binascii.hexlify(wasm_bytes).decode().upper()
-
-tx = {
-    "TransactionType": "SetHook",
-    "Account": wallet.address,
-    "Hooks": [
-        {
-            "Hook": {
-                "CreateCode": wasm_hex,
-                "HookOn": "F" * 64,  # trigger on nothing (test)
-                "HookNamespace": "0" * 64,
-                "HookApiVersion": 0,
-                "Flags": 1
-            }
-        }
-    ],
-    "Fee": "100000"
-}
-```
-
----
-
-## 7. State Management Pattern
-
-Counter hook that tracks payment count:
-
-```c
-#include "hookapi.h"
-
-int64_t hook(uint32_t reserved) {
-    // State key: "COUNT"
-    uint8_t key[5] = {'C', 'O', 'U', 'N', 'T'};
-    
-    // Read current count
-    uint8_t count_buf[8];
-    int64_t count = 0;
-    
-    if (state(SBUF(count_buf), SBUF(key)) >= 0) {
-        count = *(int64_t*)count_buf;
-    }
-    
-    count++;
-    
-    // Write back
-    *(int64_t*)count_buf = count;
-    state_set(SBUF(count_buf), SBUF(key));
-    
-    TRACESTR("Counter incremented");
-    ACCEPT("Counted", 0);
-}
-
-int64_t cbak(uint32_t reserved) { return 0; }
-```
-
----
-
-## 8. Emitting a Transaction from a Hook
-
-```c
-#include "hookapi.h"
-
-#define DESTINATION_ADDR "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"
-#define FEE_DROPS 1000000  // 1 XRP fee share
-
-int64_t hook(uint32_t reserved) {
-    // Reserve space for 1 emitted transaction
-    etxn_reserve(1);
-    
-    // Get incoming amount
-    uint8_t amount_buf[48];
-    otxn_field(SBUF(amount_buf), sfAmount);
-    
-    // Only handle XRP
-    if (amount_buf[0] & 0x80) {
-        ACCEPT("Token payment, skip fee share", 0);
-    }
-    
-    // Calculate fee (10% of incoming)
-    int64_t incoming = AMOUNT_TO_DROPS(amount_buf);
-    int64_t fee_share = incoming / 10;
-    
-    if (fee_share < 1000) {
-        ACCEPT("Too small for fee share", 0);
-    }
-    
-    // Build emitted payment transaction
-    uint8_t emtx[256];
-    uint16_t bytes = 0;
-    
-    // ... (build STObject manually using hook C API)
-    // This is complex — use the Hooks boilerplate from XRPLF
-    
-    uint8_t emithash[32];
-    emit(SBUF(emithash), emtx, bytes);
-    
-    ACCEPT("Fee share emitted", 0);
-}
-```
-
----
-
-## 9. Testing with xrpld-hooks
+1. Confirm endpoint/network ID `21338`.
+2. Fund a dedicated disposable Testnet account through an official current faucet path.
+3. Sign in a user-controlled Xahau-compatible wallet.
+4. Submit through the wallet/toolchain, not XRPL-Hermes.
+5. Wait for a validated transaction.
+6. Inspect the installed chain:
 
 ```bash
-# Run local Xahau node with Hooks enabled
-docker pull xrplf/xrpld-hooks:latest
-
-docker run -d \
-  --name xrpld-hooks \
-  -p 6006:6006 \
-  -p 5005:5005 \
-  xrplf/xrpld-hooks:latest
-
-# Fund test accounts from genesis
-curl -X POST http://localhost:5005 \
-  -d '{"method":"ledger_accept","params":[{}]}'
-
-# Install hook
-python3 install_hook.py --network http://localhost:5005
+python3 scripts/xrpl_tools.py hooks-info rACCOUNT testnet
 ```
 
----
+7. Match slot and `HookHash` to the reviewed artifact.
+8. Run positive, negative, boundary, replay, malformed-parameter, and fee/reserve tests.
+9. Rehearse update and deletion; prove the validated post-state.
 
-## 10. Hook Parameters
+## Testing requirements
 
-Hooks can receive runtime parameters (set by installer or invoker):
+At minimum, test:
 
-```c
-// In the hook C code:
-uint8_t param_buf[32];
-int64_t param_len = hook_param(SBUF(param_buf), "MINAMT", 6);
-if (param_len > 0) {
-    int64_t min_amount = *(int64_t*)param_buf;
-}
-```
+- every intended trigger type;
+- representative non-trigger types;
+- incoming and outgoing account participation;
+- minimum/maximum values;
+- malformed and missing parameters;
+- state initialization, mutation, and namespace isolation;
+- emitted-transaction limits and failure paths;
+- chain interaction with Hooks before and after the target slot;
+- rollback when the Hook rejects ordinary account operations.
 
-Setting parameters in HookSet:
-```json
-{
-  "Hook": {
-    "HookHash": "EXISTING_HOOK_HASH...",
-    "HookParameters": [
-      {
-        "HookParameter": {
-          "HookParameterName": "4D494E414D54",
-          "HookParameterValue": "00000000000F4240"
-        }
-      }
-    ]
-  }
-}
-```
+Keep transaction hashes, validated ledger indexes, Hook hashes, and build hashes as receipts.
 
----
+## Mainnet gate
 
-## 11. Hook Execution Model
+Testnet success is necessary but insufficient. Mainnet requires:
 
-```
-Hook execution budget: 
-  - Maximum instructions: 1,048,576 (1M)
-  - Maximum state size: 128 bytes per key
-  - Maximum state keys: 256
-  - Maximum emit count: 5 per hook
-  - Maximum state namespace: 32 bytes
+- refreshed Mainnet amendment state and serializer definitions;
+- compatibility with features actually enabled on Mainnet;
+- independent source/WASM/security audit;
+- reviewed reserve and operational costs;
+- monitored rollout and tested rollback;
+- explicit human approval before signing.
 
-Fee for hook execution:
-  - base hook fee + per-instruction cost
-  - Higher fee = more budget allowed
-```
+## Sources
 
----
-
-## 12. Resources
-
-- Hooks documentation: `https://xahau.network/hooks`
-- Hook toolkit (C): `https://github.com/XRPLF/xrpl-hook-toolkit`
-- Hook examples: `https://github.com/XRPLF/xrpl-hooks-examples`
-- Xahau testnet explorer: `https://explorer.testnet.xahau.network`
-- Xahau mainnet: `wss://xahau.network`
-- Testnet: `wss://hooks-testnet-v3.xrpl-labs.com`
-
----
-
-## Related Files
-
-- `knowledge/43-xrpl-hooks-advanced.md` — advanced hook patterns
-- `knowledge/51-xrpl-xahau-hooks.md` — Xahau hook deployment
+Use `references/xahau-hooks.md` as the pinned protocol card and `knowledge/51-xrpl-xahau-hooks.md` for network semantics. Do not revive old inline signing/submission examples.

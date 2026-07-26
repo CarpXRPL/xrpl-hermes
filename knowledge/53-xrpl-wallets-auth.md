@@ -1,11 +1,10 @@
 # XRPL Wallets and Auth — Xaman, Joey, Crossmark, MetaMask, Privy
 
-This file focuses on practical authentication and signing integrations for XRPL L1, Xahau, and the XRPL EVM Sidechain.
-Use public ledger endpoints for submission and verification: `https://xrplcluster.com`, `https://xahau.network`, and `https://rpc.xrplevm.org`.
+This file focuses on authentication and signing architecture for XRPL L1 and EVM wallets. Xahau wallet compatibility is not certified here; use the explicit boundary in `references/xahau-hooks.md` and current first-party wallet documentation.
 
 ## Wallet selection matrix
 - **Xaman**: Mobile XRPL wallet — XRPL L1 payments, tokens, NFTs, sign-in payloads
-- **Joey**: Browser XRPL wallet — XRPL and Xahau web dApps, developer flows
+- **Joey**: legacy browser-wallet examples in this repository are unverified; do not assume current XRPL or Xahau API support
 - **Crossmark**: Browser XRPL wallet — Extension signing, account connection, transaction prompts
 - **MetaMask**: EVM wallet — XRPL EVM Sidechain, Solidity contracts, Axelar GMP calls
 - **Privy**: Embedded auth SDK — Email/social onboarding and managed wallet UX
@@ -88,7 +87,7 @@ async def xaman_webhook(request: Request):
 ```
 
 ## Joey wallet browser pattern
-Joey integrations are browser-first. Keep the application resilient by verifying all returned hashes against XRPL or Xahau public RPC.
+The following Joey pattern is legacy/unverified. Do not infer Xahau support from it, and verify all methods against a current first-party source before implementation.
 ```javascript
 export async function connectJoey() {
   if (!window.joey) throw new Error("Joey wallet extension not detected");
@@ -251,18 +250,9 @@ async def create_payment_intent(intent: PaymentIntent, user=Depends(require_priv
     }
 ```
 
-## Xahau wallet signing notes
-Xahau uses XRPL-style transactions plus Hooks-specific transaction types. Use `https://xahau.network` for public RPC verification.
-```python
-import httpx
+## Xahau wallet boundary
 
-response = httpx.post("https://xahau.network", json={
-    "method": "server_info",
-    "params": [{}]
-}, timeout=20)
-response.raise_for_status()
-print(response.json()["result"]["info"]["validated_ledger"])
-```
+No wallet is certified by this article for Xahau `SetHook`, `Invoke`, `Remit`, or URIToken signing. Select a currently documented Xahau-compatible wallet, verify decoded unsigned fields and `NetworkID`, keep keys outside Hermes, and verify validated post-state. `hooks-info rACCOUNT [mainnet|testnet]` is read-only evidence; it is not a wallet or deployment tool.
 
 ## Wallet security workflow
 - Never ask users for seeds or private keys.
@@ -277,7 +267,7 @@ print(response.json()["result"]["info"]["validated_ledger"])
 - Log transaction hashes and payload UUIDs, but never secrets.
 
 ## Practical integration notes
-- **Joey**: Connect in browser, request XRPL signing, and confirm the returned hash with `tx` on `https://xrplcluster.com`.
+- **Joey**: unsupported/unverified until its current official API and distribution are independently certified.
 - **Crossmark**: Request account access only when needed, pass minimal `txjson`, and let the extension autofill account context when supported.
 - **MetaMask**: Check `eth_chainId` on `https://rpc.xrplevm.org` and reject contract calls on the wrong sidechain network.
 - **Privy**: Authenticate user identity first, then attach XRPL payment intent records to the Privy user id for auditability.

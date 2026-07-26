@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.matrix_validation import builder_wire_error
+from scripts.matrix_validation import builder_wire_error, elapsed_seconds, top_level_cli_error
 
 TOOL = [sys.executable, "scripts/xrpl_tools.py"]
 R = "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe"
@@ -29,7 +29,8 @@ GENESIS = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"
 BITSTAMP = "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
 ZERO_HASH = "0" * 64
 MPT_ISSUANCE_ID = "0" * 48
-NFT_ID = "00080000B4F4D3D64E2FEA45A8B1406B20C106625E7793090000099B00000000"
+NFT_ID = "000813889418964705A72A064CEBEBFD8E7A04802B1A2F5F0F74796700000CEE"
+VALIDATED_TX = "05EEB773E4F2A9B2917EA641246B842A04B65752DDDC95806CCDCF671110952E"
 CHANNEL = "5DB01BDF4AB2D996B7B8E3A7B7D91E0A4C8B6A6B5F2D2B9E0A1C2D3E4F506070"
 TXBLOB = "1200002280000000240000000161400000000000000168400000000000000A73210300000000000000000000000000000000000000000000000000000000000000008114" + "0"*40 + "8314" + "0"*40
 
@@ -41,8 +42,10 @@ TESTS = {
     "amendment-status": ["amendment-status", "MPTokensV1"],
     "amendments": ["amendments", "AMMClawback"],
     "amm-info": ["amm-info", "XRP", f"USD:{BITSTAMP}"],
+    "arweave-cost": ["arweave-cost", "1MB"],
     "balance": ["balance", R],
     "book-offers": ["book-offers", "XRP", f"USD:{BITSTAMP}"],
+    "bridge-tx": ["bridge-tx", ZERO_HASH],
     "build-account-delete": ["build-account-delete", "--from", R, "--to", GENESIS],
     "build-account-set": ["build-account-set", "--from", R, "--set-flag", "8"],
     "build-amm-bid": ["build-amm-bid", "--from", R, "--asset1", "XRP", "--asset2", f"USD:{BITSTAMP}"],
@@ -85,7 +88,10 @@ TESTS = {
     "evm-contract": ["evm-contract", "--from", "0x0000000000000000000000000000000000000000", "--bytecode", "0x00"],
     "flare-price": ["flare-price", "XRP", "FLR"],
     "hooks-bitmask": ["hooks-bitmask", "Payment"],
-    "hooks-info": ["hooks-info", R],
+    # Public mainnet account with one installed Hook; verified in the Xahau
+    # certification pass. A missing XRPL genesis account must not masquerade as
+    # a successful zero-Hook read.
+    "hooks-info": ["hooks-info", "rsownxgTwCbZ2TvTtimi95uGrwW4LGXUMq", "mainnet"],
     "ledger": ["ledger"],
     "ledger-entry": ["ledger-entry", "--index", ZERO_HASH],
     "nft-info": ["nft-info", NFT_ID],
@@ -97,7 +103,7 @@ TESTS = {
     "subscribe": ["subscribe", "streams=ledger"],
     "token-intel": ["token-intel", "USD", BITSTAMP, "3", "20"],
     "trustlines": ["trustlines", R],
-    "tx-info": ["tx-info", ZERO_HASH],
+    "tx-info": ["tx-info", VALIDATED_TX],
     "validate-address": ["validate-address", R],
     "wallet-from-seed": ["wallet-from-seed"],
 }
@@ -124,20 +130,20 @@ RETIRED = {
 }
 
 
-def run(cmd):
-    start = time.time()
+def run(cmd, timeout=12):
+    start = time.monotonic()
     try:
-        p = subprocess.run(TOOL + cmd, cwd=ROOT, text=True, capture_output=True, timeout=12)
+        p = subprocess.run(TOOL + cmd, cwd=ROOT, text=True, capture_output=True, timeout=timeout)
         stdout = p.stdout.strip()
         out = (p.stdout + p.stderr).strip()
         out = re.sub(r'\bs[a-zA-Z0-9]{25,}\b', 's████REDACTED_TEST_SEED████', out)
-        return (p.returncode, round(time.time() - start, 2),
+        return (p.returncode, elapsed_seconds(start, time.monotonic()),
                 out[:500].replace("\n", " "), stdout)
     except subprocess.TimeoutExpired as e:
         stdout = e.stdout.decode(errors="ignore") if isinstance(e.stdout, bytes) else (e.stdout or "")
         stderr = e.stderr.decode(errors="ignore") if isinstance(e.stderr, bytes) else (e.stderr or "")
         out = (stdout + stderr).strip()
-        return "timeout", 12, out[:500].replace("\n", " "), stdout
+        return "timeout", timeout, out[:500].replace("\n", " "), stdout
 
 # Import command registry after writing TESTS so we catch drift.
 import scripts.xrpl_tools as registry
@@ -157,14 +163,20 @@ for name in commands:
                      "status": "SKIPPED-SAFETY", "sample": SKIPPED_SAFETY[name]})
         continue
     cmd = TESTS.get(name, [name])
-    code, seconds, sample, stdout = run(cmd)
+    # bridge-tx's upstream client has a 20-second network timeout; the matrix
+    # process timeout must be longer or it can kill a legitimate controlled
+    # response before the command reports it.
+    code, seconds, sample, stdout = run(cmd, timeout=30 if name == "bridge-tx" else 12)
     dangerous_ok = name in {"submit", "submit-multisigned", "wallet-from-seed"} and (code in (0, 1) or "Usage" in sample or "Need" in sample or "Error" in sample)
     long_ok = name == "subscribe" and code == "timeout"
     wire_error = builder_wire_error(name, stdout) if code == 0 else None
     builder_error = name.startswith("build-") and ('"Error"' in sample or wire_error)
+    cli_error = top_level_cli_error(stdout) if code == 0 and not dangerous_ok else None
     if wire_error:
         sample = f"{sample} [WIRE ERROR: {wire_error}]"
-    ok = (code == 0 or dangerous_ok or long_ok) and "Traceback" not in sample and not builder_error
+    if cli_error:
+        sample = f"{sample} [CLI ERROR: {cli_error}]"
+    ok = (code == 0 or dangerous_ok or long_ok) and "Traceback" not in sample and not builder_error and not cli_error
     rows.append({"command": name, "argv": " ".join(shlex.quote(x) for x in cmd), "exit": code, "seconds": seconds, "status": "PASS" if ok else "FAIL", "sample": sample})
 
 passed = sum(1 for r in rows if r["status"] == "PASS")

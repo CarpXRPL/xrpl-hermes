@@ -98,7 +98,7 @@ After intake, produce:
 | DAO/project treasury, signer coordination, proposal flow | `skills/treasury-tool-product-flow.md` | live | Read-only treasury cockpit + unsigned proposal workflow |
 | NFT mint site, holder-gated community, small marketplace | `skills/nft-community-product-flow.md` | live | Mint/offer/holder-verification loop with wallet proof |
 | Swap UI, LP dashboard, DEX/AMM analytics | `skills/amm-dex-product-flow.md` | live | Read-only pool/orderbook explorer + timestamped quote view |
-| Xahau Hook app, on-ledger automation product | `skills/xahau-hook-app-product-flow.md` | live | Hook use-case plan + HookOn calculation + install verification |
+| Xahau Hook app, on-ledger automation product | `skills/xahau-hook-app-product-flow.md` | partial/planning | Hook use-case plan + HookOn calculation + installed-chain verification; no compile/build/sign/deploy |
 | RWA/compliance-gated issuance platform | `skills/rwa-compliance-product-flow.md` | live | Technical rails plan with RequireAuth/credentials/clawback boundary |
 | Self-hosted XRPL agent stack, MCP-powered agent service | `skills/xrpl-agent-stack-product-flow.md` | live | MCP smoke + read-only agent job + human-signed builder loop |
 

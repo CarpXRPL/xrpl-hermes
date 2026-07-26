@@ -87,7 +87,7 @@ not a shipped feature.
 | MPT operations | MPT issuance/authorization payloads with live amendment checks (`build-mpt-*`) | CLI |
 | Treasury & escrow | Multisig, tickets, checks, escrow, payment channels (`build-*`, `submit-multisigned`) | CLI |
 | EVM Sidechain | Balance, contract-deploy JSON, bridge status (`evm-balance`, `evm-contract`, `evm-bridge`) | live tool + ref |
-| Xahau Hooks | HookOn bitmask calculator + hooks lookup (`hooks-bitmask`, `hooks-info`) | CLI + live tool |
+| Xahau Hooks | Legacy HookOn calculator + validated Mainnet/Testnet chain lookup; no compile/build/sign/deploy (`hooks-bitmask`, `hooks-info`) | CLI + live read |
 | Flare price context | On-chain FTSOv2 oracle reads + a public price fallback (`flare-ftso`, `flare-price`) | live tool |
 | Axelar bridge | Route/registration status and transfer tracking (`bridge-status`, `bridge-tx`) | live tool |
 | Arweave storage | Permanent-storage cost estimates, never uploads (`arweave-cost`) | live tool |

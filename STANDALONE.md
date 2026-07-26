@@ -656,24 +656,25 @@ python3 scripts/xrpl_tools.py evm-bridge testnet
 ### `hooks-bitmask`
 Compute the Xahau `HookOn` 256-bit field for the given transaction types. `HookOn` bits are
 **active-low** (a `0` bit means the hook fires for that transaction type), except bit 22
-(`ttHOOK_SET`) which is active-high — the tool handles this for you and returns the hex value to
-place in the `HookOn` field of a `SetHook` transaction.
+(`ttHOOK_SET`) which is active-high — the tool handles this for you and returns exactly 64 hex
+characters without an `0x` prefix.
 
 ```bash
 python3 scripts/xrpl_tools.py hooks-bitmask Payment OfferCreate
-# → {"TriggersOn": [...], "HookOn": "0xFFFF...", "Semantics": "...", "Source": "xahau.network docs"}
+# → {"TriggersOn": [...], "HookOn": "FFFF...", "Semantics": "...", ...}
 ```
 
-Verify the resulting set against the current Xahau spec before deploying — coverage caveats live in
-`LIMITATIONS.md`; deeper context in `knowledge/51-xrpl-xahau-hooks.md`.
+Verify numeric coverage and enabled amendments against the target network before deployment.
+XRPL-Hermes does not build, serialize, sign, or deploy `SetHook` transactions.
 
 ---
 
 ### `hooks-info`
-Fetch installed hooks on an account (Xahau network).
+Fetch installed Hooks from a validated Xahau Mainnet or Testnet ledger with explicit provenance.
 
 ```bash
-python3 scripts/xrpl_tools.py hooks-info rACCOUNT
+python3 scripts/xrpl_tools.py hooks-info rACCOUNT testnet
+python3 scripts/xrpl_tools.py hooks-info rACCOUNT mainnet
 ```
 
 ---

@@ -904,3 +904,17 @@ def test_dev_matrix_requires_complete_model_valid_serializable_builder_pass():
     assert error and "binary signing serialization failed" in error
     assert builder_wire_error("build-payment", json.dumps({"Error": "UsageError"}))
     assert builder_wire_error("account", "not-json") is None
+
+
+def test_dev_matrix_rejects_controlled_top_level_cli_errors():
+    from scripts.matrix_validation import top_level_cli_error
+    assert top_level_cli_error(json.dumps({"Error": "RuntimeError", "Message": "actNotFound"})) == "RuntimeError"
+    assert top_level_cli_error(json.dumps({"HookCount": 0, "Hooks": []})) is None
+    assert top_level_cli_error("not-json") is None
+
+
+def test_dev_matrix_elapsed_duration_is_non_negative():
+    from scripts.matrix_validation import elapsed_seconds
+    assert elapsed_seconds(10.0, 11.234) == 1.23
+    # Defensive clamp protects evidence if a non-monotonic caller regresses.
+    assert elapsed_seconds(11.0, 10.0) == 0.0
