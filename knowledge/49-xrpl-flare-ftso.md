@@ -2,7 +2,7 @@
 
 ## Release status
 
-**FTSOv2 read: narrow on-chain. Market fallback: context only. FAssets/LayerCake: quarantined.**
+**FTSOv2 read: narrow on-chain. Market fallback: context only. FAssets/LayerCake: not implemented.**
 
 ### `flare-ftso [PAIR ...]`
 
@@ -26,9 +26,9 @@ python3 scripts/xrpl_tools.py flare-ftso XRP/USD FLR/USD
 
 This is CoinGecko market context, not an FTSO proof. It must include the source URL and fetch time and must surface rate-limit/API failures.
 
-## Quarantined material
+## Not implemented
 
-The former deep article included obsolete FTSO-v1 interfaces, fabricated FAssets HTTP APIs, an obsolete explorer action and a nonexistent LayerCake API. Those recipes were removed.
+FAssets and LayerCake operations are not implemented. The shipped scope is the documented read command only.
 
 XRPL-Hermes does not currently certify:
 
@@ -45,5 +45,3 @@ Restoring any of those requires current official contracts/packages, network/rel
 - https://dev.flare.network/ftso/feeds
 - https://dev.flare.network/network/guides/flare-contracts-registry
 - https://flare.network/
-
-Source review date: **2026-07-26**.

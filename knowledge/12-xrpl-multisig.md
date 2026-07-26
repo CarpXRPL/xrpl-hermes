@@ -4,8 +4,6 @@
 
 Multi-signing allows a set of accounts to collectively authorize transactions for a master account. The master account's SignerList defines who can sign and how much weight each signer contributes. Transactions require signatures whose total weight meets or exceeds the quorum.
 
----
-
 ## 1. SignerListSet Transaction
 
 Establishes or updates the signer list:
@@ -54,8 +52,6 @@ Quorum configurations:
 | Weighted 2-of-3 | A(2), B(2), C(1) | — | 3 | A+C or B+C or A+B |
 | CEO+CFO | CEO(3), CFO(2), Auditor(1) | — | 3 | CEO alone or CFO+Auditor |
 
----
-
 ## 2. Deleting a Signer List
 
 Set `SignerQuorum: 0` and omit `SignerEntries`:
@@ -69,8 +65,6 @@ Set `SignerQuorum: 0` and omit `SignerEntries`:
   "Sequence": 2
 }
 ```
-
----
 
 ## 3. Multi-Signed Transaction Format
 
@@ -116,22 +110,6 @@ base_fee = fetch_validated_base_fee_drops(selected_network)
 min_fee = base_fee * (n_signers + 1)
 ```
 
----
-
-## 4. Python: Building a Multi-Signed Transaction
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 5. JavaScript: Multi-Signing with xrpl.js
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
 ## 6. Regular Key vs Master Key for Signing
 
 A signer in the SignerList can sign using either their master key or an assigned regular key.
@@ -162,8 +140,6 @@ Then disable master key (optional for security):
 
 When signing the multisig tx, the regular key's `SigningPubKey` is used but `Account` remains `rSIGNER1`.
 
----
-
 ## 7. Signer List ID
 
 Every SignerList has a `SignerListID` (always 0 for the primary list). Reserved for future multi-list support.
@@ -190,8 +166,6 @@ resp = client.request(AccountObjects(
 ))
 signer_list = resp.result["account_objects"][0]
 ```
-
----
 
 ## 8. Corporate Wallet Patterns
 
@@ -237,8 +211,6 @@ signer_list = resp.result["account_objects"][0]
 }
 ```
 
----
-
 ## 9. Disabling Master Key After Setup
 
 Once signer list is in place, disable the master key for maximum security:
@@ -255,13 +227,9 @@ Once signer list is in place, disable the master key for maximum security:
 
 > **Warning**: Only do this after confirming your multisig works. Losing access to all signers = permanent loss.
 
----
-
 ## 10. Reserve Impact
 
 Signer-list reserve impact depends on the current protocol/amendments and the selected network's live incremental owner reserve. Read validated account state and current first-party `SignerListSet` documentation before estimating capacity; do not multiply a copied XRP constant.
-
----
 
 ## 11. Common Errors
 
@@ -273,8 +241,6 @@ Signer-list reserve impact depends on the current protocol/amendments and the se
 | `tefBAD_QUORUM` | Submitted signatures don't meet quorum |
 | `tefNOT_MULTI_SIGNING` | Signers array order incorrect |
 | `terNO_ACCOUNT` | A signer account doesn't exist on ledger |
-
----
 
 ## Related Files
 

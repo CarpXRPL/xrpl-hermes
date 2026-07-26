@@ -79,16 +79,6 @@ The simplest payment: sending XRP directly between two accounts.
 }
 ```
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
-### JavaScript Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## Direct Token Payment
 
 Sending issued tokens (e.g., USD issued by Gateway) directly to an account that has a trust line for that token.
@@ -345,8 +335,6 @@ For XRP payments, `delivered_amount` is a string of drops. For token payments, i
   "InvoiceID": "2B3E4F5E6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B2C"
 }
 ```
-
----
 
 ## Related Files
 

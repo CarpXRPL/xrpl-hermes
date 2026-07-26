@@ -67,11 +67,6 @@ Mints (creates) a new NFT.
 }
 ```
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ### Minting for Another Account
 
 ```json
@@ -348,8 +343,6 @@ Popular XRPL NFT marketplaces that you can interact with programmatically:
 - **Mynth**: NFT + token marketplace
 
 All are built on the same XLS-20 protocol and can be interacted with directly via the base layer transactions described above.
-
----
 
 ## Related Files
 

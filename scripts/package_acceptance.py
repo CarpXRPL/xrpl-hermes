@@ -8,10 +8,10 @@ from scripts import mcp_server
 from scripts.xrpl_tools import COMMANDS
 
 EXPECTED = {
-    "version": "1.9.0",
-    "dispatcher": 72,
+    "version": "1.9.1",
+    "dispatcher": 68,
     "allowed": 67,
-    "denied": 5,
+    "denied": 1,
     "knowledge": 65,
     "references": 15,
     "skills": 25,

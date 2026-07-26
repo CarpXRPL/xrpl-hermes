@@ -4,8 +4,6 @@
 
 All XRPL transactions share a set of common fields and have type-specific fields. Understanding the full format is critical for correct transaction construction, fee estimation, and error handling.
 
----
-
 ## 1. Common Fields (All Transaction Types)
 
 ```json
@@ -48,22 +46,17 @@ All XRPL transactions share a set of common fields and have type-specific fields
 | `AccountTxnID` | string | No | Hash of last tx from this account (for sequencing) |
 | `NetworkID` | number | No | Chain ID for sidechains |
 
----
-
 ## 2. Fee
 
 The fee is always in **drops** (1 XRP = 1,000,000 drops).
 
 ```python
-# Query the selected server's current fee; do not hard-code a minimum.
 # Reference/open-ledger fee from server:
 from xrpl.models.requests import ServerInfo
 resp = client.request(ServerInfo())
 base_fee = resp.result["info"]["validated_ledger"]["base_fee_xrp"]
 base_fee_drops = int(float(base_fee) * 1_000_000)
 
-# Escalated fee during high load:
-# fee = reference_fee × (fee_level / 256)
 # fee_level spikes when transaction queue fills
 ```
 
@@ -76,8 +69,6 @@ For multi-signed transactions:
 ```
 fee = base_fee × (N_signers + 1)
 ```
-
----
 
 ## 3. Sequence
 
@@ -92,8 +83,6 @@ resp = client.request(AccountInfo(account="rN7n..."))
 sequence = resp.result["account_data"]["Sequence"]
 ```
 
----
-
 ## 4. LastLedgerSequence
 
 Critical for preventing stuck transactions:
@@ -106,8 +95,6 @@ def get_last_ledger_sequence(client, buffer=20):
 ```
 
 If not set and the network is congested, your transaction may sit in the queue indefinitely. Always set this.
-
----
 
 ## 5. Memos
 
@@ -135,8 +122,6 @@ Limits:
 - No hard limit on number of memos, but each byte costs extra fee
 - MemoData, MemoType, MemoFormat must each be ≤ 1 KB recommended
 - All memo fields are hex-encoded
-
----
 
 ## 6. Flags
 
@@ -183,8 +168,6 @@ Flags control transaction behavior. Each transaction type has its own flags:
 | `asfDefaultRipple` | 8 | Enable rippling on trust lines |
 | `asfDepositAuth` | 9 | Only accept pre-authorized deposits |
 
----
-
 ## 7. Transaction Types Reference
 
 | Type | Description |
@@ -217,8 +200,6 @@ Flags control transaction behavior. Each transaction type has its own flags:
 | `AMMDelete` | Delete empty AMM |
 | `Clawback` | Claw back issued tokens |
 | `DepositPreauth` | Pre-authorize deposit |
-
----
 
 ## 8. Result Codes
 
@@ -296,15 +277,6 @@ Flags control transaction behavior. Each transaction type has its own flags:
 | `terPRE_SEQ` | Sequence too high (future) |
 | `terQUEUED` | Held for future ledger |
 
----
-
-## 9. Transaction Signing
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
 ## 10. Inspecting a Submitted Transaction
 
 ```python
@@ -325,8 +297,6 @@ if result['TransactionType'] == 'Payment':
     print(f"Requested: {requested}, Delivered: {delivered}")
 ```
 
----
-
 ## 11. Partial Payments
 
 Partial payments can deliver less than the `Amount` field. Always check `meta.delivered_amount`:
@@ -340,8 +310,6 @@ delivered = result["meta"]["delivered_amount"]
 ```
 
 This is a common exploit vector — see security doc 25.
-
----
 
 ## Related Files
 

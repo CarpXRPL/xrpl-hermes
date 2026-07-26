@@ -1,149 +1,80 @@
-# XRPL Token Issuance: Step by Step
+# XRPL token issuance
 
-## Overview
+XRPL-Hermes builds unsigned transactions for a signer-separated issuer workflow.
 
-Complete guide to issuing a fungible token on the XRPL mainnet. Covers wallet setup, issuer configuration, trust line setup, token distribution, AMM creation, and optional blackholing.
+## Account model
 
----
+Use separate accounts:
 
-## 1. Architecture
+- **Issuer:** creates the currency and holds policy flags.
+- **Distributor:** holds issued supply, manages liquidity, and sends operational payments.
 
-```
-    [ISSUER WALLET]           [DISTRIBUTION WALLET]
-    - AccountSet flags         - Hold initial supply
-    - Sets DefaultRipple       - Create DEX offers
-    - Sets TransferRate        - Manage liquidity
-    - Issues to distributor
-    - (Optionally blackholed)
-```
+Keep the issuer offline except for reviewed configuration and issuance actions.
 
-Keep issuer and distributor separate. The issuer is a cold wallet; the distributor is the hot operational wallet.
+## 1. Configure the issuer
 
----
-
-## 2. Fund Wallets
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 3. Configure the Issuer Account
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 4. Optional: Require Authorization (KYC)
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 5. Distributor Creates Trust Line
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
-If `RequireAuth` is enabled, issuer must authorize first:
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 6. Issue Tokens
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 7. Create AMM Pool
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 8. Create DEX Offers (Optional)
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 9. Blackhole the Issuer
-
-Only after confirming all tokens are issued correctly:
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 10. Verify on Explorer
-
-```python
-# Verify issuer account flags
-from xrpl.models.requests import AccountInfo
-
-resp = client.request(AccountInfo(
-    account=issuer_wallet.address,
-    ledger_index="validated"
-))
-acct = resp.result["account_data"]
-flags = acct["Flags"]
-
-# Check flags
-lsf_default_ripple = 0x00800000
-lsf_disable_master = 0x00100000
-lsf_no_freeze = 0x00200000
-
-print(f"DefaultRipple: {bool(flags & lsf_default_ripple)}")
-print(f"MasterDisabled: {bool(flags & lsf_disable_master)}")
-print(f"NoFreeze: {bool(flags & lsf_no_freeze)}")
-print(f"TransferRate: {acct.get('TransferRate', 'Not set')}")
-print(f"TickSize: {acct.get('TickSize', 'Not set')}")
-print(f"Domain: {bytes.fromhex(acct.get('Domain', '')).decode()}")
+```bash
+xrpl-hermes build-account-set --from rISSUER --domain issuer.example
+xrpl-hermes build-account-set --from rISSUER --set-flag 8
 ```
 
-Verify issuer state through validated XRPL JSON-RPC/Clio reads (`account`, `trustlines`, `account_objects`).
-Any explorer is optional external context and requires separate current contract/security acceptance.
+Optional policy:
 
----
+```bash
+# Permit clawback on future trust lines
+xrpl-hermes build-account-set --from rISSUER --set-flag 16
 
-## 11. Register Token Metadata
-
-External metadata listings are optional dependencies, not certified issuance steps. Verify each
-provider's current first-party process, schema, fees and security before sending issuer metadata.
-- TOML file at `https://yourdomain.com/.well-known/xrp-ledger.toml`
-
-```toml
-# .well-known/xrp-ledger.toml
-[METADATA]
-modified = 2024-01-01
-
-[[ACCOUNTS]]
-address = "rISSUER..."
-desc = "MYTKN issuer account"
-
-[[CURRENCIES]]
-code = "MYTKN"
-issuer = "rISSUER..."
-display_decimals = 6
-name = "My Token"
-desc = "The utility token for MyProject"
-icon = "https://mytoken.com/icon.png"
+# Set a 1.5% transfer rate
+xrpl-hermes build-account-set --from rISSUER --transfer-rate 1015000000
 ```
 
----
+The current trust-line builder does not expose issuer authorization flags, so this guide does not support a `RequireAuth` issuance flow.
 
-## Related Files
+## 2. Create the distributor trust line
 
-- `knowledge/03-xrpl-trustlines.md` — trust line authorisation
-- `knowledge/07-xrpl-clawback.md` — enabling clawback on the issuer
-- `knowledge/21-xrpl-token-model.md` — issuer model background
-- `knowledge/25-xrpl-audit-security.md` — issuer hardening checklist
-- `knowledge/38-xrpl-minting-ops.md` — operational minting playbook
+```bash
+xrpl-hermes build-trustset \
+  --from rDISTRIBUTOR --currency TOKEN --issuer rISSUER --value 1000000
+```
+
+## 3. Issue tokens
+
+An issued-currency Payment from issuer to distributor creates the balance:
+
+```bash
+xrpl-hermes build-payment \
+  --from rISSUER --to rDISTRIBUTOR \
+  --amount 1000000 --cur TOKEN --iss rISSUER
+```
+
+For currency codes longer than three characters, use the required 160-bit hexadecimal currency representation.
+
+## 4. Add liquidity
+
+```bash
+xrpl-hermes build-amm-create \
+  --from rDISTRIBUTOR \
+  --amount1 XRP:100000000 \
+  --amount2 TOKEN:rISSUER:10000 \
+  --fee 500
+
+xrpl-hermes build-offer \
+  --from rDISTRIBUTOR \
+  --sell TOKEN:rISSUER:100 \
+  --buy XRP:1000000
+```
+
+## 5. Verify
+
+After every wallet-authorized transaction:
+
+```bash
+xrpl-hermes tx-info TX_HASH
+xrpl-hermes account rISSUER
+xrpl-hermes trustlines rDISTRIBUTOR TOKEN
+xrpl-hermes amm-info XRP TOKEN:rISSUER
+```
+
+Require `validated: true` before advancing. Explorer listings and metadata providers are optional external services, not ledger proof.
+
+Do not disable the master key or surrender freeze capability until replacement signing policy, final supply, holder policy, and recovery procedures have been independently verified.

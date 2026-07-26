@@ -2,7 +2,7 @@
 
 ## Status
 
-Privy is an external authentication and embedded-wallet provider. No Privy SDK version, XRPL account model, EVM chain support, custody/recovery mode, transaction schema or signing behavior is certified by XRPL-Hermes v1.9.0.
+Privy is an external authentication and embedded-wallet provider. XRPL-Hermes does not integrate its SDK, custody/recovery model, or transaction-signing interface.
 
 XRPL-Hermes does not route seeds/private keys through Privy examples and does not claim Privy supports an XRPL network or transaction type without current first-party evidence.
 
@@ -21,5 +21,3 @@ XRPL-Hermes does not route seeds/private keys through Privy examples and does no
 ## Current workflow
 
 Use a compatible user-owned external signer with current network/type evidence. XRPL-Hermes builds unsigned intent and verifies final state. Its built-in `xaman-payload` path is separate, Payment-only and does not establish Privy compatibility.
-
-Reviewed: **2026-07-26**.

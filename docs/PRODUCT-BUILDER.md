@@ -47,20 +47,20 @@ If the deliverable is a single transaction signed by the user's wallet today, us
 
 ## Archetype catalog
 
-| Status | Product archetype | Canonical file | Wedge deliverable |
-|---|---|---|---|
-| live | Umbrella product intake | `skills/build-xrpl-product-flow.md` | one-pager, 5-box architecture, primitive map, MVP/testnet/mainnet checklists |
-| live | Wallet signing UX | `skills/wallet-signing-ux-product-flow.md` | reusable wallet login + decoded unsigned JSON handoff |
-| live | Payment app | `skills/payment-app-product-flow.md` | payment request → wallet handoff → ledger receipt |
-| live | Agentic payments / x402 | `skills/agentic-payments-product-flow.md` | 402 challenge + verified XRPL payment middleware |
-| live | Token intelligence dashboard/API/bot | `skills/token-intelligence-product-flow.md` | live token report with confidence and missing-data list |
-| live | Token launch platform | `skills/token-launch-product-flow.md` | non-custodial creator wizard driven by live ledger state |
-| live | Treasury/multisig tool | `skills/treasury-tool-product-flow.md` | read-only treasury cockpit + unsigned proposal workflow |
-| live | NFT/community product | `skills/nft-community-product-flow.md` | mint/offer/holder-verification loop |
-| live | AMM/DEX product | `skills/amm-dex-product-flow.md` | pool/orderbook explorer + timestamped quote view |
-| partial/planning | Xahau Hook app | `skills/xahau-hook-app-product-flow.md` | use-case plan + HookOn calculation + validated install inspection; external compile/deploy |
-| live | RWA/compliance rails | `skills/rwa-compliance-product-flow.md` | technical issuance rails with counsel boundary |
-| live | Self-hosted XRPL agent stack | `skills/xrpl-agent-stack-product-flow.md` | MCP-powered read-only agent job + human-signed builder loop |
+| Product archetype | Canonical planning file | Wedge deliverable |
+|---|---|---|
+| Umbrella product intake | `skills/build-xrpl-product-flow.md` | one-pager, 5-box architecture, primitive map, MVP/testnet/mainnet checklists |
+| Wallet signing UX | `skills/wallet-signing-ux-product-flow.md` | external wallet login + decoded unsigned JSON handoff |
+| Payment app | `skills/payment-app-product-flow.md` | payment request → external wallet handoff → ledger receipt |
+| Agentic payments / x402 | `skills/agentic-payments-product-flow.md` | design template; x402 middleware is not shipped |
+| Token intelligence dashboard/API/bot | `skills/token-intelligence-product-flow.md` | live token report with confidence and missing-data list |
+| Token launch platform | `skills/token-launch-product-flow.md` | non-custodial creator wizard driven by live ledger state |
+| Treasury/multisig tool | `skills/treasury-tool-product-flow.md` | read-only treasury cockpit + unsigned proposal workflow |
+| NFT/community product | `skills/nft-community-product-flow.md` | mint/offer/holder-verification loop |
+| AMM/DEX product | `skills/amm-dex-product-flow.md` | pool/orderbook explorer + timestamped quote view |
+| Xahau Hook app | `skills/xahau-hook-app-product-flow.md` | HookOn calculation and installed-Hook inspection; compile/deploy requires external setup |
+| RWA/compliance rails | `skills/rwa-compliance-product-flow.md` | technical planning; legal/compliance services and RequireAuth trust-line authorization are not shipped |
+| Self-hosted XRPL agent stack | `skills/xrpl-agent-stack-product-flow.md` | MCP-powered read-only agent job + external wallet signing loop |
 
 ## How to use from Hermes
 

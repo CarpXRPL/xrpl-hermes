@@ -19,11 +19,6 @@ Master Key (offline, air-gapped)
     └── Signer List (multisig for large transactions)
 ```
 
-### Never store seeds in code or git
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ### Hardware Security Modules (HSM)
 
 For treasury wallets:
@@ -32,19 +27,9 @@ For treasury wallets:
 - Sign transactions inside the HSM
 - Audit all signing events
 
-### Key Rotation
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
 ## 2. Offline Signing
 
 Never expose private keys on internet-connected machines for high-value transactions:
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
 
 > **Submission remains outside XRPL-Hermes.** Move the reviewed unsigned intent through a separately accepted offline/HSM/wallet authorization process, compare the returned signed transaction with the reviewed fields, and submit through that external system. Hermes receives only the resulting hash and verifies validated-ledger outcome.
 
@@ -309,13 +294,6 @@ async def send_alert(message: str):
     async with httpx.AsyncClient() as client:
         await client.post(webhook, json={"text": message})
 ```
-
----
-
-## 7. Secure Transaction Submission Pattern
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
 
 ---
 

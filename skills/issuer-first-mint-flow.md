@@ -45,7 +45,7 @@ consequence).
 | **DefaultRipple** (`asfDefaultRipple`, flag 8) | ON for any token that should trade holder↔holder / on DEX/AMM | Reversible, but flipping it later breaks assumptions on existing lines |
 | **Clawback** (`asfAllowTrustLineClawback`, flag 16) | Regulated/RWA assets usually ON; community tokens usually OFF | Can only be enabled while the issuer has **zero trust lines**; once set it **cannot be unset** |
 | **Freeze policy** | Keep freeze ability (default) or renounce with `asfNoFreeze` (flag 6) | `asfNoFreeze` is **permanent** — you can never freeze again (and cannot un-set GlobalFreeze) |
-| **RequireAuth** (`asfRequireAuth`, flag 2) | ON = holders need issuer-authorized trust lines (compliance) | Only usable while the issuer has no trust lines; adds an authorization step to every holder |
+| **RequireAuth** (`asfRequireAuth`, flag 2) | **Not shipped as a complete XRPL-Hermes workflow** | The current trust-line builder cannot authorize holder lines; do not enable it through this flow |
 | **TransferRate / TickSize / Domain** | fee 0–100%, DEX precision 3–15, identity domain | Changeable, but set them before liquidity exists |
 
 ## Step 2 — Build the issuer AccountSet(s) (unsigned)
@@ -85,10 +85,9 @@ python3 scripts/xrpl_tools.py build-trustset \
   planned supply, not "unlimited by reflex".
 - 4–20 char symbols must be the 160-bit hex form on-ledger; 3-char codes pass as-is
   (`knowledge/21` explains the encoding).
-- If `RequireAuth` was chosen in Step 1, the **issuer** must additionally authorize the
-  line: a TrustSet from rISSUER for `USD:rDISTRIBUTOR` with the `tfSetfAuth` flag
-  (65536) hand-added to `Flags` — `build-trustset` emits the base JSON and takes no
-  flags argument.
+- If the issuance requires `RequireAuth`, stop here. XRPL-Hermes does not ship the
+  issuer-side trust-line authorization builder needed to complete this workflow. Do not
+  hand-edit `Flags` into generated JSON and present that as a supported path.
 
 ## Step 4 — First mint: issuer pays the distributor (unsigned)
 

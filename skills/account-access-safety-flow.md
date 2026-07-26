@@ -85,7 +85,7 @@ the checklist top to bottom — each line is a live check:
 | 1 | No blocking objects: trust lines, escrows, payment channels, checks, owned NFTs (NFT pages) all block deletion | `account_objects rOLD` — offers, tickets, signer lists, preauths do NOT block (auto-removed) |
 | 2 | Account age: current validated ledger index must be ≥ account `Sequence` + 256 | `account rOLD` (Sequence) vs `ledger` |
 | 3 | Special cost: the fee is the **owner reserve increment** (burned), far above a normal fee | `server-info` for the current increment |
-| 4 | Destination exists and can receive | `account rDEST`; if it requires a destination tag, hand-add `"DestinationTag": N` to the JSON (the builder takes no tag argument); if it has DepositAuth, rOLD must be preauthorized |
+| 4 | Destination exists and can receive | `account rDEST`; if it requires a destination tag, stop because the current builder does not expose that field; if it has DepositAuth, rOLD must be preauthorized |
 | 5 | Nothing wanted is left behind | Issued-currency balances can't travel — trust lines had to be zeroed/closed in check 1 anyway |
 
 Then build (unsigned), confirming network, both addresses, the burned cost, and the
@@ -108,7 +108,7 @@ check 1) via `skills/failed-transaction-diagnosis-flow.md`.
 | Enabling DepositAuth on an account that receives third-party payments | Preauthorize expected senders first, or expect `tecNO_PERMISSION` everywhere |
 | "Delete the account" with trust lines still open | `tecHAS_OBLIGATIONS` — close lines/escrows/channels/checks first (check 1) |
 | Treating the AccountDelete fee as a normal fee | It burns the owner-reserve increment — state the number from `server-info` in the confirm |
-| Forgetting the destination tag on delete-to-exchange | Builder has no tag flag — hand-add `DestinationTag` before signing |
+| Destination requires a tag | **Not shipped:** the current builder has no destination-tag option. Do not hand-edit the generated JSON and describe it as a supported workflow. |
 
 See also: `skills/multisig-safety-flow.md` (signer lists as the surviving authority),
 `skills/issuer-first-mint-flow.md` (issuer flag choices), `knowledge/60-xrpl-account-set.md`

@@ -9,7 +9,7 @@ All public XRPL endpoints enforce rate limits. This document covers per-endpoint
 ## 1. Endpoint-limit boundary
 
 Rate limits, plans, routes and authentication requirements change independently of this repository.
-No exact third-party limit or explorer/token route is certified in v1.9.0. For every selected XRPL
+No exact third-party limit or explorer/token route is a product guarantee. For every selected XRPL
 JSON-RPC/Clio or external provider, read current first-party documentation and observed response
 headers; configure conservative limits, backoff and circuit breaking rather than relying on a table.
 
@@ -302,7 +302,7 @@ class CoinGeckoClient:
 
 ### Third-party explorer boundary
 
-No third-party explorer route or rate-limit figure is certified in this release. Add a client only
+No third-party explorer route or fixed rate-limit figure is part of the shipped capability set. Add a client only
 after verifying current first-party documentation, authentication, schema, pagination, timestamps,
 error behavior and observed limits. Use validated XRPL JSON-RPC/Clio for ledger evidence by default.
 

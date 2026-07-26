@@ -4,8 +4,6 @@
 
 Payment channels enable fast, low-cost off-chain micropayments between two parties. The payer creates a channel, funds it with XRP, then sends signed claims off-chain. The recipient can redeem claims on-ledger at any time up to channel expiry. Ideal for streaming payments, metered APIs, gaming, and IoT.
 
----
-
 ## Lifecycle
 
 ```
@@ -27,8 +25,6 @@ Payer                         Recipient
   |                               |
   |  Unclaimed XRP returned to payer
 ```
-
----
 
 ## 1. PaymentChannelCreate
 
@@ -63,8 +59,6 @@ ripple_epoch = int(time.time()) - 946684800
 cancel_after = ripple_epoch + (30 * 24 * 3600)  # 30 days from now
 ```
 
----
-
 ## 2. Reading Channel State
 
 After creation, find the channel object:
@@ -94,21 +88,9 @@ Response fields:
 - `balance`: XRP already claimed by recipient
 - `expiration`: set once close is requested
 
----
-
 ## 3. Creating and Signing Claims (Off-Chain)
 
 Claims are signed messages authorizing a cumulative payment. Each new claim should be for the total cumulative amount (not incremental).
-
-### Python (xrpl-py)
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
-### JavaScript (xrpl.js)
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
 
 ### Verifying a Claim
 
@@ -125,8 +107,6 @@ def verify_claim(channel_id: str, amount: int, signature: str, public_key: str) 
     })
     return is_valid_message(claim_bytes, bytes.fromhex(signature), public_key)
 ```
-
----
 
 ## 4. PaymentChannelClaim (Redeem)
 
@@ -158,8 +138,6 @@ Flags:
 - `tfRenew` (0x00010000): Renew expiration if channel has one set
 - `tfClose` (0x00020000): Request channel close after claim
 
----
-
 ## 5. PaymentChannelFund (Add Funds)
 
 ```json
@@ -177,8 +155,6 @@ Flags:
 - Only the channel creator can fund
 - Extends or sets the expiration
 - Recipient can still claim previously signed claims
-
----
 
 ## 6. Closing a Channel
 
@@ -216,8 +192,6 @@ Flags:
 }
 ```
 
----
-
 ## 7. Channel Expiry Rules
 
 ```
@@ -227,17 +201,6 @@ expiration = max(close_request_time + SettleDelay, CancelAfter)
 - Once expired, anyone can submit PaymentChannelClaim with `tfClose` to close it
 - Unclaimed XRP returns to payer automatically
 - CancelAfter is absolute; SettleDelay is relative to close request
-
----
-
-## 8. Streaming Payments Pattern
-
-High-frequency off-chain payment stream:
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
 
 ## 9. PaymentChannel Object on Ledger
 
@@ -257,8 +220,6 @@ High-frequency off-chain payment stream:
 }
 ```
 
----
-
 ## 10. Use Cases
 
 | Use Case | SettleDelay | Notes |
@@ -269,8 +230,6 @@ High-frequency off-chain payment stream:
 | IoT device billing | 86400s | Low-value, high-frequency |
 | B2B invoice streaming | 604800s | Weekly settlement |
 
----
-
 ## 11. Security Considerations
 
 - Always use cumulative amounts in claims (recipient keeps best claim)
@@ -279,8 +238,6 @@ High-frequency off-chain payment stream:
 - Set `CancelAfter` to prevent indefinitely locked funds
 - Monitor channel balance vs amount funded
 - Use `SettleDelay` long enough for recipient to claim before payer closes
-
----
 
 ## Related Files
 

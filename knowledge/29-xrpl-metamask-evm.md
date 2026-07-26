@@ -21,16 +21,14 @@ Before requesting a wallet action:
 
 ## Current Hermes posture
 
-- `evm-balance`: experimental read-only evidence.
+- `evm-balance`: **Available** read-only evidence.
 - `evm-bridge`: RPC identity/latest block only; no bridge certification.
-- `evm-contract`: experimental unsigned intent only; no compile/simulation/gas/deployment proof.
+- `evm-contract`: **Available** unsigned intent; compilation, simulation, gas estimation, and deployment require **external setup**.
 
-The former `.env` private-key, Hardhat account-array, Foundry `--private-key`, and `ethers.Wallet` examples were removed. Use an injected wallet/provider or user-owned hardware/software signer; never route key material through Hermes.
+Use an injected wallet provider or user-owned hardware/software signer. Never route EVM key material through Hermes, environment examples, command arguments, or chat.
 
 ## Bridge exclusion
 
 Do not ask MetaMask to execute a bridge based on generic patterns. Require current first-party route/contracts/assets/fees/recovery evidence and Testnet proof.
 
 Official source: https://docs.xrplevm.org/
-
-Reviewed: **2026-07-26**.

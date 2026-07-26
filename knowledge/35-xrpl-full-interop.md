@@ -1,23 +1,21 @@
-# Multi-Network Interoperability — Safety and Certification Map
+# Multi-Network Interoperability — Capability Map
 
-## Why this replaces the former “full interop” guide
-
-The previous article contained unverified bridge routes, wallet matrices, stale endpoints, placeholder contracts, direct signing/submission examples, and speculative asset/NFT flows. It was not production evidence and has been retired.
+## Network separation
 
 XRPL L1, the XRPL EVM Sidechain, Xahau, Flare/Songbird, Axelar, and Arweave are distinct systems. Shared branding or XRP relevance does not make addresses, assets, signatures, finality, trust assumptions, or wallet support interchangeable.
 
 ## Current XRPL-Hermes boundary
 
-| Surface | Local capability | Certification posture |
+| Surface | Capability | State |
 |---|---|---|
-| XRPL L1 | live reads and structurally validated unsigned builders | certified per command/test matrix; new flows remain Testnet-first |
-| Xahau | legacy `HookOn` calculation and validated hook-chain lookup | certified partial/read-only; no compile/build/sign/deploy |
-| XRPL EVM Sidechain | validated balance/network reads plus explicit experimental contract intent | experimental read/build; no compile/simulation/deployment/bridge certification |
-| Flare | chain-ID/freshness-checked FTSOv2 read plus labeled CoinGecko context | narrow read; FAssets/LayerCake quarantined |
-| Axelar | Axelarscan registration lookup and GMP-index search | narrow/partial external read; no transfer certification |
-| Arweave | point-in-time base-network storage-price estimate | narrow external read; no upload or retrieval guarantee |
-| Evernode | knowledge discovery only | quarantined |
-| Wallet integrations | Xaman payload handoff only where configured; other wallet claims require separate proof | external dependency |
+| XRPL L1 | live reads and structurally validated unsigned builders | **Available**; new transaction flows remain Testnet-first |
+| Xahau | `HookOn` calculation and validated hook-chain lookup | **Available**; compile/build/sign/deploy require **external setup** or are **not shipped** |
+| XRPL EVM Sidechain | balance/network reads plus unsigned contract intent | **Available**; compilation/deployment require **external setup**; bridge transfer is **not shipped** |
+| Flare | chain-ID/freshness-checked FTSOv2 read plus labeled CoinGecko context | **Available**; FAssets/LayerCake are **not shipped** |
+| Axelar | Axelarscan registration lookup and GMP-index search | **Available**; transfer workflow is **not shipped** |
+| Arweave | point-in-time base-network storage-price estimate | **Available**; upload is **not shipped** |
+| Evernode | knowledge discovery only | **Not shipped** |
+| Wallet integrations | Xaman Payment handoff only where configured | **External setup**; other wallet workflows are **not shipped** |
 
 ## Network identity
 

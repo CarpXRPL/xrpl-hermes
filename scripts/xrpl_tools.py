@@ -12,19 +12,15 @@ if __package__ in (None, ""):
 
 from scripts.tools import (accounts, payments, trustlines, dex, amm, nfts, escrow,
                    checks, paychannel, mpts, clawback, oracles,
-                   credentials, batch, ledger, wallet, evm, xahau,
+                   credentials, ledger, wallet, evm, xahau,
                    flare, xaman, amendments, token_intel, arweave, axelar)
 
 COMMANDS = {}
 for mod in (accounts, payments, trustlines, dex, amm, nfts, escrow,
             checks, paychannel, mpts, clawback, oracles,
-            credentials, batch, ledger, wallet, evm, xahau,
+            credentials, ledger, wallet, evm, xahau,
             flare, xaman, amendments, token_intel, arweave, axelar):
     COMMANDS.update(getattr(mod, 'COMMANDS', {}))
-
-# NOTE: scripts.tools.batch is imported but intentionally contributes no command — the XLS-56
-# `build-batch` builder is retired (obsolete amendment; see scripts/tools/batch.py). Its module
-# is kept so the preserved implementation stays importable; its COMMANDS dict is empty by design.
 
 # path-find is dispatched via _shared._dispatch_path_find
 def _path_find_wrapper():

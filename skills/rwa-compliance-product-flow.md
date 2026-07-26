@@ -22,7 +22,7 @@ Fintech/RWA builders working with counsel and compliance operators.
 
 ## XRPL primitives
 
-- RequireAuth and authorized trustlines
+- RequireAuth and authorized trustlines — protocol design input; complete builder workflow not shipped
 - Credentials when amendment/network support allows
 - DepositPreauth
 - Clawback / freeze policy
@@ -43,7 +43,7 @@ Fintech/RWA builders working with counsel and compliance operators.
 
 - `amendment NAME`
 - `build-account-set`
-- `build-trustset` plus operation-flow guidance for authorization/freeze semantics
+- `build-trustset` for ordinary holder trust lines; issuer authorization flags are not shipped
 - `build-credential-create`
 - `build-credential-accept`
 - `build-credential-delete`
@@ -53,19 +53,17 @@ Fintech/RWA builders working with counsel and compliance operators.
 
 ## MVP deliverable
 
-A testnet technical gate:
+A testnet technical gate limited to shipped builders:
 
-1. Issuer has RequireAuth where appropriate.
-2. Credential/authorization flow is modeled if supported.
-3. Authorized holder can receive/transfer.
-4. Unauthorized holder fails.
-5. Freeze/clawback policy is documented and rehearsed if used.
-6. Legal/compliance responsibilities are listed as external requirements.
+1. Ordinary trust-line, payment, freeze, clawback, Credential, or MPT paths are scoped to commands that actually exist.
+2. Amendment-dependent paths are checked against the target network independently.
+3. Legal/compliance responsibilities are listed as external requirements.
+4. If issuer-side `RequireAuth` authorization is mandatory, record it as **not shipped** rather than simulating a complete workflow.
 
 ## Testnet demo checklist
 
 - Live amendment checks before promising Credentials/MPT behavior.
-- Authorized and unauthorized paths both demonstrated.
+- Authorization paths are demonstrated only when the required builder exists; trust-line `RequireAuth` is excluded.
 - One clawback/freeze rehearsal if the policy uses it.
 - No KYC/PII is stored on-ledger or in memos.
 

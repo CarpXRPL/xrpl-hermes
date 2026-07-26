@@ -25,5 +25,3 @@ Official sources:
 
 - https://docs.arweave.org/
 - https://arweave.net/info
-
-Reviewed: **2026-07-26**.

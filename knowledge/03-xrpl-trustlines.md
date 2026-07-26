@@ -55,16 +55,6 @@ Creating or modifying a trust line requires a `TrustSet` transaction.
 
 This creates a trust line between `rUserAddress` and `rGatewayAddress` for USD, with a limit of 10,000 USD. The user can now receive up to 10,000 USD from the gateway.
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
-### JavaScript Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## Trust Line Balance Tracking
 
 A trust line balance is always a **signed** value — it can be positive or negative depending on perspective.
@@ -321,8 +311,6 @@ These are commonly used for:
 - AMM LP tokens
 - Custom token names
 - Any currency code not in the standard 3-letter ISO set
-
----
 
 ## Related Files
 

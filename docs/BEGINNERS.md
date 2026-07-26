@@ -11,7 +11,7 @@ XRPL-Hermes separates reading/building from authorization:
 Start with read-only commands:
 
 ```bash
-python3 -m scripts.xrpl_tools list
+python3 -m scripts.xrpl_tools  # prints CLI usage and commands
 python3 -m scripts.xrpl_tools server-info
 python3 -m scripts.xrpl_tools account rADDRESS
 ```

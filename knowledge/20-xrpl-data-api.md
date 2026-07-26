@@ -1,17 +1,8 @@
 # XRPL Data APIs — Certification Registry
 
-## Release status
+## Available data surface
 
-**XRPL JSON-RPC/Clio is the default supported data surface. Third-party token/market endpoint recipes are quarantined until contract-tested.**
-
-The former article contained endpoint tables and aggregation code whose routes had drifted:
-
-- some XRPSCAN account/transaction routes still answered;
-- the documented xrpl.to single-token and quote routes returned `404`;
-- an XRPLMeta hostname had a TLS mismatch and another route shape returned `400`;
-- a documented OnTheDEX route returned an application-level invalid-path response.
-
-A mixed result is not a stable integration contract. The stale runnable snippets were removed.
+XRPL JSON-RPC and Clio are the implemented data surfaces. Third-party token and market APIs are not part of the shipped command set.
 
 ## Certified default
 
@@ -54,5 +45,3 @@ Until then, classify the provider as an **external dependency**, not a working X
 
 - https://xrpl.org/docs/references/http-websocket-apis/
 - https://xrpl.org/docs/references/http-websocket-apis/api-conventions/
-
-Source review date: **2026-07-26**.

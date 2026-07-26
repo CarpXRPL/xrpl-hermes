@@ -1,36 +1,34 @@
 # Limitations
 
-xrpl-hermes is a KNOWLEDGE + TOOLKIT, not a runtime or hosting platform.
+XRPL-Hermes is a knowledge, read, and unsigned-build layer. It is not a wallet, signer, broadcaster, node, hosted API, or custody service.
 
-## What this is NOT
-- ❌ Not a blockchain node — use rippled/Clio for that
-- ❌ Not a wallet — use a compatible user-owned external wallet whose exact network and transaction support has been verified
-- ❌ Not a transaction broadcaster — you need an XRPL node for that
-- ❌ Not an EVM runtime — use Foundry/Hardhat for that
-- ❌ Not a hosted API — any external provider requires separate current contract/security acceptance
+## Available surfaces
 
-## What this IS
-- ✅ 72 commands for building signer-ready XRPL transactions, checking live amendments, and querying ecosystem context
-- ✅ 65 curated knowledge files with explicit certification and external-dependency boundaries
-- ✅ An MCP server so any agent (Hermes, OpenClaw, Claude Code, Cursor) can use the knowledge base and the agent-safe command subset
-- ✅ Reference implementations and patterns
-- ✅ CLI-first, works in any environment
+- **67 CLI + MCP commands:** live reads and unsigned transaction builders.
+- **1 local-only command:** `xaman-payload`, which creates a Payment request after local validation and requires Xaman application credentials.
+- **Packaged guidance:** XRPL knowledge, references, and workflow files.
 
-## What an agent does NOT get over MCP
-The MCP surface is deliberately narrower than the 72-command registered dispatcher. Sixty-seven commands are agent-safe; five sensitive registrations are refused before execution:
+## Not implemented
 
-| Command | Classification |
-|---|---|
-| `wallet-generate` | Legacy/quarantined: emits key material |
-| `wallet-from-seed` | Legacy/quarantined: accepts key material |
-| `submit` | Legacy/quarantined: broadcasts to a live network |
-| `submit-multisigned` | Legacy/quarantined: broadcasts to a live network |
-| `xaman-payload` | Guarded external side effect for a locally validated XRPL L1 Payment only |
+- wallet generation, seed import, private-key handling, signing, or transaction broadcast;
+- XRPL Batch/XLS-56 construction;
+- Xahau Hook compilation, transaction construction, signing, or deployment;
+- XRPL EVM/Axelar bridge transfer construction or execution;
+- Arweave uploads;
+- x402 facilitation or settlement;
+- rippled/Clio deployment or managed hosting.
 
-The allowlist is default-deny, so any command not classified — including future additions — is refused until a maintainer adds it. Denial happens before the command is executed. Details: `SECURITY.md`.
+## Narrow integrations
 
-## Honest coverage notes
-- Axelar and Arweave commands are narrow reads: `bridge-status` is registration lookup, `bridge-tx` is GMP-index search, and `arweave-cost` is a point-in-time base fee estimate. They do not certify routes/transfers, upload data, guarantee retrieval, or touch keys.
-- `flare-price` uses a public price API fallback and is labeled as such; use `flare-ftso` for direct read-only FTSOv2 `eth_call` lookups.
-- Xahau support is read/planning only: `hooks-bitmask` calculates legacy `HookOn`, and `hooks-info` reads validated Mainnet/Testnet Hook chains. XRPL-Hermes does not compile, serialize, build, sign, submit, or deploy Xahau transactions. Verify live transaction types and enabled amendments before use.
-- Never put a seed in a prompt, chat, or CLI argument. Builders emit unsigned, signer-ready JSON only — see `SECURITY.md`.
+- `evm-balance` and `evm-bridge` provide **available** read-only XRPL EVM checks. `evm-contract` provides an **available** unsigned intent; compilation, simulation, gas estimation, signing, and deployment require **external setup** or are **not shipped**.
+- `bridge-status` reads Axelar registration metadata. `bridge-tx` searches the GMP index. Neither proves a supported transfer route.
+- `flare-ftso` performs read-only FTSOv2 calls. `flare-price` is separately labeled market context.
+- `arweave-cost` returns a point-in-time public-gateway estimate. It does not upload or guarantee retrieval.
+- `hooks-bitmask` calculates HookOn. `hooks-info` reads validated Xahau Hook chains. Neither deploys Hooks.
+- `token-intel` is an XRPL ledger snapshot with explicit missing-data fields, not identity verification or financial advice.
+
+## Amendment status is not product support
+
+Public XRPL Mainnet servers can know an amendment that Mainnet has not activated. That protocol state does not create an XRPL-Hermes feature. Shipped capabilities are the commands returned by the CLI and `xrpl_list_commands`.
+
+Current fees, reserves, amendment state, balances, liquidity, provider schemas, and network endpoints must be checked live before use.

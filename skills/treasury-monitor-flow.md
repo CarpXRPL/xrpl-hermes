@@ -225,9 +225,6 @@ while True:
 
 When a treasury TX needs signing by multiple parties:
 
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 Quorum math, signing-ceremony rules, and recovery paths: `skills/multisig-safety-flow.md`.
 
 ---

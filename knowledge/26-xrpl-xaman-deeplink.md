@@ -15,7 +15,7 @@ Before contacting Xaman, the tool:
 - certifies XRPL L1 `Payment` intents only;
 - validates classic Account/Destination addresses, positive XRP or issued-currency Amount, and optional Payment fields;
 - rejects signed JSON;
-- rejects Xahau/non-XRPL payloads in this release;
+- rejects Xahau and non-XRPL payloads;
 - rejects malformed API responses;
 - requires a valid payload UUID and trusted HTTPS `xumm.app` signing URL.
 
@@ -35,5 +35,3 @@ Do not treat `PayloadUUID`, `SignURL`, QR generation, `pushed`, or provider appr
 The application secret can create signing requests on behalf of the application. Keep it outside chat, source, browser code and MCP. Rotate it if exposed.
 
 Official source: https://docs.xaman.dev/
-
-Reviewed: **2026-07-26**.

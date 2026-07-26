@@ -18,7 +18,7 @@ without current first-party documentation, contract tests, provenance and explic
 
 ### 2. Improve Tools
 
-Tool logic lives in domain modules under `scripts/tools/` — each module exports a `COMMANDS` dict that the thin dispatcher `scripts/xrpl_tools.py` merges. To add a command: implement it using `_shared.py`, add a safe matrix invocation, add pytest coverage, classify its MCP status, and update the canonical README/SKILL/knowledge surfaces. Do not revive the retired duplicated `STANDALONE.md` bundle. Full walkthrough: [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md).
+Tool logic lives in domain modules under `scripts/tools/` — each module exports a `COMMANDS` dict that the dispatcher merges. Add a safe matrix invocation, pytest coverage, an MCP classification, and a concrete activation path in the public docs. Full walkthrough: [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md).
 
 Before opening a PR, run:
 

@@ -67,16 +67,6 @@ The `Clawback` transaction type allows an issuer to reclaim tokens from a holder
 
 This claws back 1000 USD from `rHolderAddress` that was originally issued by `rIssuerAddress`.
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
-### JavaScript Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## Trust Line Creation Window
 
 The clawback mechanism only affects trust lines created **after** the `lsfAllowTrustLineClawback` flag was enabled. Trust lines that existed before the flag was set are **grandfathered** and cannot be clawed back.
@@ -229,8 +219,6 @@ Virtual Asset Service Providers (VASPs) may need:
 Check the `Flags` field:
 - If `Flags & 2147483648` is non-zero, clawback is enabled
 - If not, clawback is disabled
-
----
 
 ## Related Files
 

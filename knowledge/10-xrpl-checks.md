@@ -58,11 +58,6 @@ Creates a new check that the destination can cash later.
 }
 ```
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## CheckCash Transaction
 
 The destination cashes the check to receive the funds.
@@ -271,8 +266,6 @@ For streaming or high-frequency payments, prefer payment channels. For occasiona
 3. **Cancel promptly**: If you no longer want a check to be cashed, cancel it immediately
 4. **Check IDs**: Store or compute Check IDs for efficient lookup
 5. **Token checks**: Ensure destination has the appropriate trust line before creating
-
----
 
 ## Related Files
 

@@ -39,5 +39,3 @@ New flows are Testnet-first. Mainnet use requires explicit authorization, contro
 ## Third-party APIs
 
 No third-party explorer/token endpoint is certified by this card. Before use, require current provider documentation, TLS/auth/schema/pagination/rate-limit/error semantics, a successful live fixture and a timestamp. Metadata is not ledger truth.
-
-Reviewed: **2026-07-26**.

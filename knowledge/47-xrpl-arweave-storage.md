@@ -2,7 +2,7 @@
 
 ## Release status
 
-**Base-network fee estimate: narrow read-only. Upload/deployment: quarantined.**
+**Base-network fee estimate: narrow read-only. Upload/deployment: not implemented.**
 
 XRPL-Hermes can ask a public Arweave gateway for the current base-network price of storing a byte count and can report gateway network information. It never uploads content and never handles an Arweave/JWK wallet.
 
@@ -35,7 +35,7 @@ Avoid absolute “stored forever” or “permanent availability” guarantees. 
 
 ## Upload boundary
 
-The former Bundlr, direct HTTP upload, JWK signing, ArkB, ArNS, and deployment snippets were removed because they were stale, unsafe, or not reproduced.
+Upload, wallet, JWK, Bundlr, ArkB, ArNS, and deployment operations are not implemented.
 
 Before restoring upload support, require:
 
@@ -52,5 +52,3 @@ Before restoring upload support, require:
 
 - https://docs.arweave.org/
 - https://arweave.net/info
-
-Source review date: **2026-07-26**.

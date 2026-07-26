@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 """xrpl-hermes MCP server — stdio transport, stdlib only.
 
-Exposes an agent-safe subset of the CLI dispatcher plus the full knowledge base
+Exposes the unsigned/read-only CLI surface plus the full knowledge base
 to any MCP client (Claude Code, OpenClaw, Cursor, etc.):
 
     claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
 
 Tools:
-    xrpl_list_commands   — list the agent-safe command allowlist
+    xrpl_list_commands   — list available MCP commands
     xrpl_run             — run one allowlisted command (same args as the CLI)
     xrpl_knowledge_index — list knowledge/reference/workflow files with titles
     xrpl_knowledge       — read one knowledge/reference/workflow file
 
 Agent boundary (positive allowlist, default-deny). The MCP surface exposes
 read-only live queries and unsigned/signer-ready transaction builders only.
-Secret-touching commands (`wallet-generate`, `wallet-from-seed`), broadcast
-commands (`submit`, `submit-multisigned`), and external signing-request creation
-(`xaman-payload`) are denied here. Legacy key/broadcast registrations are quarantined;
-the guarded Xaman helper is an explicit, Payment-only local side effect.
+Key handling and transaction broadcasting are not implemented. `xaman-payload`
+is a local-only Payment handoff because it creates a real external wallet request.
 Any command not on the allowlist — including future additions — is denied until
 a maintainer explicitly adds it, so the boundary is a maintainable invariant
 rather than a one-time patch.
@@ -34,7 +32,7 @@ _SOURCE_ROOT = Path(__file__).resolve().parents[1]
 _INSTALLED_DATA_ROOT = Path(sys.prefix) / "share" / "xrpl-hermes"
 ROOT = _SOURCE_ROOT if (_SOURCE_ROOT / "knowledge").is_dir() else _INSTALLED_DATA_ROOT
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xrpl-hermes", "version": "1.9.0"}
+SERVER_INFO = {"name": "xrpl-hermes", "version": "1.9.1"}
 RUN_TIMEOUT_SECONDS = 90
 
 _KNOWLEDGE_DIRS = ("knowledge", "references", "skills")
@@ -66,19 +64,10 @@ _ALLOWED_COMMANDS = frozenset({
     "build-payment", "build-set-oracle", "build-set-regular-key",
     "build-signer-list-set", "build-ticket-create", "build-trustset",
     "evm-contract", "hooks-bitmask",
-    # NOTE: `build-batch` (XLS-56) is intentionally absent — the Batch builder was retired
-    # (obsolete amendment after the February 2026 security disclosure; see
-    # scripts/tools/batch.py and CHANGELOG.md). It is also unregistered in the dispatcher,
-    # so a request for it is default-denied as an unknown command.
 })
 
-# Denied on the agent surface, with the reason to relay to the client. Legacy
-# key/broadcast registrations are quarantined from supported workflows.
+# Local integrations that intentionally require explicit human-controlled setup.
 _DENIED_COMMANDS = {
-    "wallet-generate": "generates a wallet and emits a secret seed",
-    "wallet-from-seed": "takes a secret seed as input",
-    "submit": "broadcasts an already-signed transaction blob to a live network",
-    "submit-multisigned": "broadcasts an already-signed multisigned transaction to a live network",
     "xaman-payload": "creates a real external wallet signing request",
 }
 
@@ -87,13 +76,12 @@ def _deny_reason(command: str, known: bool) -> str:
     """Human-readable denial without recommending a sensitive invocation."""
     reason = _DENIED_COMMANDS.get(command)
     if reason:
-        return (f"'{command}' is not available over MCP: it {reason}. XRPL-Hermes keeps "
-                "key material, broadcasting, and guarded external side effects out of the "
-                "agent boundary. Legacy key/broadcast surfaces are quarantined; use a separately "
-                "accepted user-controlled external signer and verify the resulting ledger hash.")
+        return (f"'{command}' is local-only because it {reason}. Configure and invoke it "
+                "deliberately outside the autonomous MCP surface, then verify the resulting "
+                "ledger hash independently.")
     if not known:
         return (f"unknown command '{command}'. Use xrpl_list_commands to see the "
-                "agent-safe surface.")
+                "available MCP surface.")
     return (f"'{command}' is not on the MCP agent allowlist (default-deny). This surface "
             "exposes read-only live queries and unsigned transaction builders only. "
             "Use xrpl_list_commands and the documented supported workflows.")
@@ -160,23 +148,22 @@ def _run_command(command: str, args) -> str:
 TOOLS = [
     {
         "name": "xrpl_list_commands",
-        "description": "List the agent-safe xrpl-hermes commands exposed over MCP: live XRPL "
+        "description": "List xrpl-hermes commands exposed over MCP: live XRPL "
                        "queries, signer-ready (unsigned) transaction builders, amendment checks, "
-                       "and EVM/Xahau/Flare helpers. Key-management, broadcast, and Xaman signing "
-                       "request creation are not exposed here; legacy key/broadcast surfaces are quarantined.",
+                       "and EVM/Xahau/Flare helpers. Key management and broadcasting are not "
+                       "implemented; Xaman request creation is local-only.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {
         "name": "xrpl_run",
-        "description": "Run one agent-safe xrpl-hermes command with CLI-style args. Examples: "
+        "description": "Run one available xrpl-hermes command with CLI-style args. Examples: "
                        "command='account' args=['rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe']; "
                        "command='build-payment' args=['--from','rSRC','--to','rDST','--amount','1000000'] "
                        "— --amount is integer drops, so 1000000 means 1 XRP; an issued "
                        "currency is 'CUR:ISSUER:VALUE'; "
                        "command='amendment' args=['MPTokensV1']. Builders return signer-ready "
                        "JSON — they never ask for or use secret keys. Secret-touching and broadcast "
-                       "commands are denied on this surface (see xrpl_list_commands); legacy sensitive "
-                       "surfaces are not supported agent workflows.",
+                       "operations are not implemented on this surface (see xrpl_list_commands).",
         "inputSchema": {
             "type": "object",
             "properties": {

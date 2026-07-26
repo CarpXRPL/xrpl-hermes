@@ -363,8 +363,7 @@ def parse_asset_normalized(arg: str):
 def _parse_amount_for_amm(arg: str):
     """AMM amounts use the same grammar as every other amount.
 
-    The former fallback re-parsed the argument with `.upper()` applied to the
-    currency; it was unreachable (`parse_amount_arg` either returns a drops
+    This fallback must not re-parse with an uppercased currency. `parse_amount_arg` returns either drops
     string, returns an IssuedCurrencyAmount, or raises) and case-retargeting.
     """
     return parse_amount_arg(arg)

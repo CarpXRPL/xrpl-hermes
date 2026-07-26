@@ -27,5 +27,3 @@
 Provider callbacks/websockets are untrusted inputs until authenticated and reconciled against the ledger.
 
 Official source: https://docs.xaman.dev/
-
-Reviewed: **2026-07-26**.

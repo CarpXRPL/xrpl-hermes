@@ -4,7 +4,7 @@
 
 - `bridge-status`: Axelarscan chain-registration lookup only.
 - `bridge-tx`: Axelar GMP-index search only.
-- ITS/token transfer building, signing, submission and recovery: **quarantined**.
+- ITS/token transfer building, signing, submission and recovery: **not implemented**.
 
 Registration does not certify a route, asset, amount, fee, liquidity, pause state or transfer result. GMP search is not a general token-transfer receipt checker.
 
@@ -29,5 +29,3 @@ Official sources:
 - https://docs.axelar.dev/
 - https://docs.axelar.dev/dev/send-tokens/interchain-tokens/xrpl/
 - https://axelarscan.io/
-
-Reviewed: **2026-07-26**.

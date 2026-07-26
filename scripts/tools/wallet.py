@@ -1,26 +1,6 @@
 #!/usr/bin/env python3
-"""Wallet utility tools: generate, from-seed, validate-address."""
-from ._shared import (
-    json_out, note_out,
-)
-
-def tool_wallet_generate(algorithm: str = "ed25519"):
-    from xrpl.wallet import Wallet
-    from xrpl.constants import CryptoAlgorithm
-    algo = CryptoAlgorithm.ED25519 if algorithm.lower() == "ed25519" else CryptoAlgorithm.SECP256K1
-    w = Wallet.create(algo)
-    note_out("# WARNING: This output contains a SECRET SEED. Save it offline. Do not paste in chat logs.")
-    json_out({"Address": w.classic_address, "Seed": w.seed,
-              "PublicKey": w.public_key, "Algorithm": algorithm})
-
-def tool_wallet_from_seed(seed: str):
-    from xrpl.wallet import Wallet
-    try:
-        w = Wallet.from_seed(seed)
-    except Exception as e:
-        json_out({"Error": "InvalidSeed", "Message": str(e)})
-        return
-    json_out({"Address": w.classic_address, "PublicKey": w.public_key})
+"""Public-address validation tools. Key material is outside XRPL-Hermes."""
+from ._shared import json_out
 
 def tool_validate_address(addr: str):
     from xrpl.core.addresscodec import is_valid_classic_address, is_valid_xaddress
@@ -30,7 +10,5 @@ def tool_validate_address(addr: str):
 import sys
 
 COMMANDS = {
-    "wallet-generate": lambda: tool_wallet_generate(sys.argv[2] if len(sys.argv) >= 3 else "ed25519"),
-    "wallet-from-seed": lambda: tool_wallet_from_seed(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: wallet-from-seed sEd..."),
     "validate-address": lambda: tool_validate_address(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: validate-address rADDR"),
 }

@@ -4,8 +4,6 @@
 
 AMM (Automated Market Maker) bots on the XRPL interact with liquidity pools created via the AMM amendment. Key strategies include: price monitoring, arbitrage between AMM and DEX order books, liquidity provision, impermanent loss hedging, and AMMBid auction slot management.
 
----
-
 ## 1. AMM Basics
 
 XRPL AMM uses the constant-product formula `x × y = k`, same as Uniswap v2:
@@ -21,8 +19,6 @@ With trading fee f (e.g., 0.5% = 0.005):
 effective_Δin = Δin × (1 - f)
 Δout = asset2 × effective_Δin / (asset1 + effective_Δin)
 ```
-
----
 
 ## 2. AMM Info Query
 
@@ -56,8 +52,6 @@ usd_pool = float(amm['amount2']['value'])
 price_per_xrp = usd_pool / xrp_pool
 print(f"Price: {price_per_xrp:.4f} USD/XRP")
 ```
-
----
 
 ## 3. Price Monitoring Bot
 
@@ -148,8 +142,6 @@ monitor.on_price_change = on_price_change
 asyncio.run(monitor.start())
 ```
 
----
-
 ## 4. DEX vs AMM Arbitrage
 
 When the AMM price diverges from DEX order book prices, arbitrage restores equilibrium:
@@ -233,15 +225,6 @@ async def find_arbitrage_opportunity(
     return None
 ```
 
----
-
-## 5. Liquidity Provision Strategy
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
 ## 6. Impermanent Loss Calculation
 
 ```python
@@ -276,8 +259,6 @@ def should_withdraw_liquidity(
     net_return = il + fees_earned_pct
     return net_return < il_threshold_pct
 ```
-
----
 
 ## 7. Multi-Pool Analysis
 
@@ -348,39 +329,6 @@ async def get_pools_by_tvl(xrp_price_usd: float = 0.5) -> list:
     return sorted(enriched, key=lambda p: p.get("tvl_usd", 0), reverse=True)
 ```
 
----
-
-## 8. Trading Fee Optimization
-
-Vote to lower fee if you have LP tokens:
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 9. AMMBid Auction Slot
-
-The auction slot gives the holder discounted trading fees for up to 24 hours. The effective fee decays linearly from 0% at slot acquisition back toward the pool's `base_fee` as the slot expires:
-
-```
-effective_fee = (1 - slot_ratio) * base_fee
-
-where:
-  slot_ratio  = time_elapsed_since_bid / 86400  (0.0 → 1.0 over 24h)
-  base_fee    = pool's current TradingFee (e.g. 500 = 0.5%)
-
-Examples:
-  Just won slot (slot_ratio=0.0): effective_fee = 0%
-  12h elapsed  (slot_ratio=0.5): effective_fee = base_fee * 0.5
-  Slot expired (slot_ratio=1.0): effective_fee = base_fee (no discount)
-```
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
 ## 10. AMM Swap Simulation
 
 Before executing, simulate the swap outcome:
@@ -426,8 +374,6 @@ result = simulate_amm_swap(
 print(f"Expected output: {result['token_out']:.4f} tokens")
 print(f"Price impact: {result['price_impact_pct']:.3f}%")
 ```
-
----
 
 ## Related Files
 

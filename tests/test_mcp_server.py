@@ -15,7 +15,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-DENIED = ("wallet-generate", "wallet-from-seed", "submit", "submit-multisigned", "xaman-payload")
+DENIED = ("xaman-payload",)
+NOT_SHIPPED = ("wallet-generate", "wallet-from-seed", "submit", "submit-multisigned", "build-batch")
 
 # XRPL family seeds are base58; anything matching this shape is decoded before it is called a seed.
 _SEED_SHAPED = re.compile(r"\bs[1-9A-HJ-NP-Za-km-z]{20,40}\b")
@@ -55,7 +56,7 @@ def test_mcp_session():
                            "params": {"protocolVersion": "2025-06-18",
                                       "capabilities": {}, "clientInfo": {"name": "pytest", "version": "0"}}})
         assert init["result"]["serverInfo"]["name"] == "xrpl-hermes"
-        assert init["result"]["serverInfo"]["version"] == "1.9.0"
+        assert init["result"]["serverInfo"]["version"] == "1.9.1"
 
         # notification: must produce no response (next reply is for id 2)
         proc.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
@@ -68,8 +69,7 @@ def test_mcp_session():
         lst = _rpc(proc, {"jsonrpc": "2.0", "id": 3, "method": "tools/call",
                           "params": {"name": "xrpl_list_commands", "arguments": {}}})
         listing = json.loads(lst["result"]["content"][0]["text"])
-        # xrpl_list_commands reflects the agent-safe allowlist: the 72 dispatcher
-        # commands minus the 5 secret/broadcast/external-signing commands denied over MCP.
+        # Xaman is local-only because creating a request is a real external side effect.
         assert listing["count"] == 67
         assert len(listing["commands"]) == 67
         for allowed in ("build-payment", "token-intel", "amm-info", "flare-ftso",
@@ -77,8 +77,8 @@ def test_mcp_session():
             assert allowed in listing["commands"], allowed
         for denied in DENIED:
             assert denied not in listing["commands"], denied
-        # build-batch (XLS-56) is retired — unregistered, so it is neither runnable nor listed.
-        assert "build-batch" not in listing["commands"], "retired Batch builder must not be listed"
+        for absent in NOT_SHIPPED:
+            assert absent not in listing["commands"], absent
 
         # offline command through the real dispatcher
         run = _rpc(proc, {"jsonrpc": "2.0", "id": 4, "method": "tools/call",
@@ -141,13 +141,11 @@ def test_allowlist_and_denylist_partition_the_dispatcher():
         "unclassified (add to _ALLOWED_COMMANDS or _DENIED_COMMANDS)": sorted(dispatcher - allowed - denied),
         "phantom (in a set but not the dispatcher)": sorted((allowed | denied) - dispatcher),
     }
-    # 72 = 67 + 5 — the exact partition this hotfix establishes.
-    assert (len(dispatcher), len(allowed), len(denied)) == (72, 67, 5)
+    assert (len(dispatcher), len(allowed), len(denied)) == (68, 67, 1)
     assert set(denied) == set(DENIED)
-    # The retired XLS-56 build-batch builder is fully out of the classification: not in the
-    # dispatcher, not allowed, and not a phantom deny-list entry.
-    assert "build-batch" not in dispatcher
-    assert "build-batch" not in allowed and "build-batch" not in denied
+    for absent in NOT_SHIPPED:
+        assert absent not in dispatcher
+        assert absent not in allowed and absent not in denied
 
 
 @pytest.mark.parametrize("command", DENIED)
@@ -163,8 +161,7 @@ def test_denied_commands_refused_before_subprocess(monkeypatch, command):
     with pytest.raises(ValueError) as exc:
         mcp._run_command(command, [])
     text = str(exc.value)
-    assert "not available over MCP" in text
-    assert "quarantined" in text
+    assert "local-only" in text
     assert not _contains_decodable_seed(text)
 
 
@@ -210,8 +207,7 @@ def test_mcp_denies_secret_and_broadcast_commands_over_stdio():
                                           "arguments": {"command": cmd, "args": []}}})
             assert resp["result"]["isError"] is True, cmd
             text = resp["result"]["content"][0]["text"]
-            assert "not available over MCP" in text, (cmd, text)
-            assert "quarantined" in text, (cmd, text)
+            assert "local-only" in text, (cmd, text)
             assert not _contains_decodable_seed(text), (cmd, "denial response leaked a seed")
             assert "master_seed" not in text and "seed_hex" not in text, cmd
 
@@ -239,25 +235,21 @@ def test_mcp_denies_secret_and_broadcast_commands_over_stdio():
         proc.wait(timeout=10)
 
 
-def test_version_surfaces_report_1_9_0():
+def test_version_surfaces_report_1_9_1():
     """Version synchronization: pyproject, SKILL.md, MCP SERVER_INFO, and the newest
     CHANGELOG entry all report this hotfix release."""
     import scripts.mcp_server as mcp
     from scripts.audit_project_quality import check_version_sync
 
-    assert mcp.SERVER_INFO["version"] == "1.9.0"
-    assert re.search(r'^version\s*=\s*"1\.9\.0"', (ROOT / "pyproject.toml").read_text(), re.M)
-    assert re.search(r"^version:\s*1\.9\.0\s*$", (ROOT / "SKILL.md").read_text(), re.M)
-    assert re.search(r"^##\s*v?1\.9\.0\b", (ROOT / "CHANGELOG.md").read_text(), re.M)
+    assert mcp.SERVER_INFO["version"] == "1.9.1"
+    assert re.search(r'^version\s*=\s*"1\.9\.1"', (ROOT / "pyproject.toml").read_text(), re.M)
+    assert re.search(r"^version:\s*1\.9\.1\s*$", (ROOT / "SKILL.md").read_text(), re.M)
+    assert re.search(r"^##\s*v?1\.9\.1\b", (ROOT / "CHANGELOG.md").read_text(), re.M)
     assert check_version_sync([]) == [], "version surfaces disagree"
 
 
-def test_dev_matrix_never_generates_a_wallet_seed():
-    """The verification matrix must not run wallet-generate and redact afterward.
-
-    Safety means the seed is never created. Parse the module without importing it because the
-    matrix executes at import time.
-    """
+def test_dev_matrix_skips_external_side_effects():
+    """The verification matrix must not create a real Xaman request."""
     import ast
 
     tree = ast.parse((ROOT / "scripts" / "dev_test_matrix.py").read_text(encoding="utf-8"))
@@ -269,6 +261,5 @@ def test_dev_matrix_never_generates_a_wallet_seed():
         if name in ("TESTS", "SKIPPED_SAFETY") and isinstance(node.value, ast.Dict):
             tables[name] = {k.value for k in node.value.keys if isinstance(k, ast.Constant)}
 
-    for command in ("wallet-generate", "xaman-payload"):
-        assert command not in tables["TESTS"]
-        assert command in tables["SKIPPED_SAFETY"]
+    assert "xaman-payload" not in tables["TESTS"]
+    assert "xaman-payload" in tables["SKIPPED_SAFETY"]

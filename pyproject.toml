@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrpl-hermes"
-version = "1.9.0"
-description = "Open-source XRPL ecosystem toolkit — 65 knowledge files + 72 registered commands (67 agent-safe over MCP; legacy key-management and broadcast surfaces quarantined) with certified XRPL L1 reads and unsigned builders"
+version = "1.9.1"
+description = "Model-agnostic XRPL reads, unsigned transaction builders, and curated workflows with a non-custodial MCP boundary"
 authors = [{name = "CarpXRPL"}]
 license = "MIT"
 readme = "README.md"

@@ -33,7 +33,7 @@ Builders serving token creators, communities, and projects that need safer issua
 - issued-currency Payment / issuer first mint
 - OfferCreate
 - AMMCreate/AMMDeposit where liquidity launch is in scope
-- Clawback/freeze/RequireAuth decisions via operation flows
+- Clawback/freeze decisions via operation flows; RequireAuth trust-line authorization is not shipped
 
 ## Read first
 

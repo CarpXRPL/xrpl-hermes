@@ -2,7 +2,7 @@
 
 **Status: external dependency / operational guidance only.**
 
-XRPL-Hermes v1.9.0 certifies its local package, CLI, default-deny MCP boundary, packaged knowledge corpus, XRPL L1 reads, and unsigned builders. It does **not** certify a VPS vendor, cloud image, container image, node package, bot framework, process supervisor, firewall policy, price, port list, or production hosting configuration.
+XRPL-Hermes ships a local package, CLI, default-deny MCP boundary, knowledge corpus, XRPL L1 reads, and unsigned builders. It does **not** ship or certify hosting infrastructure, node packages, bot frameworks, process supervisors, firewall policies, prices, or production deployment configurations.
 
 ## Supported installation boundary
 
@@ -39,6 +39,6 @@ A private rippled/Clio deployment is separate infrastructure work. XRPL-Hermes d
 
 ## Third-party hosting and storage
 
-Evernode, Arweave upload/deployment, Bundlr/Irys, IPFS pinning, bridge infrastructure and managed bot hosting remain external dependencies or quarantined surfaces unless a future release supplies current first-party evidence and reproduced acceptance tests.
+Evernode, Arweave upload/deployment, Bundlr/Irys, IPFS pinning, bridge infrastructure and managed bot hosting remain external dependencies or unimplemented surfaces unless a future release supplies current first-party evidence and reproduced acceptance tests.
 
 **Do not treat old copied deployment snippets, provider prices or screenshots as release evidence.**

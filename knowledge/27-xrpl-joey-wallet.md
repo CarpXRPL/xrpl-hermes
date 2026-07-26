@@ -1,6 +1,6 @@
 # Joey Wallet — Unsupported/Unverified Boundary
 
-Joey’s current distribution, official domain/repository, injected-provider API, supported networks, transaction types, custody model and security behavior were not certified for XRPL-Hermes v1.9.0.
+XRPL-Hermes does not integrate Joey’s provider API, custody model, or transaction-signing interface.
 
 ## Rules
 

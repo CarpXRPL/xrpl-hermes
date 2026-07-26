@@ -4,7 +4,7 @@ Running rippled or Clio is an external infrastructure operation, not a certified
 
 ## Current status
 
-- Node installation, container images, packages, ports, peer lists, validator configuration, hardware sizing and hosting costs were not reproduced for v1.9.0.
+- XRPL-Hermes does not ship node installation, images, packages, peer lists, validator configuration, hardware sizing, or hosting guidance.
 - A self-hosted node still has CPU, disk, network and configured API limits. Do not claim “unlimited” access or “no rate limits.”
 - Never expose admin RPC/gRPC/WebSocket interfaces publicly.
 - Never disable TLS verification.

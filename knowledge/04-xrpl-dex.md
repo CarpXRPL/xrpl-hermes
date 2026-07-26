@@ -57,11 +57,6 @@ This means: "I want to sell 100 XRP and receive at least 50 USD. I'm offering at
 
 This means: "I'll pay up to 100 USD to receive 100 XRP. My offer rate is 1.00 USD per XRP."
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## Offer Matching Algorithm
 
 The XRPL uses a **continuous limit order book** with the following matching rules:
@@ -356,8 +351,6 @@ To replace an existing offer, use `OfferSequence` to specify the offer to replac
 ```
 
 This atomically cancels the old offer (at sequence 20) and creates a new one in a single transaction.
-
----
 
 ## Related Files
 

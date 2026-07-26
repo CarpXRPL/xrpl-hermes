@@ -50,11 +50,6 @@ The initial LP tokens are minted based on the geometric mean of the two deposits
 LP Tokens = sqrt(amount1 * amount2) ... simplified
 ```
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## AMMDeposit Transaction
 
 Deposits assets into an existing AMM pool and receives LP tokens (or can deposit single-sided).
@@ -407,8 +402,6 @@ AMM is available on testnet. To test:
 3. Create AMM pool
 4. Test deposits, swaps, and withdrawals
 5. Check pool state with `amm_info`
-
----
 
 ## Related Files
 

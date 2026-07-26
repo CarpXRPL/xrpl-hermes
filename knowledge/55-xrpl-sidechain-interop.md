@@ -2,11 +2,11 @@
 
 ## Status
 
-**Experimental / not transfer-certified.** This file no longer contains bridge payment builders, private-key examples, placeholder ABIs, raw broadcasts, invented door accounts, or speculative token representations.
+**Available:** narrow EVM network and public Axelar index reads. Bridge transfer builders are **not shipped**.
 
 XRPL-Hermes can inspect selected public XRPL EVM and Axelar status surfaces. It does not currently construct, sign, submit, or guarantee an XRPL L1 ↔ EVM bridge transfer.
 
-## Why the former examples were removed
+## Transfer requirements
 
 A real bridge transaction depends on current:
 
@@ -18,8 +18,6 @@ A real bridge transaction depends on current:
 - minimums, fees, gas, rate limits, and pause state;
 - validator/federator/signing model;
 - finality and refund/recovery procedures.
-
-The removed examples used environment-provided secrets, direct signing/broadcast, placeholder accounts/contracts/calldata, and generic mint/burn logic without proving those fields against a live bridge. They were unsafe to copy.
 
 ## Read-only commands
 
@@ -68,16 +66,16 @@ A future accepted flow must:
 
 Xahau is not part of an XRPL L1 ↔ EVM bridge path by default. Do not use the Xahau endpoint as a “Hook-style sidecar” for XRPL or EVM transactions. Any system that explicitly includes Xahau requires its own independently certified route and signer model.
 
-## Acceptance status
+## Capability state
 
 | Capability | Status |
 |---|---|
-| EVM JSON-RPC balance read | implemented experimental read with configured/observed chain-ID enforcement |
-| EVM network identity read | implemented; explicitly not bridge metadata or transfer certification |
-| Axelar registration/GMP-index lookup | external dependency; no route or transfer certification |
-| XRPL → EVM unsigned bridge builder | not implemented/certified |
-| EVM → XRPL unsigned bridge builder | not implemented/certified |
-| Bridge signing/submission | intentionally unavailable |
-| Production transfer recommendation | blocked pending full proof |
+| EVM JSON-RPC balance read | Available — configured/observed chain-ID enforcement |
+| EVM network identity read | Available — not bridge metadata or transfer certification |
+| Axelar registration/GMP-index lookup | Available — no route or transfer certification |
+| XRPL → EVM unsigned bridge builder | Not shipped |
+| EVM → XRPL unsigned bridge builder | Not shipped |
+| Bridge signing/submission | Not shipped |
+| Production transfer workflow | Not shipped |
 
 See `references/xrpl-evm-sidechain.md`, `references/axelar-bridge.md`, `LIMITATIONS.md`, and current first-party bridge documentation.

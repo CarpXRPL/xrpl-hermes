@@ -12,21 +12,39 @@ xrpl-hermes validate-address rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
 ## Read live state
 
 ```bash
-python3 -m scripts.xrpl_tools server-info
-python3 -m scripts.xrpl_tools account rADDRESS
-python3 -m scripts.xrpl_tools tx-info HASH
+xrpl-hermes server-info
+xrpl-hermes account rADDRESS
+xrpl-hermes tx-info TRANSACTION_HASH
 ```
 
 ## Build unsigned intent
 
 ```bash
-python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 1000000
+xrpl-hermes build-payment --from rSOURCE --to rDESTINATION --amount 1000000
 ```
 
-Review the JSON, hand it to a compatible user-owned external signer, then verify the returned hash with `tx-info`. Hermes receives no seed/private key. Placeholder addresses above are not executable values.
+Review the JSON, authorize it in a compatible user-controlled wallet, then verify the returned hash with `tx-info`. XRPL-Hermes does not accept keys, sign, or broadcast.
 
-New flows are Testnet-first. Mainnet requires explicit authorization, controlled value/fees and monitoring. See `SKILL.md`, `LIMITATIONS.md`, `SECURITY.md` and `docs/WORKFLOWS.md`.
+New value-moving flows are Testnet-first. Mainnet requires explicit authorization, controlled value and fees, and monitoring.
 
 ## MCP
 
-The MCP server is default-deny and exposes only the agent-safe subset. Legacy key/broadcast registrations and guarded external-side-effect commands remain denied. After installation, point your client at `.venv/bin/xrpl-hermes-mcp`; never copy credentials into chat or examples.
+Point your MCP client at the installed executable:
+
+```text
+/path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp
+```
+
+MCP exposes all 67 read/unsigned-builder commands. See [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md).
+
+## Xaman Payment handoff
+
+Xaman is available through the local CLI, not MCP, because creating a request is a real external side effect.
+
+```bash
+export XUMM_API_KEY='...'
+export XUMM_API_SECRET='...'
+xrpl-hermes xaman-payload '{"TransactionType":"Payment","Account":"rSOURCE","Destination":"rDESTINATION","Amount":"1000000"}'
+```
+
+Keep credentials local and verify the final transaction independently.

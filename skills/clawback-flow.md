@@ -98,9 +98,6 @@ Expected output:
 
 Hand the reviewed unsigned intent to a user-selected signing system only after verifying current first-party evidence for the exact transaction type and network. XRPL-Hermes does not certify a named wallet for Clawback signing/submission.
 
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ---
 
 ## Step 5 — Verify the Clawback

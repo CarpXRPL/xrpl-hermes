@@ -25,11 +25,6 @@ Accounts are created by sending XRP to a brand new address that doesn't yet exis
 
 There is no explicit "create account" transaction â€” it happens implicitly via a payment to a non-existent address.
 
-### Creating an Account (Python Example)
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## Account Reserve
 
 Every XRPL account must hold a minimum amount of XRP, called the **reserve**. This prevents ledger bloat and is a core part of XRPL's anti-spam mechanism.
@@ -274,8 +269,6 @@ A deleted account can be re-created later by sending XRP to its address again â€
 | Blob | Arbitrary binary data | Variable |
 | Vector256 | Array of 256-bit hashes | Variable |
 | PathSet | Set of payment paths | Variable |
-
----
 
 ## Related Files
 

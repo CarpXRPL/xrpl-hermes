@@ -1,12 +1,12 @@
 # MCP Client Guide — Claude Code, Cursor, Codex, Hermes, and any MCP client
 
-`scripts/mcp_server.py` is a stdio MCP server written in stdlib-only Python (no extra dependencies beyond the repo's own requirements for the commands it runs). Point any MCP-capable client at it and the agent gets the knowledge base plus the agent-safe command subset.
+`scripts/mcp_server.py` is a stdio MCP server. Point any MCP-capable client at the installed executable to expose the knowledge base and 67 read/unsigned-builder commands.
 
 ## The four tools every client gets
 
 | Tool | What it does |
 |---|---|
-| `xrpl_list_commands` | Lists the 67 agent-safe CLI commands exposed over MCP |
+| `xrpl_list_commands` | Lists the 67 available CLI commands exposed over MCP |
 | `xrpl_run` | Runs one command with CLI-style args (e.g. `command="account"`, `args=["rADDR"]`) |
 | `xrpl_knowledge_index` | Lists the 65 knowledge files, 15 reference cards, and `skills/` workflow flows with titles |
 | `xrpl_knowledge` | Reads one knowledge/reference/workflow file (sandboxed to `knowledge/`, `references/`, and `skills/`) |
@@ -14,7 +14,7 @@
 Design properties worth knowing before you wire it up:
 
 - **Subprocess isolation.** Each `xrpl_run` call executes in a child process with a 90-second timeout, so a crashing or hanging command never takes down the server.
-- **Default-deny custody boundary.** The server refuses `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, and `xaman-payload` before execution. Builders return signer-ready JSON for external signing.
+- **Default-deny custody boundary.** Key handling, signing, and broadcasting are not implemented. `xaman-payload` is local-only because it creates a real external wallet request.
 - **Knowledge reads are sandboxed.** `xrpl_knowledge` rejects paths outside `knowledge/`, `references/`, and `skills/` (covered by tests).
 - **Install the project, not only requirements.** `pip install .` installs the CLI/MCP entry points and packages the complete knowledge/reference/workflow corpus.
 
@@ -103,7 +103,7 @@ You should see three JSON-RPC responses; the third contains live validated-ledge
 ## Prompting patterns that work well
 
 - *"Use xrpl_knowledge_index, read the AMM file, then build an AMMDeposit for …"* — knowledge first, then build; this matches how the skill is designed to be used.
-- *"Check the live amendment status before using any post-2024 transaction type."* — MPT/Credential/Oracle builders perform live checks; Batch is security-retired and unregistered.
+- *"Check the live amendment status before using an amendment-dependent transaction type."* — builders perform live checks before producing intent.
 - *"Run token-intel for CODE rISSUER and interpret the evidence gaps."* — one `xrpl_run` call returns an explicitly partial, freshness-stamped report; confidence describes data completeness only.
 - *"Check the XRP AMM pool for CODE:rISSUER."* — `command="amm-info"`, `args=["XRP","CODE:rISSUER"]` returns live reserves, trading fee, and auction slot, or an honest `AMMExists: false`.
 

@@ -33,7 +33,7 @@ Review the returned transaction IDs and exact 64-character field. `HookOn` is ac
 
 Use only the current official Xahau documentation, Hook API headers, examples, and build tooling. The browser builder is documented at <https://builder.xahau.network/>; validate its current provenance before use.
 
-A Hook module must meet current Xahau WebAssembly and Hook API constraints. Do not copy code from the superseded XRPL-Hermes articles: those snippets were quarantined because they contained incorrect imports, function signatures, undefined identifiers, and unverified limits.
+A Hook module must meet current Xahau WebAssembly and Hook API constraints. Do not copy code from the superseded XRPL-Hermes articles: those snippets are not shipped because they contained incorrect imports, function signatures, undefined identifiers, and unverified limits.
 
 Required review artifacts:
 

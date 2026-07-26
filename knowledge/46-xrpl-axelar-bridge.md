@@ -2,9 +2,9 @@
 
 ## Release status
 
-**Registration lookup: narrow read-only. GMP search: partial. Transfers: quarantined.**
+**Registration lookup: narrow read-only. GMP search: partial. Transfers: not implemented.**
 
-XRPL-Hermes does not currently build, sign, submit, recover, or certify an XRPL/Axelar transfer. The previous runnable memo, seed-loading, direct-submission, and “complete bridge” examples were removed because they were contradicted by current Axelar XRPL ITS documentation and violated the project’s signer-separated policy.
+XRPL-Hermes provides public Axelar status lookups only. It does not build, sign, submit, recover, or certify an XRPL/Axelar transfer.
 
 ## What the tools actually do
 
@@ -57,5 +57,3 @@ Re-check before every implementation:
 - https://docs.axelar.dev/
 - https://docs.axelar.dev/dev/send-tokens/interchain-tokens/xrpl/
 - https://axelarscan.io/
-
-Source review date for this boundary: **2026-07-26**.

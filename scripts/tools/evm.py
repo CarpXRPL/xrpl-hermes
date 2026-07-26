@@ -108,8 +108,8 @@ def tool_evm_contract(
         cfg = _network(network)
         sender = _address(frm, "from")
         if abi is not None:
-            # ABI is developer metadata, not an eth_sendTransaction field. The
-            # former tool incorrectly inserted it into the transaction object.
+            # ABI is developer metadata, not an eth_sendTransaction field.
+            # Constructor arguments must already be encoded into bytecode.
             raise ValueError("--abi is not accepted; append constructor args to bytecode with a verified ABI encoder")
         if not isinstance(bytecode, str):
             raise ValueError("bytecode must be hexadecimal text")

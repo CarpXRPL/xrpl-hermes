@@ -1,6 +1,6 @@
 # Xahau Hook App Product Flow
 
-Use for a Xahau on-ledger automation product. This archetype is **partial/planning**, not a deployable end-to-end Hermes product.
+Use for planning a Xahau on-ledger automation product. HookOn calculation and installed-Hook inspection are **available**; compilation and deployment require **external setup**; an end-to-end deployable product is **not shipped**.
 
 ## Product boundary
 

@@ -2,9 +2,9 @@
 
 ## Status
 
-**Experimental/read-only plus build-only planning.** XRPL-Hermes does not currently provide a transaction serializer, simulator, gas estimator, signer, broadcaster, deployment verifier, relayer, or certified bridge transfer for the XRPL EVM Sidechain.
+Balance/network reads and unsigned contract intent are **available**. Compilation, simulation, gas estimation, signing, and deployment require **external setup**. Bridge transfers are **not shipped**.
 
-The former advanced guide contained private-key loading, raw signing/broadcasting, placeholder contracts, and speculative bridge/relayer flows. Those examples were removed.
+XRPL-Hermes does not handle EVM private keys, raw signing, broadcasting, deployment, bridge transfers, or relayer execution.
 
 ## Current narrow surface
 
@@ -16,9 +16,9 @@ The former advanced guide contained private-key loading, raw signing/broadcastin
   - verifies configured RPC identity, observed chain ID, and latest block;
   - **does not verify a bridge route**.
 - `evm-contract ...`
-  - emits an explicitly experimental unsigned deployment intent;
+  - emits an available unsigned contract intent;
   - rejects malformed address, bytecode, gas, network, and ABI misuse;
-  - is not serialization-, simulation-, gas-, or deployment-certified.
+  - does not provide compilation, simulation, gas estimation, or deployment proof.
 
 Current configured identities:
 
@@ -44,10 +44,8 @@ No private key should enter Hermes, examples, logs, or MCP calls.
 
 ## Bridge exclusion
 
-RPC health is not bridge health. Do not infer gateway contracts, supported assets, minimums, fees, liquidity, pause state, or recovery behavior from block height or chain registration. Transfer support remains quarantined until a first-party-schema Testnet round trip and recovery test pass.
+RPC health is not bridge health. Do not infer gateway contracts, supported assets, minimums, fees, liquidity, pause state, or recovery behavior from block height or chain registration. Transfer support remains unavailable until a first-party-schema Testnet round trip and recovery test pass.
 
 ## Official source
 
 - https://docs.xrplevm.org/
-
-Source review date: **2026-07-26**.

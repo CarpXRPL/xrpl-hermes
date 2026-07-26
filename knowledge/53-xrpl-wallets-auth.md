@@ -35,5 +35,3 @@ Joey support is unsupported/unverified. Privy and MetaMask are external dependen
 5. Decode signed output and compare it with original intent.
 6. Verify final network, hash, validated/final status and result code.
 7. Test reject, cancel, expiry, timeout, malformed callback and provider outage.
-
-Reviewed: **2026-07-26**.

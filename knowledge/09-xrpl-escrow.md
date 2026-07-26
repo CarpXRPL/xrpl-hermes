@@ -58,11 +58,6 @@ Locks XRP into an escrow. The sender's XRP balance decreases by the amount, and 
 }
 ```
 
-### Python Example
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ## EscrowFinish Transaction
 
 Releases XRP from an escrow to the destination. Can only be executed after `FinishAfter` time has passed and before `CancelAfter`.
@@ -130,34 +125,6 @@ Crypto-conditions are the cryptographic building blocks that enable conditional 
 | **RSA-SHA-256** | 0x02 | RSA signature verification |
 | **ED25519-SHA-256** | 0x03 | Ed25519 signature verification |
 
-### PREIMAGE-SHA-256 (Most Common)
-
-This is the simplest and most commonly used condition type:
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
-The receiver must reveal the original secret (preimage) to claim the escrow.
-
-### Generating Conditions
-
-Using the `crypto-conditions` library:
-
-**Node.js:**
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
-**Python:**
-```python
-from crypto_conditions import PreimageSha256
-
-condition = PreimageSha256()
-condition.set_preimage(b'my_secret_value')
-
-condition_uri = condition.get_condition_uri()
-fulfillment = condition.serialize_fulfillment()
-```
-
 ### Anatomy of a Condition
 
 A condition in URI format:
@@ -213,11 +180,6 @@ Escrows enable cross-ledger atomic swaps. Here's how a XRP ↔ BTC swap works:
 This guarantees atomicity: either both swaps happen or neither does.
 
 ## Practical Example: Full HTLC Flow
-
-### Step 1: Generate Condition
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
 
 ### Step 2: Create Escrow (Sender)
 
@@ -339,8 +301,6 @@ Escrows and payment channels serve different but complementary roles:
 | Partial claims | No (all-or-nothing) | Yes (incremental claims) |
 | Conditions | Crypto-conditions | Public key signature |
 | Use case | Atomic swaps, one-time releases | Streaming, recurring payments |
-
----
 
 ## Related Files
 

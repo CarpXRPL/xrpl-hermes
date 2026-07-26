@@ -4,8 +4,6 @@
 
 Tickets allow an account to reserve sequence numbers for out-of-order transaction execution. They solve the problem of needing to submit multiple transactions in parallel when the Sequence field normally requires strict ordering. Critical for high-throughput bots, multi-signing flows, and long-running operations.
 
----
-
 ## 1. The Problem Tickets Solve
 
 Normal XRPL transactions require sequential Sequence numbers:
@@ -17,8 +15,6 @@ With tickets:
 - Reserve tickets 101–110 with one transaction
 - Submit 10 transactions with different ticket numbers simultaneously
 - No ordering dependency — they can all be in the same ledger
-
----
 
 ## 2. TicketCreate Transaction
 
@@ -42,8 +38,6 @@ After this transaction succeeds:
 - Each ticket has a `TicketSequence` value: 101, 102, ... 110
 
 **Reserve cost**: Each owned Ticket adds one live incremental owner-reserve unit until consumed or removed with the account.
-
----
 
 ## 3. Using a Ticket
 
@@ -75,8 +69,6 @@ A transaction using a ticket sets `Sequence: 0` and `TicketSequence` to the rese
 
 Both of these can be submitted in the same ledger round simultaneously.
 
----
-
 ## 4. Querying Available Tickets
 
 ```python
@@ -105,31 +97,6 @@ Response ticket object:
 }
 ```
 
----
-
-## 5. Python: High-Throughput Parallel Submission
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 6. JavaScript: Parallel Submission with Tickets
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
-## 7. Tickets for Multi-Signing Coordination
-
-Multi-signing often takes minutes (waiting for multiple signers). Use tickets so the master account's sequence doesn't block:
-
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
----
-
 ## 8. Cancelling Unused Tickets
 
 There is no `TicketCancel` transaction. To consume an unused Ticket, build a legitimate reviewed transaction that uses `Sequence: 0` and that `TicketSequence`; do not create a meaningless value-moving transaction merely to release reserve. Authorization and submission remain in the user's external signer.
@@ -145,8 +112,6 @@ There is no `TicketCancel` transaction. To consume an unused Ticket, build a leg
 ```
 
 After the externally authorized transaction is validated, re-read account state to confirm the Ticket is gone and reserve accounting changed as expected.
-
----
 
 ## 9. Out-of-Order Execution Use Cases
 
@@ -189,8 +154,6 @@ async def airdrop(recipients: list, amount: int):
         await asyncio.sleep(4)
 ```
 
----
-
 ## 10. Ticket Limits and Reserve
 
 | Parameter | Value |
@@ -201,8 +164,6 @@ async def airdrop(recipients: list, amount: int):
 | Ticket lifetime | Until used or account deleted |
 | TicketCount upper bound cost | Query live increment × requested TicketCount |
 
----
-
 ## 11. Common Errors
 
 | Error | Cause |
@@ -211,8 +172,6 @@ async def airdrop(recipients: list, amount: int):
 | `temINVALID` | TicketSequence and Sequence both set |
 | `tefNO_TICKET` | Ticket doesn't exist or already used |
 | `temBAD_SEQUENCE` | Sequence != 0 when using TicketSequence |
-
----
 
 ## Related Files
 

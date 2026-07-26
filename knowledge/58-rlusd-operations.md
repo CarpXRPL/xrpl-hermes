@@ -30,9 +30,6 @@ User establishes trust line to RLUSD issuer
 Issuer sends RLUSD payment to user's account
 ```
 
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ### Travel Rule Integration
 
 For transactions over the FATF threshold (typically $1,000–$10,000 depending on jurisdiction), RLUSD payments should include Travel Rule data in transaction memos:
@@ -125,9 +122,6 @@ python3 scripts/xrpl_tools.py build-clawback \
   --amount 1000
 ```
 
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ### Clawback Safeguards
 
 Before executing a clawback, always:
@@ -137,16 +131,13 @@ Before executing a clawback, always:
 4. Consider partial clawback (only the flagged amount, not the full balance)
 5. Have a multi-signature governance process for clawback approval
 
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
-
 ---
 
 ## Monitoring RLUSD Supply
 
 ### Supply and holder-distribution boundary
 
-No third-party RLUSD obligations/holder route is certified in this release. `trustlines` can provide
+No third-party RLUSD obligations or complete-holder route is implemented. `trustlines` can provide
 a paginated ledger sample, but it is not total supply or a complete holder count. Report those values
 as unavailable unless a separately contract-tested provider route is current, named and timestamped.
 

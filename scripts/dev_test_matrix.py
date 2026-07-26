@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 """Generate a safe dev-test matrix for XRPL-Hermes CLI commands.
 
-This script intentionally avoids submitting real transactions or printing wallet
-seeds. It validates live read commands, transaction builders, registry wiring,
-and safety behavior for dangerous commands.
-
-Retired commands (see RETIRED below) are never executed: they are unregistered in
-the dispatcher, so the matrix loop cannot reach them. Commands in SKIPPED_SAFETY stay
-registered but are also never executed because there is no safe invocation. Both classes
-are reported explicitly so safety is auditable instead of hidden behind output redaction.
+This script validates live reads, unsigned builders, and registry wiring. Commands
+that create a real external side effect remain unexecuted.
 """
 from __future__ import annotations
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -45,6 +40,7 @@ TESTS = {
     "arweave-cost": ["arweave-cost", "1MB"],
     "balance": ["balance", R],
     "book-offers": ["book-offers", "XRP", f"USD:{BITSTAMP}"],
+    "bridge-status": ["bridge-status"],
     "bridge-tx": ["bridge-tx", ZERO_HASH],
     "build-account-delete": ["build-account-delete", "--from", R, "--to", GENESIS],
     "build-account-set": ["build-account-set", "--from", R, "--set-flag", "8"],
@@ -87,6 +83,7 @@ TESTS = {
     "evm-bridge": ["evm-bridge"],
     "evm-contract": ["evm-contract", "--from", "0x0000000000000000000000000000000000000000", "--bytecode", "0x00"],
     "flare-price": ["flare-price", "XRP", "FLR"],
+    "flare-ftso": ["flare-ftso", "XRP/USD"],
     "hooks-bitmask": ["hooks-bitmask", "Payment"],
     # Public mainnet account with one installed Hook; verified in the Xahau
     # certification pass. A missing XRPL genesis account must not masquerade as
@@ -98,35 +95,19 @@ TESTS = {
     "nft-offers": ["nft-offers", NFT_ID, "sell"],
     "path-find": ["path-find", R, GENESIS, "1", f"USD:{BITSTAMP}"],
     "server-info": ["server-info"],
-    "submit": ["submit"],
-    "submit-multisigned": ["submit-multisigned"],
     "subscribe": ["subscribe", "streams=ledger"],
     "token-intel": ["token-intel", "USD", BITSTAMP, "3", "20"],
     "trustlines": ["trustlines", R],
     "tx-info": ["tx-info", VALIDATED_TX],
     "validate-address": ["validate-address", R],
-    "wallet-from-seed": ["wallet-from-seed"],
 }
 
-# Registered commands for which even a no-argument invocation performs the sensitive action.
-# Never execute these in an automated matrix. In particular, redacting a generated seed after
-# the fact is not a safety control — the seed must not be created at all.
+# Registered commands for which a valid invocation creates an external side effect.
+# Never execute these in an automated matrix.
 SKIPPED_SAFETY = {
-    "wallet-generate": "Not executed: invoking this command creates and prints a live wallet seed. "
-                       "MCP denial is covered by tests/test_mcp_server.py.",
     "xaman-payload": "Not executed: when Xaman credentials are configured, invoking this command "
                      "creates a real external wallet signing request. MCP denial is covered by "
                      "tests/test_mcp_server.py.",
-}
-
-# Commands deliberately withdrawn from the toolkit. They are unregistered in the dispatcher, so
-# the matrix loop below never reaches them; this mapping keeps the retirement visible in the
-# generated report instead of letting a command silently vanish between releases.
-RETIRED = {
-    "build-batch": "XLS-56 Batch builder retired 2026-07-11 — the Batch amendment is officially "
-                   "obsolete after the February 2026 signature-validation disclosure, and "
-                   "BatchV1_1 has no released implementation or finalized spec. Implementation "
-                   "preserved unregistered in scripts/tools/batch.py for audit history.",
 }
 
 
@@ -148,11 +129,7 @@ def run(cmd, timeout=12):
 # Import command registry after writing TESTS so we catch drift.
 import scripts.xrpl_tools as registry
 commands = sorted(registry.COMMANDS)
-# A retired command must stay unregistered — if one reappears, fail loudly rather than
-# quietly executing a withdrawn builder.
-still_registered = sorted(set(RETIRED) & set(commands))
-if still_registered:
-    raise SystemExit(f"retired command(s) re-registered in the dispatcher: {still_registered}")
+
 missing_safety_skip = sorted(set(SKIPPED_SAFETY) - set(commands))
 if missing_safety_skip:
     raise SystemExit(f"safety-skipped command(s) are no longer registered: {missing_safety_skip}")
@@ -167,22 +144,18 @@ for name in commands:
     # process timeout must be longer or it can kill a legitimate controlled
     # response before the command reports it.
     code, seconds, sample, stdout = run(cmd, timeout=30 if name == "bridge-tx" else 12)
-    dangerous_names = {"submit", "submit-multisigned", "wallet-from-seed"}
-    dangerous_ok = name in dangerous_names and (code in (0, 1) or "Usage" in sample or "Need" in sample or "Error" in sample)
     long_ok = name == "subscribe" and code == "timeout"
     wire_error = builder_wire_error(name, stdout) if code == 0 else None
     builder_error = name.startswith("build-") and ('"Error"' in sample or wire_error)
-    cli_error = top_level_cli_error(stdout) if code == 0 and not dangerous_ok else None
+    cli_error = top_level_cli_error(stdout) if code == 0 else None
     if wire_error:
         sample = f"{sample} [WIRE ERROR: {wire_error}]"
     if cli_error:
         sample = f"{sample} [CLI ERROR: {cli_error}]"
-    ok = (code == 0 or dangerous_ok or long_ok) and "Traceback" not in sample and not builder_error and not cli_error
+    ok = (code == 0 or long_ok) and "Traceback" not in sample and not builder_error and not cli_error
     report_argv = " ".join(shlex.quote(x) for x in cmd)
     report_sample = sample
-    if name in dangerous_names:
-        report_argv = "(quarantined compatibility usage check; invocation omitted)"
-        report_sample = "Legacy key/broadcast surface remained non-operative in the no-argument safety probe; actionable usage intentionally omitted."
+
     rows.append({"command": name, "argv": report_argv, "exit": code, "seconds": seconds, "status": "PASS" if ok else "FAIL", "sample": report_sample})
 
 passed = sum(1 for r in rows if r["status"] == "PASS")
@@ -197,7 +170,7 @@ md = [
     f"Failed: {failed}",
     f"Skipped for safety: {skipped_safety}",
     "",
-    "Commands that would create a secret or an external signing request are never executed and are marked SKIPPED-SAFETY. Other dangerous commands are tested only for safe failure/usage behavior. `subscribe` is treated as pass when it starts and times out because it is a long-running stream.",
+    "Commands that create an external request are not executed and are marked SKIPPED-SAFETY. `subscribe` passes when it starts and reaches the controlled timeout because it is a long-running stream.",
     "",
     "| Command | Status | Exit | Seconds | Test argv | Output sample |",
     "|---|---|---:|---:|---|---|",
@@ -206,25 +179,12 @@ for r in rows:
     sample = r["sample"].replace("|", "\\|")
     md.append(f"| `{r['command']}` | {r['status']} | `{r['exit']}` | {r['seconds']} | `{r['argv']}` | {sample} |")
 
-if RETIRED:
-    md += [
-        "",
-        "## Retired commands (not executed)",
-        "",
-        "Unregistered in the dispatcher and denied on every surface. Listed here so the retirement "
-        "stays visible in the audit record rather than looking like a dropped command.",
-        "",
-        "| Command | Status | Reason |",
-        "|---|---|---|",
-    ]
-    for name, reason in sorted(RETIRED.items()):
-        why = reason.replace("|", "\\|")
-        md.append(f"| `{name}` | RETIRED | {why} |")
-
-Path(ROOT / "AUDIT-tool-matrix.md").write_text("\n".join(md) + "\n")
+report_path = os.environ.get("XRPL_HERMES_MATRIX_REPORT")
+if report_path:
+    Path(report_path).write_text("\n".join(md) + "\n")
 print(json.dumps({"commands": len(commands), "passed": passed, "failed": failed,
-                  "skipped_safety": sorted(SKIPPED_SAFETY), "retired": sorted(RETIRED),
-                  "report": "AUDIT-tool-matrix.md"}, indent=2))
+                  "skipped_external": sorted(SKIPPED_SAFETY),
+                  "report": report_path}, indent=2))
 if failed:
     print("FAILED COMMANDS:")
     for r in rows:

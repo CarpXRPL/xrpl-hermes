@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""Ledger tools: info, server-info, tx-info, decode, ledger-entry, submit."""
+"""Read-only ledger inspection and transaction decoding tools."""
 from ._shared import (
-    _request, json_out, note_out, json_tx_out, drops_to_xrp, ripple_time_to_iso,
-    ENDPOINTS, _dispatch_build, JsonRpcClient,
+    _request, json_out, drops_to_xrp, ripple_time_to_iso, _dispatch_build,
     Ledger, ServerInfo, Tx, LedgerEntry,
 )
-from xrpl.models.requests import SubmitOnly, SubmitMultisigned
-import sys, json as json_mod
+import sys
 
 def tool_ledger(index: int = None):
     try:
@@ -86,27 +84,10 @@ def tool_ledger_entry(index: str = None, account_root: str = None,
     except Exception as e:
         json_out({"Error": "LedgerEntryError", "Message": str(e)})
 
-def tool_submit(blob: str):
-    try:
-        resp = _request(SubmitOnly(tx_blob=blob))
-        json_out(resp.result)
-    except Exception as e:
-        json_out({"Error": "SubmitError", "Message": str(e)})
-
-def tool_submit_multisigned(tx_json_str: str):
-    try:
-        tx_obj = json_mod.loads(tx_json_str)
-        resp = _request(SubmitMultisigned(tx_json=tx_obj))
-        json_out(resp.result)
-    except Exception as e:
-        json_out({"Error": "SubmitMultisignedError", "Message": str(e)})
-
 COMMANDS = {
     "ledger": lambda: tool_ledger(int(sys.argv[2]) if len(sys.argv) >= 3 and sys.argv[2].isdigit() else None),
     "server-info": lambda: tool_server_info(),
     "tx-info": lambda: tool_tx_info(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: tx-info TX_HASH"),
     "decode": lambda: tool_decode(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: decode TX_BLOB"),
     "ledger-entry": lambda: _dispatch_build(0, tool_ledger_entry),
-    "submit": lambda: tool_submit(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: submit TX_BLOB"),
-    "submit-multisigned": lambda: tool_submit_multisigned(sys.argv[2]) if len(sys.argv) >= 3 else print("Usage: submit-multisigned '{\"TransactionType\":...}'"),
 }

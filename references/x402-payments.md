@@ -1,8 +1,8 @@
-# x402 / HTTP-402 on XRPL — Experimental Integration Plan
+# x402 / HTTP-402 on XRPL — Design Reference
 
 ## Status
 
-**Experimental external dependency.** XRPL-Hermes does not certify an x402 package, facilitator, header schema, network identifier, fee schedule, receipt format or unattended payment loop in v1.9.0.
+**Reference only.** XRPL-Hermes does not ship an x402 package, facilitator, header implementation, network adapter, fee service, receipt service, or unattended payment loop.
 
 Hermes can build and inspect an unsigned XRPL L1 Payment that may be used by a separately accepted x402 implementation. It does not sign, submit, retry a paid request or authorize spending.
 

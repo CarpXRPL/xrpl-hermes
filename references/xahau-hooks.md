@@ -2,7 +2,7 @@
 
 ## Capability boundary
 
-**Certified in XRPL-Hermes v1.9.0:**
+**Available surface:**
 
 - Calculate legacy `HookOn` values from Xahau transaction-type IDs.
 - Read installed hook chains from validated Xahau Mainnet or Testnet ledgers.
@@ -98,7 +98,6 @@ Before any Mainnet proposal:
 
 ## Pinned sources
 
-Reviewed 2026-07-25:
 
 - Xahaud protocol: `Xahau/xahaud@bb244ef7729503a0317bcff0f8fdaa93ca5cb7d2`
   - `include/xrpl/protocol/detail/transactions.macro`

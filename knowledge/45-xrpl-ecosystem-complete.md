@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This file is a routing index, not a claim that every ecosystem project, wallet, bridge, grant, endpoint, token, or integration is current or certified. The former “complete ecosystem” article was retired because it mixed volatile tables, unverified compatibility claims, hardcoded fees/times/faucets, direct wallet generation, and speculative routes.
+This is a routing index for the distinct networks and external services covered by XRPL-Hermes.
 
 ## Separated surfaces
 
@@ -12,11 +12,11 @@ Native XRP Ledger functionality: accounts, XRP and issued currencies, trust line
 
 ### XRPL EVM Sidechain
 
-A distinct EVM network for Solidity/Ethereum tooling. Chain IDs, RPCs, bridge contracts, wrapped-token addresses, gas behavior, and supported wallets are volatile. Treat the current Hermes EVM tools as experimental/read-only until independently accepted.
+A distinct EVM network for Solidity/Ethereum tooling. Balance/network reads and unsigned contract intent are **available**. Compilation and deployment require **external setup**; bridge transfer is **not shipped**.
 
 ### Xahau
 
-A separate XRPL-protocol network with native XAH, Mainnet network ID `21337`, Testnet network ID `21338`, and Hooks. XRPL-Hermes currently certifies only legacy `HookOn` calculation and validated installed-chain reads. See `references/xahau-hooks.md`.
+A separate XRPL-protocol network with native XAH, Mainnet network ID `21337`, Testnet network ID `21338`, and Hooks. XRPL-Hermes provides **available** `HookOn` calculation and validated installed-chain reads. Compilation and deployment require **external setup**. See `references/xahau-hooks.md`.
 
 ### Flare and Songbird
 
@@ -32,22 +32,20 @@ An external storage network. Hermes estimates public gateway pricing only. It do
 
 ### Evernode
 
-Quarantined pending current first-party sources and reproducible host/tenant lifecycle evidence. See `knowledge/54-xrpl-evernode-hosting.md`.
+No Evernode command is shipped. See `knowledge/54-xrpl-evernode-hosting.md` for the integration boundary.
 
-## Certification labels
+## Capability labels
 
-- **Certified:** official source + implementation + deterministic/live tests + network + freshness + accepted evidence.
-- **Experimental:** useful implementation exists, but one or more acceptance layers remain incomplete.
-- **External dependency:** capability/status is controlled by a third party; Hermes can report evidence but cannot guarantee availability.
-- **Quarantined:** current claims or implementation are insufficient for use.
-- **Retired:** intentionally removed due to a protocol, security, or evidence failure.
+- **Available:** shipped and reachable on its documented surface.
+- **External setup:** requires a user wallet, credentials, toolchain, or third-party service.
+- **Not shipped:** no supported runnable workflow.
 
 ## Current command routing
 
 ```bash
 # XRPL L1
 python3 scripts/xrpl_tools.py server-info
-python3 scripts/xrpl_tools.py account-info rADDRESS
+python3 scripts/xrpl_tools.py account rADDRESS
 python3 scripts/xrpl_tools.py amendments
 
 # Xahau read-only/calculate
@@ -77,7 +75,7 @@ Do not maintain a generic wallet compatibility matrix. Wallet network and transa
 5. let the wallet keep and use the key;
 6. verify the validated/finalized result independently.
 
-Joey Xahau support is unsupported/unverified in this release. Xaman Platform capability is an external API integration and requires configured credentials; it is safety-skipped by the autonomous matrix because creating a payload has an external side effect.
+Xaman Payment handoff is available only through the local CLI after configuring application credentials. It is not exposed over MCP because creating a request is an external side effect.
 
 ## Volatile data policy
 
@@ -93,7 +91,7 @@ Never hardcode or repeat without fresh verification:
 - program/grant amounts and application status;
 - decentralization, security, and trust-model claims.
 
-Every production recommendation needs a source, checked-at time, supported network, live probe, and clear uncertainty.
+Every production recommendation needs a current source, the intended network, a live probe, and clear uncertainty.
 
 ## Related files
 

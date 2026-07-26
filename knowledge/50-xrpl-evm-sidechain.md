@@ -11,19 +11,19 @@ The XRPL EVM Sidechain is an EVM-compatible network adjacent to XRPL L1. It is n
 
 Treat these as configuration values that must be checked against the live RPC and current official documentation before use.
 
-## XRPL-Hermes release posture
+## XRPL-Hermes capability state
 
 | Capability | Status |
 |---|---|
-| Address/network validation | Implemented |
-| Live balance + observed chain ID | Experimental read-only |
-| RPC identity/latest block | Experimental read-only |
-| Contract deployment intent | Experimental build-only |
-| Compile/constructor encoding | External dependency |
-| Gas estimation/simulation | Not implemented |
-| Signing/submission | External wallet only |
-| Receipt/runtime verification | Not implemented |
-| XRPL L1 ↔ EVM transfer | Quarantined |
+| Address/network validation | Available |
+| Live balance + observed chain ID | Available |
+| RPC identity/latest block | Available |
+| Unsigned contract intent | Available |
+| Compile/constructor encoding | External setup |
+| Gas estimation/simulation | Not shipped |
+| Signing/submission | External setup |
+| Receipt/runtime verification | Not shipped |
+| XRPL L1 ↔ EVM transfer | Not shipped |
 
 ## Safe commands
 
@@ -51,5 +51,3 @@ Do not use a generic lock/mint pattern, placeholder gateway, hardcoded asset lis
 ## Official source
 
 - https://docs.xrplevm.org/
-
-Source review date: **2026-07-26**.

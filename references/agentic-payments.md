@@ -139,7 +139,7 @@ The signing layer stays the user's. Document and support the handoff, don't repl
 - **Authorization:** hand reviewed `build-*` JSON to a compatible user-owned external signer. `xaman-payload` currently accepts validated XRPL L1 Payments only; other wallet/provider support requires current first-party evidence.
 - **Verification:** compare authorized fields with intent, then verify the returned hash on a validated ledger.
 - **Never:** seeds in prompts, logs, or files the agent re-reads.
-- Legacy key-management commands are quarantined compatibility surfaces; do not route agent workflows through them.
+- Legacy key-management commands are not part of the shipped command surface; do not route agent workflows through them.
 
 ### 6c. `x402` client/server flow — **plan only**
 HTTP-402 machine-to-machine payments settled on XRPL. Full flow, code, and roadmap in

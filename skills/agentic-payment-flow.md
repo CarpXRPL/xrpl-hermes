@@ -78,8 +78,6 @@ verified. Joey and Privy are not certified handoffs. `xaman-payload` supports re
 Payments only and creates a guarded external side effect.
 
 **Legacy in-process signing:**
-> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
-
 
 **JavaScript/TypeScript projects:** use a separately audited user-owned external wallet/signing layer;
 do not place wallet keys or signing code inside the Hermes workflow.

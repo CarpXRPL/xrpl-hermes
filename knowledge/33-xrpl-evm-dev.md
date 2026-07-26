@@ -2,7 +2,7 @@
 
 ## Status
 
-**Planning and read-only inspection only.** The previous guide embedded private-key environment patterns, direct Hardhat/Foundry deployment commands, raw bridge payments and speculative contracts. Those runnable examples were removed.
+**Planning and read-only inspection only.** Contract deployment, private-key handling, direct broadcast, and bridge payments are not implemented.
 
 ## Current network configuration
 
@@ -27,9 +27,9 @@ XRPL-Hermes may help produce and review source, tests and an unsigned intent. It
 
 ## Tool posture
 
-- `evm-balance`: experimental read-only balance/network evidence.
+- `evm-balance`: **Available** balance/network evidence.
 - `evm-bridge`: RPC identity/status only; not bridge readiness.
-- `evm-contract`: experimental build-only intent; not compiled/simulated/deployed proof.
+- `evm-contract`: **Available** unsigned intent; compilation, simulation, and deployment require **external setup**.
 
 ## Bridge exclusion
 
@@ -42,5 +42,3 @@ The user's wallet or independent signer owns the key and presents a decoded tran
 ## Official source
 
 - https://docs.xrplevm.org/
-
-Reviewed: **2026-07-26**.

@@ -2,9 +2,9 @@
 
 ## Status
 
-**Quarantined for v1.9.0.** XRPL-Hermes does not currently provide a certified Evernode host, tenant, lease, Sashimono/Sashimi, registry, governance, deployment, billing, or Hook integration.
+**Not implemented.** XRPL-Hermes does not currently provide a certified Evernode host, tenant, lease, Sashimono/Sashimi, registry, governance, deployment, billing, or Hook integration.
 
-The previous article was removed because it mixed speculative architecture with runnable wallet creation, seed handling, direct signing/submission, invented schemas, unverified Hook behavior, and unpinned cost/endpoint assumptions. None of those examples should be restored without current first-party sources and live Testnet evidence.
+XRPL-Hermes does not implement Evernode host, tenant, lease, wallet, or transaction operations. Use current first-party Evernode documentation and independent Testnet evidence for any integration.
 
 ## What may be said safely
 
@@ -44,7 +44,7 @@ python3 scripts/xrpl_tools.py hooks-info rACCOUNT [mainnet|testnet]
 
 These commands do not compile, serialize, sign, submit, deploy, or manage an Evernode Hook. See `references/xahau-hooks.md`.
 
-## Acceptance required before unquarantine
+## Requirements before implementation
 
 - Current first-party protocol and operator documentation pinned and reviewed.
 - Live network identity/endpoints/contracts independently verified.
