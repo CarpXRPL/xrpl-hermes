@@ -247,12 +247,14 @@ Quorum math, signing-ceremony rules, and recovery paths: `skills/multisig-safety
 ## Reserve Calculation
 
 ```python
-BASE_RESERVE_XRP = 1     # current mainnet (reduced from 10); confirm live via `server-info`
-RESERVE_PER_ITEM_XRP = 0.2  # owner reserve per object (reduced from 2)
-
-def spendable_xrp(balance_xrp: float, object_count: int) -> float:
-    reserve = BASE_RESERVE_XRP + (RESERVE_PER_ITEM_XRP * object_count)
+def spendable_xrp(
+    balance_xrp: float,
+    object_count: int,
+    validated_base_reserve_xrp: float,
+    validated_owner_reserve_xrp: float,
+) -> float:
+    reserve = validated_base_reserve_xrp + (validated_owner_reserve_xrp * object_count)
     return max(0, balance_xrp - reserve)
 
-print(f"Spendable: {spendable_xrp(state['balance_xrp'], state['reserve_items']):.2f} XRP")
+# Populate both reserve arguments from the selected network's latest validated ledger.
 ```

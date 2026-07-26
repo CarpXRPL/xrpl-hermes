@@ -6,8 +6,8 @@ Build Discord bots with slash commands for XRPL queries, AMM monitoring, and ric
 
 ## Stack
 
-- `discord.py>=2.0` (slash commands via app_commands)
-- `xrpl-py>=2.0.0`
+- A currently supported `discord.py` release (slash commands via app_commands)
+- A currently supported `xrpl-py` release
 - `aiohttp` for async HTTP (included with discord.py)
 
 ```bash
@@ -225,10 +225,29 @@ Use embeds for bot outputs that users scan repeatedly. Keep each field short, pu
 ### Account Health Embed
 
 ```python
-def account_health_embed(address: str, account_data: dict) -> discord.Embed:
+from decimal import Decimal
+from xrpl.models.requests import ServerInfo
+
+def validated_reserve_drops(client) -> tuple[int, int]:
+    response = client.request(ServerInfo())
+    ledger = response.result.get("info", {}).get("validated_ledger", {})
+    try:
+        base = Decimal(str(ledger["reserve_base_xrp"]))
+        increment = Decimal(str(ledger["reserve_inc_xrp"]))
+    except KeyError as exc:
+        raise RuntimeError("validated ledger did not return reserve settings") from exc
+    drops_per_xrp = Decimal(1_000_000)
+    return int(base * drops_per_xrp), int(increment * drops_per_xrp)
+
+def account_health_embed(
+    address: str,
+    account_data: dict,
+    reserve_base_drops: int,
+    reserve_inc_drops: int,
+) -> discord.Embed:
     balance_drops = int(account_data.get("Balance", "0"))
     owner_count = int(account_data.get("OwnerCount", 0))
-    reserve_drops = 10_000_000 + owner_count * 2_000_000
+    reserve_drops = reserve_base_drops + owner_count * reserve_inc_drops
     spendable = max(balance_drops - reserve_drops, 0) / 1_000_000
 
     embed = discord.Embed(title="Account Health", color=0x2ECC71)
@@ -293,7 +312,9 @@ Use one command per high-value action. Defer immediately for network calls so Di
 async def account_cmd(interaction: discord.Interaction, address: str):
     await interaction.response.defer(ephemeral=True)
     resp = XRPL.request(AccountInfo(account=address, ledger_index="validated"))
-    await interaction.followup.send(embed=account_health_embed(address, resp.result["account_data"]))
+    reserve_base, reserve_inc = validated_reserve_drops(XRPL)
+    embed = account_health_embed(address, resp.result["account_data"], reserve_base, reserve_inc)
+    await interaction.followup.send(embed=embed)
 ```
 
 ```python
@@ -445,10 +466,10 @@ export ALERT_CHANNEL_ID="123456789"
 Use a minimal requirements file:
 
 ```txt
-discord.py>=2.3.0
-xrpl-py>=2.5.0
-websockets>=12.0
-python-dotenv>=1.0.0
+discord.py
+xrpl-py
+websockets
+python-dotenv
 ```
 
 Use a health check task for container platforms:

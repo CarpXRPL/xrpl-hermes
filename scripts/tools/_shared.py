@@ -164,9 +164,11 @@ def get_reserve_settings() -> tuple[Decimal, Decimal]:
     try:
         info = _request(ServerInfo()).result.get("info", {})
         ledger = info.get("validated_ledger", {})
-        return Decimal(str(ledger.get("reserve_base_xrp", 1))), Decimal(str(ledger.get("reserve_inc_xrp", 0.2)))
-    except Exception:
-        return Decimal("1"), Decimal("0.2")
+        if "reserve_base_xrp" not in ledger or "reserve_inc_xrp" not in ledger:
+            raise RuntimeError("validated ledger did not return reserve settings")
+        return Decimal(str(ledger["reserve_base_xrp"])), Decimal(str(ledger["reserve_inc_xrp"]))
+    except Exception as exc:
+        raise RuntimeError("unable to derive current reserve settings from the selected XRPL server") from exc
 
 def _parse_value_slash_asset(arg: str):
     if "/" not in arg:

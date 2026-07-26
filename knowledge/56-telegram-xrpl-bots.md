@@ -7,8 +7,8 @@ observability and failure recovery. Any Xaman payload must use the guarded Payme
 
 ## Stack
 
-- `python-telegram-bot>=20.0` (async)
-- `xrpl-py>=2.5.0` (with `[websockets]` for streaming)
+- A currently supported `python-telegram-bot` release (async)
+- A currently supported `xrpl-py` release (with `[websockets]` for streaming)
 - Optional: `sqlite3` (stdlib) / `redis` for persistent storage
 
 ```bash

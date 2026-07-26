@@ -3,9 +3,11 @@ import io
 import json
 import sys
 from contextlib import redirect_stdout
+from decimal import Decimal
 
 import pytest
 
+from scripts.tools import _shared
 from scripts.tools._shared import (
     _dispatch_build, make_amount, normalize_currency_code, parse_amount_arg,
     parse_asset_normalized, validate_xrpl_address,
@@ -918,3 +920,36 @@ def test_dev_matrix_elapsed_duration_is_non_negative():
     assert elapsed_seconds(10.0, 11.234) == 1.23
     # Defensive clamp protects evidence if a non-monotonic caller regresses.
     assert elapsed_seconds(11.0, 10.0) == 0.0
+
+
+def test_reserve_settings_use_validated_ledger_values(monkeypatch):
+    class Response:
+        result = {
+            "info": {
+                "validated_ledger": {
+                    "reserve_base_xrp": "1.25",
+                    "reserve_inc_xrp": "0.125",
+                }
+            }
+        }
+
+    monkeypatch.setattr(_shared, "_request", lambda request: Response())
+    assert _shared.get_reserve_settings() == (Decimal("1.25"), Decimal("0.125"))
+
+
+def test_reserve_settings_fail_closed_when_live_values_are_missing(monkeypatch):
+    class Response:
+        result = {"info": {"validated_ledger": {}}}
+
+    monkeypatch.setattr(_shared, "_request", lambda request: Response())
+    with pytest.raises(RuntimeError, match="unable to derive current reserve settings"):
+        _shared.get_reserve_settings()
+
+
+def test_reserve_settings_fail_closed_when_server_request_fails(monkeypatch):
+    def fail_request(request):
+        raise OSError("offline")
+
+    monkeypatch.setattr(_shared, "_request", fail_request)
+    with pytest.raises(RuntimeError, match="unable to derive current reserve settings"):
+        _shared.get_reserve_settings()

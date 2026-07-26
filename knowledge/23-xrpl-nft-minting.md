@@ -31,7 +31,7 @@ NFT metadata is stored off-chain. The URI in the NFT points to the metadata.
 | Platform | Cost | Permanence | IPFS CID |
 |----------|------|-----------|----------|
 | IPFS + Pinata | Free tier | Until unpinned | ✅ |
-| Arweave | One-time fee ~$0.01/kb | Permanent | ❌ (has own ID) |
+| Arweave | Query the live network/gateway quote for the exact byte size | Permanent | ❌ (has own ID) |
 | NFT.storage | Free | Permanent via Filecoin | ✅ |
 | Your server | Free | As long as server runs | ❌ |
 

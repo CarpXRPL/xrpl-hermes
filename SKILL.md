@@ -235,8 +235,8 @@ The `scripts/xrpl_tools.py` dispatcher provides 72 XRPL-native commands through 
 | 52 | Build AMM Withdraw | `build-amm-withdraw --from rADDR --asset1 XRP --asset2 CUR:rISS` | Remove liquidity |
 | 53 | Build AMM Vote | `build-amm-vote --from rADDR --asset1 XRP --asset2 CUR:rISS --trading-fee N` | Vote AMM fee |
 | 54 | Build AMM Bid | `build-amm-bid --from rADDR --asset1 XRP --asset2 CUR:rISS` | Auction slot bid |
-| 55 | Wallet Generate | `wallet-generate [ed25519|secp256k1]` | **Legacy/quarantined:** emits key material; denied over MCP and not used by agent workflows |
-| 56 | Wallet From Seed | `wallet-from-seed s...` | **Legacy/quarantined:** accepts key material; denied over MCP and not used by agent workflows |
+| 55 | Wallet Generate | *(usage intentionally omitted)* | **Legacy/quarantined:** emits key material; denied over MCP and not used by agent workflows |
+| 56 | Wallet From Seed | *(usage intentionally omitted)* | **Legacy/quarantined:** accepts key material; denied over MCP and not used by agent workflows |
 | 57 | Validate Address | `validate-address rADDR` | Validate classic/X-address |
 | 58 | Xaman Payload | `xaman-payload PAYMENT_JSON` | Create a real Xaman Platform request for a locally validated XRPL L1 Payment only |
 | 59 | EVM Balance | `evm-balance 0xADDR [mainnet|testnet]` | EVM sidechain balance |

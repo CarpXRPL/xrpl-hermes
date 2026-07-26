@@ -214,7 +214,7 @@ Each owned Check can consume one incremental owner-reserve unit for its owner. Q
 
 **Optimization:** Cancel expired or unwanted checks promptly to free up reserve.
 
-For an account with 10 checks: 10 XRP (base) + 20 XRP (10 × 2) = 30 XRP locked.
+For capacity planning, calculate `current_base_reserve + (current_owner_reserve × OwnerCount)` from the selected network's validated ledger; do not reuse a fixed XRP example.
 
 ## Checks vs Other Payment Methods
 

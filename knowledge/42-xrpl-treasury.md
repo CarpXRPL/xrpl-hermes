@@ -176,7 +176,16 @@ limiter.record_spend("hot", 500, tx_hash)
 ## Treasury Health Report
 
 ```python
-from xrpl.models.requests import AccountInfo, AccountLines, AccountOffers, EscrowObjects
+from decimal import Decimal
+from xrpl.models.requests import AccountInfo, AccountLines, AccountOffers, EscrowObjects, ServerInfo
+
+def get_validated_reserve_settings(client) -> tuple[Decimal, Decimal]:
+    response = client.request(ServerInfo())
+    ledger = response.result.get("info", {}).get("validated_ledger", {})
+    try:
+        return Decimal(str(ledger["reserve_base_xrp"])), Decimal(str(ledger["reserve_inc_xrp"]))
+    except KeyError as exc:
+        raise RuntimeError("validated ledger did not return reserve settings") from exc
 
 def treasury_report(client, wallets: dict[str, str]) -> dict:
     """
@@ -191,9 +200,11 @@ def treasury_report(client, wallets: dict[str, str]) -> dict:
         # XRP balance
         acc = client.request(AccountInfo(account=address, ledger_index="validated"))
         drops = int(acc.result["account_data"]["Balance"])
-        reserve = int(acc.result["account_data"].get("OwnerCount", 0)) * 0.2 + 1
-        wallet_data["xrp_balance"] = drops / 1e6
-        wallet_data["xrp_available"] = (drops / 1e6) - reserve
+        reserve_base, reserve_inc = get_validated_reserve_settings(client)
+        reserve = reserve_base + int(acc.result["account_data"].get("OwnerCount", 0)) * reserve_inc
+        balance_xrp = Decimal(drops) / Decimal(1_000_000)
+        wallet_data["xrp_balance"] = str(balance_xrp)
+        wallet_data["xrp_available"] = str(balance_xrp - reserve)
 
         # Token balances
         lines = client.request(AccountLines(account=address, ledger_index="validated"))

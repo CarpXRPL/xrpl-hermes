@@ -60,7 +60,7 @@ The fee is always in **drops** (1 XRP = 1,000,000 drops).
 from xrpl.models.requests import ServerInfo
 resp = client.request(ServerInfo())
 base_fee = resp.result["info"]["validated_ledger"]["base_fee_xrp"]
-base_fee_drops = int(float(base_fee) * 1_000_000)  # typically 10
+base_fee_drops = int(float(base_fee) * 1_000_000)
 
 # Escalated fee during high load:
 # fee = reference_fee × (fee_level / 256)
