@@ -42,7 +42,7 @@ Payer                         Recipient
   "PublicKey": "ED...payer_public_key_hex...",
   "CancelAfter": 1893456000,
   "DestinationTag": 1234,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 42
 }
 ```
@@ -102,46 +102,13 @@ Claims are signed messages authorizing a cumulative payment. Each new claim shou
 
 ### Python (xrpl-py)
 
-```python
-import xrpl
-from xrpl.core.keypairs import sign
-from xrpl.core.binarycodec import encode_for_signing_claim
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# channel_id: 64-char hex string
-# amount: cumulative drops authorized
-def create_claim(channel_id: str, amount: int, private_key: str) -> str:
-    claim_bytes = encode_for_signing_claim({
-        "channel": channel_id,
-        "amount": str(amount)
-    })
-    signature = sign(claim_bytes, private_key)
-    return signature
-
-# Example — load private key from environment variable, never hardcode
-import os
-channel_id = "A5A9F7C0..."  # from channel lookup
-private_key = os.environ["PAYER_PRIVATE_KEY"]  # set in env: export PAYER_PRIVATE_KEY=ED...
-
-sig_1000 = create_claim(channel_id, 1000, private_key)
-sig_5000 = create_claim(channel_id, 5000, private_key)
-sig_9999 = create_claim(channel_id, 9999, private_key)
-```
 
 ### JavaScript (xrpl.js)
 
-```javascript
-const xrpl = require('xrpl');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-function createClaim(channelId, amountDrops, wallet) {
-  const message = xrpl.hashPaymentChannel(
-    wallet.address,
-    destination,
-    amountDrops,
-    channelId
-  );
-  return wallet.sign(message);
-}
-```
 
 ### Verifying a Claim
 
@@ -174,7 +141,7 @@ Recipient submits the best claim to the ledger:
   "Amount": "9999",
   "Signature": "3045...",
   "PublicKey": "ED...payer_public_key_hex...",
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 10
 }
 ```
@@ -202,7 +169,7 @@ Flags:
   "Channel": "A5A9F7C0...",
   "Amount": "500000",
   "Expiration": 1893456000,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 43
 }
 ```
@@ -223,7 +190,7 @@ Flags:
   "Account": "rPAYER...",
   "Channel": "A5A9F7C0...",
   "Flags": 131072,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 44
 }
 ```
@@ -244,7 +211,7 @@ Flags:
   "Signature": "3045...",
   "PublicKey": "ED...",
   "Flags": 131072,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 11
 }
 ```
@@ -267,41 +234,8 @@ expiration = max(close_request_time + SettleDelay, CancelAfter)
 
 High-frequency off-chain payment stream:
 
-```python
-import asyncio
-from dataclasses import dataclass
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-@dataclass
-class StreamState:
-    channel_id: str
-    public_key: str
-    private_key: str
-    cumulative_drops: int = 0
-    best_claim_sig: str = ""
-    unit_price_drops: int = 10  # per API call / per second
-
-async def send_payment_unit(state: StreamState):
-    state.cumulative_drops += state.unit_price_drops
-    sig = create_claim(state.channel_id, state.cumulative_drops, state.private_key)
-    state.best_claim_sig = sig
-    return {
-        "channel_id": state.channel_id,
-        "amount": state.cumulative_drops,
-        "signature": sig,
-        "public_key": state.public_key
-    }
-
-async def streaming_api_client(state: StreamState, num_requests: int):
-    for i in range(num_requests):
-        claim = await send_payment_unit(state)
-        # Send claim over HTTP/WebSocket to service provider
-        # Provider verifies claim before serving response
-        await make_api_request(claim)
-        await asyncio.sleep(0.1)
-
-    # At end, provider redeems final claim on-ledger
-    print(f"Total paid: {state.cumulative_drops} drops")
-```
 
 ---
 

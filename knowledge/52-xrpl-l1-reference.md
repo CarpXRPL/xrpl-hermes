@@ -47,30 +47,13 @@ pip install xrpl-py httpx websockets
 
 ## Account creation with xrpl-py
 This creates a keypair locally. On mainnet the address becomes usable only after another account funds it with the current reserve.
-```python
-from xrpl.wallet import Wallet
-from xrpl.core.keypairs import generate_seed
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-seed = generate_seed(algorithm="ed25519")
-wallet = Wallet.from_seed(seed)
-print("classic_address", wallet.classic_address)
-print("seed", seed)  # Store in a secret manager; never commit this.
-```
 
 ## Fund a testnet account
 Use this only on testnet. The faucet endpoint is public and rate limited.
-```python
-import httpx
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-TESTNET_FAUCET = "https://faucet.altnet.rippletest.net/accounts"
-
-with httpx.Client(timeout=30) as client:
-    response = client.post(TESTNET_FAUCET)
-    response.raise_for_status()
-    account = response.json()["account"]
-    print(account["classicAddress"])
-    print(account["secret"])
-```
 
 ## Query account info
 ```python
@@ -103,28 +86,8 @@ print(response.json()["result"]["account_data"]["Balance"])
 
 ## Create and submit a payment
 The example signs locally and submits through a public endpoint. Run it on testnet unless the seed is intentionally funded on mainnet.
-```python
-import os
-from xrpl.clients import JsonRpcClient
-from xrpl.models.transactions import Payment
-from xrpl.transaction import submit_and_wait
-from xrpl.wallet import Wallet
-from xrpl.utils import xrp_to_drops
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-client = JsonRpcClient(os.getenv("XRPL_RPC", "https://s.altnet.rippletest.net:51234"))
-wallet = Wallet.from_seed(os.environ["XRPL_SEED"])
-
-tx = Payment(
-    account=wallet.classic_address,
-    destination=os.environ["XRPL_DESTINATION"],
-    amount=xrp_to_drops("1.25"),
-    destination_tag=int(os.getenv("XRPL_DESTINATION_TAG", "0")) or None,
-)
-
-result = submit_and_wait(tx, client, wallet)
-print(result.result["hash"])
-print(result.result["meta"]["TransactionResult"])
-```
 
 ## Fee estimation
 `fee` gives a quick fee quote. `server_state` exposes load and reserve fields that help production systems tune policies.

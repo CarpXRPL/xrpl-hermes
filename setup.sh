@@ -25,8 +25,8 @@ fi
 # Activate and install
 source .venv/bin/activate
 pip install --quiet --upgrade pip setuptools
-pip install --quiet -r requirements.txt
-echo "✓ Dependencies installed"
+pip install --quiet .
+echo "✓ XRPL-Hermes and dependencies installed"
 
 # Make scripts executable
 chmod +x scripts/xrpl_tools.py 2>/dev/null || true
@@ -34,8 +34,11 @@ chmod +x scripts/xrpl_tools.py 2>/dev/null || true
 # Verify
 echo ""
 echo "━━━ Verification ━━━"
-python3 -c "import xrpl; print('✓ xrpl-py', xrpl.__version__)"
+python3 -c "from importlib.metadata import version; print('✓ xrpl-py', version('xrpl-py'))"
 python3 -c "import httpx; print('✓ httpx', httpx.__version__)"
+xrpl-hermes validate-address rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe >/dev/null
+python3 -m scripts.package_acceptance >/dev/null
+echo "✓ CLI, MCP boundary, and packaged knowledge verified"
 
 echo ""
 echo "☤ Setup complete. Activate with: source .venv/bin/activate"

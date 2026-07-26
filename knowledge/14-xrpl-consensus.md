@@ -205,32 +205,19 @@ for amendment_id, details in amendments.items():
           f"({details.get('vote', 'N/A')}% support)")
 ```
 
-### Key Amendments (as of 2024)
+### Amendment state is live data
 
-| Amendment | Description | Status |
-|-----------|-------------|--------|
-| XChainBridge | Cross-chain bridges | Enabled |
-| AMM | Automated Market Maker | Enabled |
-| NFTokenV1 | NFT support | Enabled |
-| MPTokensV1 | Multi-Purpose Tokens | Enabled |
-| Hooks | Smart contract hooks (Xahau) | Not on mainnet |
-| fixReducedOffersV2 | DEX offer fix | Enabled |
+Do not copy a dated enabled/disabled table into an operational decision. Query the
+selected network's `feature`/amendment state and record the endpoint, ledger context,
+and observation time. Xahau Hooks are a separate-network capability and must not be
+described as an XRPL L1 amendment.
 
 ---
 
 ## 7. Fee Voting
 
-Validators vote on the base transaction fee and reserve requirements:
-
-```json
-{
-  "base_fee": 10,
-  "reserve_base": 10000000,
-  "reserve_increment": 2000000
-}
-```
-
-Fee votes are included in validation messages. The network median determines actual values:
+Validators vote on fee and reserve settings. Treat every value as selected-network
+state rather than a constant. Read the validated ledger immediately before planning:
 
 ```python
 from xrpl.models.requests import ServerInfo

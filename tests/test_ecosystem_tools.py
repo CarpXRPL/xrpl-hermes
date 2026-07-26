@@ -257,3 +257,92 @@ def test_cli_usage_errors_offline():
         data = json.loads(proc.stdout)
         assert data["Error"] == "UsageError"
         assert hint in data["Usage"]
+
+
+def test_arweave_rejects_unicode_and_huge_sizes(capsys):
+    arweave.tool_arweave_cost("١٢٣")
+    assert json.loads(capsys.readouterr().out)["Error"] == "InvalidSize"
+    arweave.tool_arweave_cost("1025GB")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "InvalidSize"
+    assert "1 TiB" in out["Message"]
+
+
+def test_arweave_rejects_wrong_network_identity(monkeypatch, capsys):
+    class Response:
+        def __init__(self, *, text="", payload=None):
+            self.text = text
+            self._payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    responses = iter([
+        Response(text="1000"),
+        Response(payload={"network": "unexpected"}),
+    ])
+    monkeypatch.setattr(arweave.httpx, "get", lambda *args, **kwargs: next(responses))
+    arweave.tool_arweave_cost("1KB")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "ArweaveNetworkUnavailable"
+
+
+def test_axelar_gmp_rejects_malformed_hash_without_network(monkeypatch, capsys):
+    monkeypatch.setattr(axelar.httpx, "post", lambda *a, **k: (_ for _ in ()).throw(AssertionError("network called")))
+    axelar.tool_bridge_tx("not-a-hash")
+    assert json.loads(capsys.readouterr().out)["Error"] == "InvalidTransactionHash"
+
+
+def test_axelar_gmp_rejects_malformed_records(monkeypatch, capsys):
+    class Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"data": ["junk"]}
+
+    monkeypatch.setattr(axelar.httpx, "post", lambda *args, **kwargs: Response())
+    axelar.tool_bridge_tx("A" * 64)
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "AxelarGMPMalformed"
+    assert out.get("Found") is not True
+
+
+def test_axelar_registration_does_not_certify_route(monkeypatch, capsys):
+    class Response:
+        def raise_for_status(self):
+            return None
+        def json(self):
+            return [{"id": "xrpl", "chain_name": "XRPL", "gateway": {"address": "rGateway"}}]
+    monkeypatch.setattr(axelar.httpx, "get", lambda *a, **k: Response())
+    axelar.tool_bridge_status("xrpl")
+    out = json.loads(capsys.readouterr().out)
+    assert out["RouteCertified"] is False
+    assert out["Capability"] == "Axelarscan chain-registration lookup only"
+    assert out["FetchedAt"]
+
+
+def test_flare_tool_rejects_chain_mismatch(monkeypatch, capsys):
+    monkeypatch.setattr(flare, "_chain_id", lambda: 1)
+    monkeypatch.setattr(flare, "_resolve_ftso_v2", lambda: (_ for _ in ()).throw(AssertionError("resolved")))
+    flare.tool_flare_ftso("XRP/USD")
+    out = json.loads(capsys.readouterr().out)
+    assert out["Error"] == "FtsoV2Unavailable"
+    assert "does not match" in out["Message"]
+
+
+def test_flare_tool_marks_old_feed_stale(monkeypatch, capsys):
+    monkeypatch.setattr(flare, "_chain_id", lambda: 14)
+    monkeypatch.setattr(flare, "_resolve_ftso_v2", lambda: "0x" + "1" * 40)
+    monkeypatch.setattr(flare, "_read_feed", lambda _a, _p: {
+        "value": 1, "decimals": 0, "price": 1,
+        "timestamp": 1, "timestamp_iso": "1970-01-01T00:00:01+00:00",
+    })
+    flare.tool_flare_ftso("XRP/USD")
+    out = json.loads(capsys.readouterr().out)
+    assert out["ObservedChainID"] == 14
+    assert out["Feeds"]["XRP/USD"]["stale"] is True
+    assert out["FetchedAt"]

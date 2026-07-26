@@ -225,31 +225,8 @@ while True:
 
 When a treasury TX needs signing by multiple parties:
 
-```bash
-# 1. Build the base TX (any signer builds it)
-python3 scripts/xrpl_tools.py build-payment \
-  --from rTREASURY \
-  --to rDESTINATION \
-  --amount 1000000000
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# 2. Each required signer signs independently in their own stack (xrpl-py sketch;
-#    seeds come from each signer's own environment — never from this toolkit)
-python3 - <<'EOF'
-import os
-from xrpl.wallet import Wallet
-from xrpl.transaction import sign
-from xrpl.models.transactions import Transaction
-
-tx = Transaction.from_xrpl({...})  # autofilled JSON from step 1 (fee ≥ (1+N)×base)
-wallet = Wallet.from_seed(os.environ["XRPL_SEED"])
-signed = sign(tx, wallet, multisign=True)
-print(signed.to_xrpl())  # pass to the coordinator
-EOF
-
-# 3. Combine the Signers arrays with xrpl.transaction.multisign, then submit the
-#    fully-signed JSON (this toolkit only accepts already-signed transactions):
-python3 scripts/xrpl_tools.py submit-multisigned '{"TransactionType":"Payment","Signers":[...],...}'
-```
 
 Quorum math, signing-ceremony rules, and recovery paths: `skills/multisig-safety-flow.md`.
 

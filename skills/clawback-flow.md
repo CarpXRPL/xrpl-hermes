@@ -94,25 +94,12 @@ Expected output:
 
 ---
 
-## Step 4 — Sign and Submit
+## Step 4 — External authorization and submission
 
-Sign with Xaman, Crossmark, or xrpl-py wallet:
+Hand the reviewed unsigned intent to a user-selected signing system only after verifying current first-party evidence for the exact transaction type and network. XRPL-Hermes does not certify a named wallet for Clawback signing/submission.
 
-```python
-import os
-from xrpl.wallet import Wallet
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import Clawback
-from xrpl.models.amounts import IssuedCurrencyAmount
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-issuer_wallet = Wallet.from_seed(os.environ["XRPL_SEED"])  # never hardcode seeds
-tx = Clawback(
-    account=issuer_wallet.classic_address,
-    amount=IssuedCurrencyAmount(currency="USD", issuer="rHOLDER", value="100"),
-)
-result = submit_and_wait(tx, client, issuer_wallet)
-print(result.result["meta"]["TransactionResult"])  # tesSUCCESS
-```
 
 ---
 

@@ -40,7 +40,7 @@ Creates a new AMM pool. The transaction simultaneously deposits both assets and 
     "value": "5000"
   },
   "TradingFee": 500,  // 0.5% fee
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 30
 }
 ```
@@ -52,24 +52,8 @@ LP Tokens = sqrt(amount1 * amount2) ... simplified
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import AMMCreate
-from xrpl.models.amounts import IssuedCurrencyAmount
-from xrpl.utils import xrp_to_drops
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-amm_create = AMMCreate(
-    account="r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR",
-    amount=xrp_to_drops(10000),
-    amount2=IssuedCurrencyAmount(
-        currency="USD",
-        issuer="rIssuerAddress",
-        value="5000",
-    ),
-    trading_fee=500,  # 0.5%
-)
-response = submit_and_wait(amm_create, client, wallet)
-```
 
 ## AMMDeposit Transaction
 
@@ -380,14 +364,14 @@ The payment engine can route through both the AMM and the DEX in a single transa
 
 Before creating an AMM pool:
 1. Ensure both assets exist (XRP is native, tokens need trust lines)
-2. Have enough reserve (AMM creation costs 2-4 XRP reserve for the pool account)
+2. Query the current validated-ledger reserve settings and account state; do not hard-code an XRP reserve estimate
 3. Choose a reasonable initial price ratio
-4. Set an appropriate trading fee (0.25%-1% is typical)
+4. Select a trading fee within the protocol's current allowed range and document the encoded units
 
 ### Liquidity Provision
 
 - Provide liquidity in proportion to pool ratios for minimal slippage
-- Single-asset deposits incur a fee (0.5% by default)
+- Single-asset deposit economics depend on pool state, transaction flags and the pool's configured trading fee; quote them from live state
 - LP tokens can be traded on the DEX or used elsewhere
 
 ### Risks

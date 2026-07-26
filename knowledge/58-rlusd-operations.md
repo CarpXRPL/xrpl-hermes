@@ -10,7 +10,7 @@ RLUSD is Ripple-issued USD stablecoin on the XRP Ledger. It is designed for regu
 - **Standard:** XRPL issued currency (IOU) with Clawback enabled
 - **Supply control:** Issuer can mint/burn and clawback under regulatory requirements
 - **Compliance:** Travel rule integration, freeze via clawback, KYC-gated trust lines
-- **On-chain visibility:** XRPSCAN, Bithomp, xrpl.to for supply and holder tracking
+- **On-chain visibility:** validated XRPL JSON-RPC/Clio evidence; third-party supply/holder APIs require separate acceptance
 
 ---
 
@@ -30,47 +30,8 @@ User establishes trust line to RLUSD issuer
 Issuer sends RLUSD payment to user's account
 ```
 
-```python
-import os
-from xrpl.clients import JsonRpcClient
-from xrpl.models.transactions import TrustSet, Payment
-from xrpl.wallet import Wallet
-from xrpl.transaction import submit_and_wait
-from xrpl.utils import xrp_to_drops
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-RLUSD_ISSUER = os.environ["RLUSD_ISSUER"]  # Ripple RLUSD issuer
-# "RLUSD" is 5 chars — XRPL requires the 160-bit hex currency code on-ledger
-RLUSD_CUR = "524C555344000000000000000000000000000000"
-XRPL_RPC = "https://xrplcluster.com"
-client = JsonRpcClient(XRPL_RPC)
-
-# User establishes trust line to receive RLUSD
-def trust_rlusd(user_wallet: Wallet, limit: str = "1000000") -> dict:
-    tx = TrustSet(
-        account=user_wallet.classic_address,
-        limit_amount={
-            "currency": RLUSD_CUR,
-            "issuer": RLUSD_ISSUER,
-            "value": limit
-        }
-    )
-    result = submit_and_wait(tx, client, user_wallet)
-    return {"status": result.result["meta"]["TransactionResult"]}
-
-# Issuer sends RLUSD to a verified user
-def issue_rlusd(issuer_wallet: Wallet, destination: str, amount: str) -> dict:
-    tx = Payment(
-        account=issuer_wallet.classic_address,
-        destination=destination,
-        amount={
-            "currency": RLUSD_CUR,
-            "issuer": RLUSD_ISSUER,
-            "value": amount
-        }
-    )
-    result = submit_and_wait(tx, client, issuer_wallet)
-    return {"tx_hash": result.result["hash"], "amount": amount}
-```
 
 ### Travel Rule Integration
 
@@ -158,39 +119,14 @@ The issuer can claw back RLUSD from a specific holder when required by regulatio
 ```bash
 # Using the build-clawback tool
 python3 scripts/xrpl_tools.py build-clawback \
-  --account rIssuerAddress \
+  --from rIssuerAddress \
   --destination rHolderAddress \
   --currency 524C555344000000000000000000000000000000 \
-  --issuer rIssuerAddress \
   --amount 1000
 ```
 
-```python
-from xrpl.models.transactions import Clawback
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-def clawback_rlusd(
-    issuer_wallet: Wallet,
-    holder_address: str,
-    amount: str
-) -> dict:
-    """Claw back RLUSD tokens from a specific holder to the issuer."""
-    tx = Clawback(
-        account=issuer_wallet.classic_address,
-        amount={
-            "currency": RLUSD_CUR,
-            "issuer": RLUSD_ISSUER,
-            "value": amount
-        },
-        holder=holder_address
-    )
-    result = submit_and_wait(tx, client, issuer_wallet)
-    return {
-        "tx_hash": result.result["hash"],
-        "status": result.result["meta"]["TransactionResult"],
-        "amount_clawed_back": amount,
-        "holder": holder_address
-    }
-```
 
 ### Clawback Safeguards
 
@@ -201,95 +137,18 @@ Before executing a clawback, always:
 4. Consider partial clawback (only the flagged amount, not the full balance)
 5. Have a multi-signature governance process for clawback approval
 
-```python
-def safe_clawback_rlusd(
-    issuer_wallet: Wallet,
-    holder_address: str,
-    amount: str,
-    reference_id: str = ""
-) -> dict:
-    """Clawback with safety checks and audit trail."""
-    # 1. Check holder balance
-    from xrpl.models.requests import AccountLines
-    lines = client.request(AccountLines(
-        account=holder_address,
-        ledger_index="validated"
-    ))
-    rlusd_balance = 0.0
-    for line in lines.result.get("lines", []):
-        if line["currency"] == RLUSD_CUR and line["account"] == RLUSD_ISSUER:
-            rlusd_balance = float(line["balance"])
-            break
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-    if rlusd_balance <= 0:
-        return {"error": "Holder has no RLUSD balance"}
-
-    claw_amount = min(float(amount), rlusd_balance)
-
-    # 2. Execute with reference memo
-    tx = Clawback(
-        account=issuer_wallet.classic_address,
-        amount={
-            "currency": RLUSD_CUR,
-            "issuer": RLUSD_ISSUER,
-            "value": str(claw_amount)
-        },
-        holder=holder_address,
-        memos=[{
-            "Memo": {
-                "MemoData": reference_id.encode().hex().upper(),
-                "MemoType": "434C41574241434B5F524546",  # "CLAWBACK_REF"
-            }
-        }] if reference_id else None
-    )
-    result = submit_and_wait(tx, client, issuer_wallet)
-    return {
-        "success": result.result["meta"]["TransactionResult"] == "tesSUCCESS",
-        "tx_hash": result.result["hash"],
-        "amount": str(claw_amount),
-        "reference_id": reference_id
-    }
-```
 
 ---
 
 ## Monitoring RLUSD Supply
 
-### Total Supply
+### Supply and holder-distribution boundary
 
-```python
-import httpx
-
-async def get_rlusd_supply() -> dict:
-    """Get RLUSD supply from XRPSCAN."""
-    async with httpx.AsyncClient() as client:
-        # Query issuer obligations
-        resp = await client.get(
-            f"https://api.xrpscan.com/api/v1/account/{RLUSD_ISSUER}/obligations"
-        )
-        data = resp.json()
-        # explorers may key obligations by the hex code or the decoded name
-        rlusd = data.get(RLUSD_CUR) or data.get("RLUSD") or {}
-        return {
-            "supply": rlusd.get("value", "0"),
-            "currency": "RLUSD",  # display label; on-ledger code is RLUSD_CUR
-            "issuer": RLUSD_ISSUER,
-            "source": "XRPSCAN"
-        }
-```
-
-### Top Holders
-
-```python
-async def get_top_rlusd_holders(limit: int = 20) -> list:
-    """Get top RLUSD holders from XRPSCAN or on-chain data."""
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"https://api.xrpscan.com/api/v1/asset/holders",
-            params={"currency": RLUSD_CUR, "issuer": RLUSD_ISSUER, "limit": limit}
-        )
-        return resp.json().get("holders", [])
-```
+No third-party RLUSD obligations/holder route is certified in this release. `trustlines` can provide
+a paginated ledger sample, but it is not total supply or a complete holder count. Report those values
+as unavailable unless a separately contract-tested provider route is current, named and timestamped.
 
 ### Transaction Monitoring
 
@@ -376,16 +235,11 @@ async def monitor_rlusd_transactions(
 
 ---
 
-## Key Endpoints
+## Validated-ledger sources
 
-```python
-XRPSCAN_API = "https://api.xrpscan.com/api/v1"
-XRPL_RPC = "https://xrplcluster.com"
-XRPL_WS = "wss://xrplcluster.com"
-
-# RLUSD issuer on XRPL mainnet (Ripple official). Currency code: 524C555344000000000000000000000000000000
-RLUSD_ISSUER = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
-```
+Use a currently selected XRPL JSON-RPC/Clio endpoint and validated ledger indices. No third-party
+explorer route is certified here. Reconfirm the official RLUSD issuer/currency information against
+current first-party Ripple documentation before any value-bearing workflow.
 
 ---
 

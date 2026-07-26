@@ -6,61 +6,12 @@ All public XRPL endpoints enforce rate limits. This document covers per-endpoint
 
 ---
 
-## 1. Public Endpoint Rate Limits
+## 1. Endpoint-limit boundary
 
-### XRPL RPC/WebSocket Nodes
-
-| Endpoint | Type | Limit |
-|----------|------|-------|
-| `xrplcluster.com` (Clio) | HTTP/WS | ~20 req/s per IP |
-| `s1.ripple.com` | WS full history | ~20 req/s per IP |
-| `s2.ripple.com` | WS full history | ~20 req/s per IP |
-| `xrpl.ws` | WS community | ~10 req/s per IP |
-| `xrpl-mainnet.g.alchemy.com` | HTTP | Plan-based |
-
-### xrpl.to API
-
-| Endpoint | Limit |
-|----------|-------|
-| `/v1/tokens` | 30 req/min |
-| `/v1/amm` | 30 req/min |
-| `/v1/quote` | 30 req/min |
-| `/v1/token/{currency}/{issuer}` | 30 req/min |
-| Global per IP | 60 req/min |
-
-### XRPSCAN API
-
-| Endpoint | Limit |
-|----------|-------|
-| `/api/v1/account/{address}` | 120 req/min |
-| `/api/v1/transactions` | 60 req/min |
-| `/api/v1/ledger` | 120 req/min |
-| Global per IP | 120 req/min |
-| Pro API (API key) | 1200 req/min |
-
-### Bithomp API
-
-| Endpoint | Limit |
-|----------|-------|
-| `/api/v2/address/{address}` | 20 req/min |
-| `/api/v2/amms/search` | 20 req/min |
-| `/api/v2/nfts` | 20 req/min |
-| API key (paid) | 2000 req/min |
-
-### CoinGecko
-
-| Endpoint | Limit |
-|----------|-------|
-| `/api/v3/simple/price` | 10–50 req/min (free) |
-| `/api/v3/coins/ripple` | 10–50 req/min (free) |
-| Pro API | 500 req/min |
-
-### XRPLMeta
-
-| Endpoint | Limit |
-|----------|-------|
-| `/token/{currency}+{issuer}` | 60 req/min |
-| No authentication | Public |
+Rate limits, plans, routes and authentication requirements change independently of this repository.
+No exact third-party limit or explorer/token route is certified in v1.9.0. For every selected XRPL
+JSON-RPC/Clio or external provider, read current first-party documentation and observed response
+headers; configure conservative limits, backoff and circuit breaking rather than relying on a table.
 
 ---
 
@@ -279,7 +230,7 @@ async def fetch_accounts_batch(addresses: List[str]) -> dict:
 
 ## 5. Token Rate Limit Configuration
 
-### xrpl.to Rate Limiter
+### Provider-neutral token-bucket limiter
 
 ```python
 import time
@@ -309,42 +260,10 @@ class TokenBucket:
         self.tokens = 0
         return wait
 
-class XRPLToClient:
-    BASE_URL = "https://api.xrpl.to"
-    
-    def __init__(self):
-        # 30 req/min = 0.5 req/s
-        self._limiter = TokenBucket(rate=0.5, capacity=5)
-    
-    async def get_token(self, currency: str, issuer: str) -> dict:
-        wait = self._limiter.acquire()
-        if wait > 0:
-            await asyncio.sleep(wait)
-        
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{self.BASE_URL}/v1/token/{currency}/{issuer}"
-            )
-            resp.raise_for_status()
-            return resp.json()
-    
-    async def get_amm(self, asset1: dict, asset2: dict) -> dict:
-        wait = self._limiter.acquire()
-        if wait > 0:
-            await asyncio.sleep(wait)
-        
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{self.BASE_URL}/v1/amm",
-                params={
-                    "asset1_currency": asset1.get("currency", "XRP"),
-                    "asset1_issuer": asset1.get("issuer", ""),
-                    "asset2_currency": asset2.get("currency", "XRP"),
-                    "asset2_issuer": asset2.get("issuer", "")
-                }
-            )
-            resp.raise_for_status()
-            return resp.json()
+# Third-party token/AMM clients are intentionally omitted.
+# A provider-specific client may be added only after its current documented
+# route, schema, auth, pagination, limits, error behavior and timestamp are
+# contract-tested. Use XRPL JSON-RPC/Clio methods for supported ledger data.
 ```
 
 ---
@@ -381,31 +300,11 @@ class CoinGeckoClient:
             return resp.json()["ripple"][vs_currency]
 ```
 
-### XRPSCAN
+### Third-party explorer boundary
 
-```python
-class XRPSCANClient:
-    BASE = "https://api.xrpscan.com/api/v1"
-    
-    def __init__(self, api_key: str = None):
-        self.headers = {}
-        if api_key:
-            self.headers["Authorization"] = f"Bearer {api_key}"
-            rate = 20.0  # 1200/min
-        else:
-            rate = 2.0   # 120/min
-        self._limiter = TokenBucket(rate=rate, capacity=10)
-    
-    async def get_account(self, address: str) -> dict:
-        wait = self._limiter.acquire()
-        if wait > 0:
-            await asyncio.sleep(wait)
-        
-        async with httpx.AsyncClient(headers=self.headers) as client:
-            resp = await client.get(f"{self.BASE}/account/{address}")
-            resp.raise_for_status()
-            return resp.json()
-```
+No third-party explorer route or rate-limit figure is certified in this release. Add a client only
+after verifying current first-party documentation, authentication, schema, pagination, timestamps,
+error behavior and observed limits. Use validated XRPL JSON-RPC/Clio for ledger evidence by default.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-`xrpl.js` is the official JavaScript/TypeScript SDK for the XRP Ledger. Supports Node.js and browsers, WebSocket subscriptions, async/await patterns, and all transaction types.
+`xrpl.js` is an official JavaScript/TypeScript SDK for the XRP Ledger. It supports Node.js/browser clients and WebSocket workflows; exact transaction-model and runtime coverage depends on the installed release and must be checked against current SDK documentation.
 
 ```bash
 npm install xrpl
@@ -88,30 +88,8 @@ const client = new xrpl.Client('https://xrplcluster.com');
 
 ## 3. Wallet
 
-```javascript
-// Generate new wallet
-const wallet = xrpl.Wallet.generate();
-console.log(wallet.seed);         // sn...
-console.log(wallet.address);      // rN7n...
-console.log(wallet.publicKey);    // ED...
-console.log(wallet.privateKey);   // ED...
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-// From seed
-const wallet = xrpl.Wallet.fromSeed('sn...');
-
-// From mnemonic
-const wallet = xrpl.Wallet.fromMnemonic(
-  'word1 word2 ... word12',
-  { derivationPath: "m/44'/144'/0'/0/0" }
-);
-
-// From entropy
-const wallet = xrpl.Wallet.fromEntropy(Buffer.from('32bytes...', 'hex'));
-
-// Get balance
-const balance = await client.getXrpBalance(wallet.address);
-console.log(`${balance} XRP`);
-```
 
 ---
 
@@ -161,36 +139,8 @@ console.log(nftResp.result.account_nfts);
 
 ## 5. Sending XRP
 
-```javascript
-const client = new xrpl.Client('wss://xrplcluster.com');
-await client.connect();
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-const wallet = xrpl.Wallet.fromSeed('sn...');
-
-const tx = {
-  TransactionType: 'Payment',
-  Account: wallet.address,
-  Destination: 'rDEST...',
-  Amount: xrpl.xrpToDrops('10'),   // '10000000'
-  DestinationTag: 1234,
-  Memos: [{
-    Memo: {
-      MemoData: xrpl.convertStringToHex('Hello XRPL'),
-      MemoType: xrpl.convertStringToHex('text/plain')
-    }
-  }]
-};
-
-// Autofill fills Sequence, Fee, LastLedgerSequence
-const prepared = await client.autofill(tx);
-const { tx_blob, hash } = wallet.sign(prepared);
-const result = await client.submitAndWait(tx_blob);
-
-console.log(result.result.meta.TransactionResult);  // tesSUCCESS
-console.log(`Hash: ${hash}`);
-
-await client.disconnect();
-```
 
 ---
 
@@ -213,21 +163,8 @@ const tx = {
 
 ## 7. TrustSet
 
-```javascript
-const tx = {
-  TransactionType: 'TrustSet',
-  Account: wallet.address,
-  LimitAmount: {
-    currency: 'SOLO',
-    issuer: 'rHZwvHEs56GCmHupwjA4RY7oPA3EoAJWuN',
-    value: '1000000'
-  }
-};
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-const prepared = await client.autofill(tx);
-const { tx_blob } = wallet.sign(prepared);
-await client.submitAndWait(tx_blob);
-```
 
 ---
 
@@ -252,28 +189,8 @@ const tx = {
 
 ## 9. NFTokenMint
 
-```javascript
-const tx = {
-  TransactionType: 'NFTokenMint',
-  Account: wallet.address,
-  NFTokenTaxon: 0,
-  Flags: 0x0000000B,     // Burnable | OnlyXRP | Transferable
-  TransferFee: 5000,     // 5%
-  URI: xrpl.convertStringToHex('ipfs://QmXXX...')
-};
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-const prepared = await client.autofill(tx);
-const { tx_blob } = wallet.sign(prepared);
-const result = await client.submitAndWait(tx_blob);
-
-// Extract NFT ID
-const nftPage = result.result.meta.AffectedNodes.find(
-  n => (n.ModifiedNode || n.CreatedNode)?.LedgerEntryType === 'NFTokenPage'
-);
-const tokens = (nftPage?.ModifiedNode?.FinalFields || nftPage?.CreatedNode?.NewFields)?.NFTokens;
-const nftId = tokens?.[tokens.length - 1]?.NFToken?.NFTokenID;
-console.log('NFT ID:', nftId);
-```
 
 ---
 
@@ -375,42 +292,8 @@ await tracker.start();
 
 ## 12. Transaction Submission with Retry
 
-```javascript
-async function submitWithRetry(client, wallet, tx, maxRetries = 3) {
-  const prepared = await client.autofill(tx);
-  const { tx_blob, hash } = wallet.sign(prepared);
-  
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      const result = await client.submitAndWait(tx_blob, {
-        failHard: false,
-        wallet
-      });
-      
-      const txResult = result.result.meta.TransactionResult;
-      if (txResult === 'tesSUCCESS') {
-        return { success: true, hash, result };
-      }
-      
-      // tec codes: fee charged, tx failed — don't retry
-      if (txResult.startsWith('tec')) {
-        return { success: false, hash, result, code: txResult };
-      }
-      
-      // ter codes: retry
-      if (txResult.startsWith('ter')) {
-        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
-        continue;
-      }
-      
-      return { success: false, hash, result, code: txResult };
-    } catch (e) {
-      if (attempt === maxRetries - 1) throw e;
-      await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
-    }
-  }
-}
-```
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
+
 
 ---
 
@@ -440,60 +323,8 @@ Browser-specific considerations:
 
 ## 14. Multi-Client Failover
 
-```javascript
-const NODES = [
-  'wss://xrplcluster.com',
-  'wss://xrpl.ws',
-  'wss://s1.ripple.com'
-];
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-class FailoverXRPLClient {
-  constructor(nodes = NODES) {
-    this.nodes = nodes;
-    this.idx = 0;
-    this.client = null;
-  }
-
-  async connect() {
-    for (let i = 0; i < this.nodes.length; i++) {
-      const url = this.nodes[(this.idx + i) % this.nodes.length];
-      try {
-        const c = new xrpl.Client(url, { connectionTimeout: 5000 });
-        await c.connect();
-        this.client = c;
-        this.idx = (this.idx + i) % this.nodes.length;
-        return;
-      } catch (e) {
-        console.warn(`Failed ${url}: ${e.message}`);
-      }
-    }
-    throw new Error('All XRPL nodes failed');
-  }
-
-  async request(params) {
-    if (!this.client?.isConnected()) {
-      await this.connect();
-    }
-    try {
-      return await this.client.request(params);
-    } catch (e) {
-      this.idx++;
-      await this.connect();
-      return this.client.request(params);
-    }
-  }
-
-  async autofill(tx) {
-    if (!this.client?.isConnected()) await this.connect();
-    return this.client.autofill(tx);
-  }
-
-  async submitAndWait(txBlob) {
-    if (!this.client?.isConnected()) await this.connect();
-    return this.client.submitAndWait(txBlob);
-  }
-}
-```
 
 ---
 
@@ -599,51 +430,8 @@ Use `references/xahau-hooks.md` and `knowledge/51-xrpl-xahau-hooks.md` for the p
 
 MPTs are a newer token primitive: fungible, fixed-supply or capped, without a trustline. xrpl.js v4+ exposes the transactions; some helper utilities are still being polished.
 
-```javascript
-// Issue an MPT
-const issuanceTx = {
-  TransactionType: 'MPTokenIssuanceCreate',
-  Account: issuer.address,
-  AssetScale: 6,                    // 10^6 sub-units
-  TransferFee: 100,                 // 0.1%
-  MaximumAmount: '1000000000000',   // 1M whole tokens at scale 6
-  Flags:
-    0x00000002 |   // tfMPTCanLock
-    0x00000020 |   // tfMPTCanTransfer
-    0x00000040,    // tfMPTCanEscrow
-  MPTokenMetadata: xrpl.convertStringToHex(JSON.stringify({
-    name: 'My Token', ticker: 'MYT', icon: 'ipfs://...'
-  }))
-};
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-const r1 = await client.submitAndWait(
-  (await issuer.sign(await client.autofill(issuanceTx))).tx_blob
-);
-
-// Extract the MPTokenIssuanceID
-const issuanceId = r1.result.meta.AffectedNodes
-  .map(n => n.CreatedNode)
-  .find(n => n?.LedgerEntryType === 'MPTokenIssuance')
-  ?.LedgerIndex;
-
-// Holder authorizes (opt-in) before receiving
-const authTx = {
-  TransactionType: 'MPTokenAuthorize',
-  Account: holder.address,
-  MPTokenIssuanceID: issuanceId
-};
-
-// Send MPT
-const sendTx = {
-  TransactionType: 'Payment',
-  Account: issuer.address,
-  Destination: holder.address,
-  Amount: {
-    mpt_issuance_id: issuanceId,
-    value: '100'
-  }
-};
-```
 
 ### 18.2 AMM Methods (XRPL only — not Xahau)
 
@@ -700,47 +488,8 @@ console.log('Trading fee:', ammInfo.result.amm.trading_fee);
 
 ### 18.3 DID Operations
 
-```javascript
-// DIDSet — create or update a DID document on-ledger
-const didSetTx = {
-  TransactionType: 'DIDSet',
-  Account: wallet.address,
-  // At least one of URI, Data, DIDDocument must be set
-  URI: xrpl.convertStringToHex('https://example.com/did.json'),
-  Data: xrpl.convertStringToHex('arbitrary metadata'),
-  DIDDocument: xrpl.convertStringToHex(JSON.stringify({
-    '@context': 'https://www.w3.org/ns/did/v1',
-    id: `did:xrpl:1:${wallet.address}`,
-    verificationMethod: [{
-      id: `did:xrpl:1:${wallet.address}#keys-1`,
-      type: 'Ed25519VerificationKey2020',
-      controller: `did:xrpl:1:${wallet.address}`,
-      publicKeyMultibase: 'z' + wallet.publicKey
-    }]
-  }))
-};
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-await client.submitAndWait(
-  (await wallet.sign(await client.autofill(didSetTx))).tx_blob
-);
-
-// DIDDelete
-const didDeleteTx = {
-  TransactionType: 'DIDDelete',
-  Account: wallet.address
-};
-
-// Look up a DID
-const didLookup = await client.request({
-  command: 'ledger_entry',
-  did: wallet.address,
-  ledger_index: 'validated'
-});
-const didDoc = xrpl.convertHexToString(
-  didLookup.result.node.DIDDocument || ''
-);
-console.log('DID Document:', didDoc);
-```
 
 **Note:** these features require their respective amendments to be enabled on the network. Check `feature` RPC or `server_info.amendment_blocked`.
 

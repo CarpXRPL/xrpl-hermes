@@ -47,7 +47,7 @@ Creating or modifying a trust line requires a `TrustSet` transaction.
     "issuer": "rGatewayAddress",
     "value": "10000"
   },
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 10,
   "Flags": 0
 }
@@ -57,38 +57,13 @@ This creates a trust line between `rUserAddress` and `rGatewayAddress` for USD, 
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import TrustSet
-from xrpl.models.amounts import IssuedCurrencyAmount
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-trustset = TrustSet(
-    account="r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR",
-    limit_amount=IssuedCurrencyAmount(
-        currency="USD",
-        issuer="rKiCet8SfE9T3zF3i1gXzT6YLuYQnXqXr",
-        value="1000000",
-    ),
-)
-response = submit_and_wait(trustset, client, wallet)
-```
 
 ### JavaScript Example
 
-```javascript
-const { TrustSet } = require('xrpl');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-const trustset = {
-  TransactionType: 'TrustSet',
-  Account: 'r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR',
-  LimitAmount: {
-    currency: 'USD',
-    issuer: 'rKiCet8SfE9T3zF3i1gXzT6YLuYQnXqXr',
-    value: '1000000',
-  },
-};
-const response = await client.submitAndWait(trustset, { wallet });
-```
 
 ## Trust Line Balance Tracking
 
@@ -293,15 +268,15 @@ The XRPL's trust line network forms a directed graph where:
 
 ### Account Objects
 
-Each trust line is an account object. The account that creates the trust line incurs the owner reserve cost (0.2 XRP per trust line). However, **both** sides of the trust line may incur the reserve cost depending on who created the trust line entry.
+Each trust line is a ledger object. Reserve ownership can apply independently to each side according to its settings; price that reserve with the selected network's current validated incremental-reserve value.
 
 In practice:
-- If User A creates a trust line to Issuer B, User A pays the 0.2 XRP reserve
+- If User A creates a trust line to Issuer B, User A can incur one incremental reserve unit
 - If Issuer B later modifies it (authorizing), Issuer B also pays a reserve for the modified entry
 
 ## Trust Line Lifecycle
 
-1. **Created**: User sends `TrustSet` to create a trust line with a limit. Reserve (0.2 XRP) is locked by the user.
+1. **Created**: User authorizes a `TrustSet` to create a trust line with a limit; this can add one live incremental reserve unit.
 2. **Active**: Tokens flow through the trust line. Balance fluctuates.
 3. **Modified**: Either party can modify the trust line (change limit, set flags).
 4. **Deleted**: The trust line can be removed when its balance is 0 and any limit is removed (limit set to 0).
@@ -329,7 +304,7 @@ The trust line is removed when:
 
 ## Reserve and Trust Lines
 
-Each trust line an account owns consumes 0.2 XRP of owner reserve. For a typical user with 10 trust lines, that's 1 XRP (base) + 2 XRP (10 × 0.2) = 3 XRP locked.
+Each owned trust-line side can add one incremental reserve unit. Compute totals from current validated base/increment values and actual `OwnerCount`, not a copied XRP example.
 
 **Optimization:** Only create trust lines for tokens you actually intend to hold or trade. Clean up unused trust lines by setting limit to 0.
 

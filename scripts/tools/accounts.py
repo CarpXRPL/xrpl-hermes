@@ -72,7 +72,7 @@ def tool_build_set_regular_key(frm: str, regular_key: str = None):
     if regular_key:
         kwargs["regular_key"] = regular_key
     tx = SetRegularKey(**kwargs)
-    note_out("# SetRegularKey TX JSON - signer-ready JSON - paste into Xaman Developer tab")
+    note_out("# SetRegularKey TX JSON - signer-ready JSON for reviewed external-wallet handoff")
     json_tx_out(tx)
 
 ACCOUNT_DELETE_WARNING = """\
@@ -114,7 +114,7 @@ def tool_build_account_delete(frm: str, to: str, dest_tag=None, destination_tag=
         kwargs["destination_tag"] = tag
     tx = AccountDelete(**kwargs)
     note_out(ACCOUNT_DELETE_WARNING.format(frm=frm, to=to))
-    note_out("# AccountDelete TX JSON - signer-ready JSON - paste into Xaman Developer tab")
+    note_out("# AccountDelete TX JSON - signer-ready JSON for reviewed external-wallet handoff")
     json_tx_out(tx)
 
 def tool_build_deposit_preauth(frm: str, authorize: str = None, unauthorize: str = None):
@@ -127,7 +127,7 @@ def tool_build_deposit_preauth(frm: str, authorize: str = None, unauthorize: str
     if unauthorize:
         kwargs["unauthorize"] = unauthorize
     tx = DepositPreauth(**kwargs)
-    note_out("# DepositPreauth TX JSON - signer-ready JSON - paste into Xaman Developer tab")
+    note_out("# DepositPreauth TX JSON - signer-ready JSON for reviewed external-wallet handoff")
     json_tx_out(tx)
 
 def tool_build_signer_list_set(frm: str, quorum: str, signers: str = None):
@@ -142,7 +142,7 @@ def tool_build_signer_list_set(frm: str, quorum: str, signers: str = None):
     if signer_entries:
         kwargs["signer_entries"] = signer_entries
     tx = SignerListSet(**kwargs)
-    note_out("# SignerListSet TX JSON - signer-ready JSON - paste into Xaman Developer tab")
+    note_out("# SignerListSet TX JSON - signer-ready JSON for reviewed external-wallet handoff")
     json_tx_out(tx)
 
 def tool_build_ticket_create(frm: str, count: int):

@@ -119,7 +119,7 @@ def parse_nft_id(nft_id_hex: str) -> dict:
 ### NFTokenPage Storage Model
 - Each account has 0 or more `NFTokenPage` ledger objects
 - Each page holds 16–32 NFTs sorted by NFToken ID
-- First page costs 0.2 XRP reserve; each additional page costs 0.2 XRP
+- Owned pages consume live incremental-reserve units; query validated network state
 - Pages merge/split automatically as NFTs are added/removed
 
 ---
@@ -250,7 +250,7 @@ claw = Clawback(
 ### Why MPTs Over Trust Lines
 | Feature | Trust Lines | MPTs |
 |---------|------------|------|
-| Reserve cost | 5 XRP per trustline | ~0.1 XRP per MPT issuance |
+| Reserve cost | Query current validated-ledger owner-object impact | Query current validated-ledger MPT object impact |
 | Precision | Float (15 sig digits) | Fixed-point uint64 |
 | Authorization | Manual TrustSet | MPTokenAuthorize |
 | Ledger footprint | Large | Compact |

@@ -61,174 +61,15 @@ Real Asset (Property / Bond / Invoice)
 
 Best for: Simple debt instruments, stablecoins backed by bonds, invoice financing.
 
-```python
-import asyncio
-from xrpl.asyncio.clients import AsyncJsonRpcClient
-from xrpl.models import (
-    AccountSet, AccountSetFlag, TrustSet, Payment,
-    AMMDeposit, AMMDepositFlag,
-)
-from xrpl.wallet import Wallet
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-XRPL_RPC = "https://xrplcluster.com"
-
-
-async def setup_rwa_issuer(
-    issuer_wallet: Wallet,
-    token_code: str,          # e.g. "PROP1", "BOND1"
-    transfer_rate_pct: float, # e.g. 0.5 = 0.5% fee on transfers
-) -> dict:
-    """
-    Configure an XRPL account as a compliant RWA token issuer.
-    Enables: RequireAuth, Clawback, TransferRate, DefaultRipple, Domain.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-        # Transfer rate: 1000000000 = 0%, 1005000000 = 0.5%
-        transfer_rate_raw = int(1_000_000_000 * (1 + transfer_rate_pct / 100))
-
-        tx = AccountSet(
-            account=issuer_wallet.address,
-            set_flag=AccountSetFlag.ASF_REQUIRE_AUTH,   # KYC gating
-            transfer_rate=transfer_rate_raw,
-        )
-        r1 = await submit_and_wait(tx, client, issuer_wallet)
-
-        tx2 = AccountSet(
-            account=issuer_wallet.address,
-            set_flag=AccountSetFlag.ASF_DEFAULT_RIPPLE,  # allow rippling
-        )
-        r2 = await submit_and_wait(tx2, client, issuer_wallet)
-
-        # Enable Clawback (one-time, irreversible)
-        tx3 = AccountSet(
-            account=issuer_wallet.address,
-            set_flag=AccountSetFlag.ASF_ALLOW_TRUSTLINE_CLAWBACK,
-        )
-        r3 = await submit_and_wait(tx3, client, issuer_wallet)
-
-        return {
-            "issuer": issuer_wallet.address,
-            "token": token_code,
-            "transfer_rate_pct": transfer_rate_pct,
-            "require_auth": True,
-            "clawback": True,
-            "tx_hashes": [
-                r1.result.get("hash"),
-                r2.result.get("hash"),
-                r3.result.get("hash"),
-            ],
-        }
-
-
-async def issue_rwa_tokens(
-    issuer_wallet: Wallet,
-    investor_address: str,
-    token_code: str,
-    amount: str,
-) -> dict:
-    """
-    Authorize investor trustline and issue tokens.
-    Call only after KYC/AML approval and legal subscription documents signed.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-
-        # Step 1: Authorize the investor's trustline
-        auth_tx = TrustSet(
-            account=issuer_wallet.address,
-            limit_amount={
-                "currency": token_code,
-                "issuer": investor_address,
-                "value": "0",
-            },
-            flags=0x00020000,  # tfSetfAuth
-        )
-        await submit_and_wait(auth_tx, client, issuer_wallet)
-
-        # Step 2: Send tokens to investor (issuance)
-        payment_tx = Payment(
-            account=issuer_wallet.address,
-            destination=investor_address,
-            amount={
-                "currency": token_code,
-                "issuer": issuer_wallet.address,
-                "value": amount,
-            },
-        )
-        result = await submit_and_wait(payment_tx, client, issuer_wallet)
-        return {
-            "investor": investor_address,
-            "tokens_issued": amount,
-            "currency": token_code,
-            "tx_hash": result.result.get("hash"),
-        }
-```
 
 ### Pattern B: Multi-Purpose Tokens (MPTs, XLS-33)
 
 Best for: Securities with complex transfer restrictions, regulatory-grade issuance, transferability controls.
 
-```python
-from xrpl.models import MPTokenIssuanceCreate, MPTokenAuthorize, MPTokenIssuanceSet
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-
-async def create_rwa_mpt(
-    issuer_wallet: Wallet,
-    maximum_amount: int,        # total supply cap (in token units)
-    asset_scale: int = 2,       # decimal places (2 = cents)
-    transfer_fee_bps: int = 50, # basis points (50 = 0.5%)
-) -> dict:
-    """
-    Create an MPT for RWA issuance with:
-    - Capped supply
-    - Transfer fee
-    - RequireAuth (can_transfer flag)
-    - Clawback enabled
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-
-        # MPT flags: tfMPTCanClawback | tfMPTRequireAuth | tfMPTCanTransfer
-        MPT_FLAGS = 0x00000002 | 0x00000008 | 0x00000010
-        # tfMPTCanClawback = 0x00000002
-        # tfMPTRequireAuth  = 0x00000008
-        # tfMPTCanTransfer  = 0x00000010
-
-        tx = MPTokenIssuanceCreate(
-            account=issuer_wallet.address,
-            maximum_amount=maximum_amount,
-            asset_scale=asset_scale,
-            transfer_fee=transfer_fee_bps,
-            flags=MPT_FLAGS,
-        )
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        mpt_issuance_id = result.result.get("meta", {}).get("MPTokenIssuanceID")
-        return {
-            "mpt_issuance_id": mpt_issuance_id,
-            "issuer": issuer_wallet.address,
-            "max_supply": maximum_amount,
-            "transfer_fee_bps": transfer_fee_bps,
-            "tx_hash": result.result.get("hash"),
-        }
-
-
-async def authorize_mpt_investor(
-    issuer_wallet: Wallet,
-    investor_address: str,
-    mpt_issuance_id: str,
-) -> dict:
-    """Authorize an investor to hold an MPT (post-KYC)."""
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-        tx = MPTokenAuthorize(
-            account=issuer_wallet.address,
-            holder=investor_address,
-            mptoken_issuance_id=mpt_issuance_id,
-        )
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        return {"authorized": investor_address, "tx_hash": result.result.get("hash")}
-```
 
 ---
 
@@ -236,107 +77,8 @@ async def authorize_mpt_investor(
 
 ### Real Estate Fractionalization
 
-```python
-from dataclasses import dataclass
-from typing import Optional
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-
-@dataclass
-class PropertyToken:
-    """Metadata for a fractionalized real estate token."""
-    property_address: str
-    total_value_usd: float
-    total_tokens: int           # e.g. 1,000,000 tokens = $1M property
-    token_price_usd: float      # = total_value_usd / total_tokens
-    annual_yield_pct: float     # projected rental yield
-    token_code: str             # e.g. "PROP1"
-    spv_jurisdiction: str       # e.g. "Delaware LLC"
-    auditor: str
-    last_valuation_date: str
-
-
-async def calculate_token_allocation(
-    investment_usd: float,
-    property: PropertyToken,
-) -> dict:
-    """Calculate how many tokens an investor gets for a USD investment."""
-    tokens = investment_usd / property.token_price_usd
-    annual_income = (investment_usd * property.annual_yield_pct) / 100
-    return {
-        "investment_usd": investment_usd,
-        "tokens": tokens,
-        "token_price_usd": property.token_price_usd,
-        "ownership_pct": (tokens / property.total_tokens) * 100,
-        "projected_annual_income_usd": annual_income,
-        "projected_monthly_income_usd": annual_income / 12,
-    }
-
-
-async def distribute_rental_income(
-    issuer_wallet: Wallet,
-    token_code: str,
-    total_rental_usd: float,
-    payment_currency: str,       # e.g. "RLUSD"
-    payment_issuer: str,         # RLUSD issuer
-) -> list[dict]:
-    """
-    Distribute pro-rata rental income to all token holders.
-    Fetches holder list, calculates share, sends payment.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-        from xrpl.models import AccountLines
-
-        # Get all token holders and their balances
-        holders = []
-        total_supply = 0.0
-        marker = None
-        while True:
-            req = AccountLines(
-                account=issuer_wallet.address,
-                limit=200,
-                marker=marker,
-            )
-            resp = await client.request(req)
-            for line in resp.result.get("lines", []):
-                if line["currency"] == token_code and float(line["balance"]) < 0:
-                    # Negative balance on issuer side = positive holder balance
-                    bal = abs(float(line["balance"]))
-                    holders.append({"address": line["account"], "balance": bal})
-                    total_supply += bal
-            marker = resp.result.get("marker")
-            if not marker:
-                break
-
-        results = []
-        for holder in holders:
-            share = holder["balance"] / total_supply
-            income_amount = str(round(total_rental_usd * share, 6))
-
-            tx = Payment(
-                account=issuer_wallet.address,
-                destination=holder["address"],
-                amount={
-                    "currency": payment_currency,
-                    "issuer": payment_issuer,
-                    "value": income_amount,
-                },
-                memos=[{
-                    "memo": {
-                        "memo_type": "72656e74616c5f696e636f6d65",  # "rental_income"
-                        "memo_data": token_code.encode().hex(),
-                    }
-                }],
-            )
-            r = await submit_and_wait(tx, client, issuer_wallet)
-            results.append({
-                "address": holder["address"],
-                "amount": income_amount,
-                "tx_hash": r.result.get("hash"),
-            })
-
-        return results
-```
 
 ---
 
@@ -344,91 +86,8 @@ async def distribute_rental_income(
 
 ### On-Chain Transfer Controls
 
-```python
-from xrpl.models import Clawback
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-
-async def enforce_transfer_restriction(
-    issuer_wallet: Wallet,
-    from_address: str,
-    to_address: str,
-    token_code: str,
-    amount: str,
-    reason: str,
-) -> dict:
-    """
-    Clawback tokens from a holder who violated transfer restrictions
-    (e.g., transferred to a non-KYC'd address via DEX workaround).
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-        tx = Clawback(
-            account=issuer_wallet.address,
-            amount={
-                "currency": token_code,
-                "issuer": from_address,
-                "value": amount,
-            },
-        )
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        return {
-            "action": "clawback",
-            "holder": from_address,
-            "amount": amount,
-            "reason": reason,
-            "tx_hash": result.result.get("hash"),
-        }
-
-
-async def check_transfer_eligibility(
-    buyer_address: str,
-    seller_address: str,
-    token_code: str,
-    issuer_address: str,
-) -> dict:
-    """
-    Pre-transfer check: verify buyer is KYC'd and not sanctioned.
-    Call this before facilitating any secondary market transfer.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.models import AccountLines
-
-        # Check buyer trustline authorization
-        buyer_lines = await client.request(
-            AccountLines(account=buyer_address, peer=issuer_address)
-        )
-        buyer_authorized = False
-        buyer_frozen = False
-        for line in buyer_lines.result.get("lines", []):
-            if line["currency"] == token_code:
-                buyer_authorized = line.get("authorized", False)
-                buyer_frozen = line.get("freeze", False)
-                break
-
-        # Check seller trustline
-        seller_lines = await client.request(
-            AccountLines(account=seller_address, peer=issuer_address)
-        )
-        seller_frozen = False
-        for line in seller_lines.result.get("lines", []):
-            if line["currency"] == token_code:
-                seller_frozen = line.get("freeze", False)
-                break
-
-        eligible = buyer_authorized and not buyer_frozen and not seller_frozen
-        return {
-            "eligible": eligible,
-            "buyer_authorized": buyer_authorized,
-            "buyer_frozen": buyer_frozen,
-            "seller_frozen": seller_frozen,
-            "reason": (
-                "OK" if eligible
-                else "buyer not authorized" if not buyer_authorized
-                else "buyer frozen" if buyer_frozen
-                else "seller frozen"
-            ),
-        }
-```
 
 ---
 
@@ -436,46 +95,8 @@ async def check_transfer_eligibility(
 
 ### Token Burn on Redemption
 
-```python
-async def redeem_rwa_tokens(
-    investor_wallet: Wallet,
-    issuer_address: str,
-    token_code: str,
-    amount: str,
-    redemption_bank_ref: str,  # off-chain bank wire reference
-) -> dict:
-    """
-    Investor sends tokens back to issuer to redeem for USD.
-    Off-chain: issuer processes bank wire to investor.
-    On-chain: tokens returned to issuer = burned from circulation.
-    """
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-        tx = Payment(
-            account=investor_wallet.address,
-            destination=issuer_address,
-            amount={
-                "currency": token_code,
-                "issuer": issuer_address,
-                "value": amount,
-            },
-            memos=[{
-                "memo": {
-                    "memo_type": "726564656d7074696f6e",  # "redemption"
-                    "memo_data": redemption_bank_ref.encode().hex(),
-                }
-            }],
-        )
-        result = await submit_and_wait(tx, client, investor_wallet)
-        return {
-            "redeemed_tokens": amount,
-            "currency": token_code,
-            "redemption_ref": redemption_bank_ref,
-            "tx_hash": result.result.get("hash"),
-            "note": "Issuer will process USD wire within 3-5 business days",
-        }
-```
 
 ---
 
@@ -575,47 +196,8 @@ async def generate_rwa_audit_report(
 1. Freeze investor trustline for 12 months from issuance date
 2. Unfreeze after lockup expiry (can be automated)
 
-```python
-import asyncio
-from datetime import datetime, timedelta
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-
-async def schedule_lockup_release(
-    issuer_wallet: Wallet,
-    investor_address: str,
-    token_code: str,
-    lockup_days: int = 365,
-) -> None:
-    """
-    Schedule a trustline unfreeze after Reg D lockup period.
-    In production: use a job queue (Celery/Temporal) not asyncio.sleep.
-    """
-    release_date = datetime.utcnow() + timedelta(days=lockup_days)
-    print(f"Lockup for {investor_address} until {release_date.isoformat()}")
-    await asyncio.sleep(lockup_days * 86400)  # replace with job scheduler
-    await unfreeze_individual_trustline(issuer_wallet, investor_address, token_code)
-    print(f"Lockup released for {investor_address}")
-
-
-async def unfreeze_individual_trustline(
-    issuer_wallet: Wallet,
-    investor_address: str,
-    token_code: str,
-) -> dict:
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-        tx = TrustSet(
-            account=issuer_wallet.address,
-            limit_amount={
-                "currency": token_code,
-                "issuer": investor_address,
-                "value": "0",
-            },
-            flags=0x00200000,  # tfClearFreeze
-        )
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        return result.result
-```
 
 ### European Union
 
@@ -641,99 +223,15 @@ Popular for offshore SPV structures:
 
 ## On-Chain NAV Updates
 
-```python
-async def update_nav_on_chain(
-    issuer_wallet: Wallet,
-    token_code: str,
-    nav_per_token_usd: float,
-    total_nav_usd: float,
-    valuation_date: str,        # ISO date string
-    auditor_name: str,
-) -> dict:
-    """
-    Publish NAV update to XRPL as a zero-value payment memo.
-    This creates an immutable, timestamped NAV record.
-    """
-    import json
-    nav_data = json.dumps({
-        "nav_per_token": str(round(nav_per_token_usd, 6)),
-        "total_nav_usd": str(round(total_nav_usd, 2)),
-        "date": valuation_date,
-        "auditor": auditor_name,
-        "token": token_code,
-    })
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-        tx = Payment(
-            account=issuer_wallet.address,
-            destination=issuer_wallet.address,  # self-payment for memo
-            amount="1",  # 1 drop minimum
-            memos=[{
-                "memo": {
-                    "memo_type": "6e61765f757064617465",  # "nav_update"
-                    "memo_data": nav_data.encode().hex(),
-                }
-            }],
-        )
-        result = await submit_and_wait(tx, client, issuer_wallet)
-        return {
-            "nav_per_token_usd": nav_per_token_usd,
-            "total_nav_usd": total_nav_usd,
-            "valuation_date": valuation_date,
-            "tx_hash": result.result.get("hash"),
-            "ledger_record": "immutable",
-        }
-```
 
 ---
 
 ## Secondary Market via XRPL DEX
 
-```python
-from xrpl.models import OfferCreate
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-
-async def list_rwa_token_for_sale(
-    seller_wallet: Wallet,
-    token_code: str,
-    issuer_address: str,
-    token_amount: str,
-    price_rlusd_per_token: float,
-) -> dict:
-    """
-    List RWA tokens for sale on the XRPL DEX.
-    Price in RLUSD. Requires buyer to have authorized trustline.
-    """
-    rlusd_total = str(round(float(token_amount) * price_rlusd_per_token, 6))
-    rlusd_issuer = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"  # Ripple RLUSD issuer (verify on-ledger)
-    # "RLUSD" is 5 chars — the ledger requires the 160-bit hex currency code
-    rlusd_cur = "524C555344000000000000000000000000000000"
-
-    async with AsyncJsonRpcClient(XRPL_RPC) as client:
-        from xrpl.asyncio.transaction import submit_and_wait
-        tx = OfferCreate(
-            account=seller_wallet.address,
-            taker_gets={
-                "currency": token_code,
-                "issuer": issuer_address,
-                "value": token_amount,
-            },
-            taker_pays={
-                "currency": rlusd_cur,
-                "issuer": rlusd_issuer,
-                "value": rlusd_total,
-            },
-        )
-        result = await submit_and_wait(tx, client, seller_wallet)
-        return {
-            "offer_sequence": result.result.get("Sequence"),
-            "token_amount": token_amount,
-            "price_rlusd_per_token": price_rlusd_per_token,
-            "total_rlusd": rlusd_total,
-            "tx_hash": result.result.get("hash"),
-        }
-```
 
 ---
 

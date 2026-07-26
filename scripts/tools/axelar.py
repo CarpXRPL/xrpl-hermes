@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Axelar bridge tools: read-only status for XRPL <-> XRPL EVM bridging.
+"""Read-only Axelarscan registration and GMP-index helpers."""
+from datetime import datetime, timezone
+import re
+import sys
 
-Uses the public Axelarscan APIs. Never builds, signs, or submits bridge
-transactions.
-"""
+import httpx
+
 from ._shared import json_out, usage_out
-import httpx, sys
 
 CHAINS_API = "https://api.axelarscan.io/api/getChains"
 GMP_API = "https://api.gmp.axelarscan.io"
 XRPL_CHAIN_IDS = ("xrpl", "xrpl-evm")
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _chain_summary(chain: dict) -> dict:
@@ -28,62 +33,114 @@ def _chain_summary(chain: dict) -> dict:
 def tool_bridge_status(*chain_ids: str):
     wanted = [c.lower() for c in chain_ids] if chain_ids else list(XRPL_CHAIN_IDS)
     try:
-        resp = httpx.get(CHAINS_API, timeout=20)
-        resp.raise_for_status()
-        chains = resp.json()
-    except Exception as e:
-        json_out({"Error": "AxelarChainsUnavailable", "Message": str(e), "API": CHAINS_API})
+        response = httpx.get(CHAINS_API, timeout=20)
+        response.raise_for_status()
+        chains = response.json()
+        if not isinstance(chains, list):
+            raise RuntimeError("Axelarscan chain response was not a list")
+    except Exception as exc:
+        json_out({"Error": "AxelarChainsUnavailable", "Message": str(exc), "API": CHAINS_API})
         return
-    by_id = {str(c.get("id", "")).lower(): c for c in chains}
-    found, missing = {}, []
-    for cid in wanted:
-        if cid in by_id:
-            found[cid] = _chain_summary(by_id[cid])
-        else:
-            missing.append(cid)
+    by_id = {str(item.get("id", "")).lower(): item for item in chains if isinstance(item, dict)}
+    found = {cid: _chain_summary(by_id[cid]) for cid in wanted if cid in by_id}
+    missing = [cid for cid in wanted if cid not in by_id]
     json_out({
         "Source": CHAINS_API,
+        "FetchedAt": _now(),
+        "Capability": "Axelarscan chain-registration lookup only",
         "Chains": found,
         "MissingChains": missing,
-        "Note": "Read-only registration/gateway data from Axelarscan. A listed, non-deprecated "
-                "chain entry means Axelar currently serves the route; verify amounts and fees in "
-                "your bridge UI or the Axelar docs before moving funds.",
+        "RouteCertified": False,
+        "Note": (
+            "Registration does not establish route availability, supported assets, minimums, "
+            "fees, liquidity, pause state, or transfer success."
+        ),
     })
 
 
 def tool_bridge_tx(tx_hash: str):
+    if not re.fullmatch(r"(?:0x)?[0-9A-Fa-f]{64}", tx_hash or "", re.ASCII):
+        json_out({
+            "Error": "InvalidTransactionHash",
+            "Message": "Expected 64 hexadecimal characters, optionally 0x-prefixed.",
+            "TxHash": tx_hash,
+        })
+        return
     try:
-        resp = httpx.post(GMP_API, json={"method": "searchGMP", "txHash": tx_hash, "size": 5}, timeout=20)
-        resp.raise_for_status()
-        payload = resp.json()
-    except Exception as e:
-        json_out({"Error": "AxelarGMPUnavailable", "Message": str(e), "API": GMP_API, "TxHash": tx_hash})
+        response = httpx.post(
+            GMP_API,
+            json={"method": "searchGMP", "txHash": tx_hash, "size": 5},
+            timeout=20,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise RuntimeError("Axelarscan GMP response was not an object")
+    except Exception as exc:
+        json_out({"Error": "AxelarGMPUnavailable", "Message": str(exc), "API": GMP_API, "TxHash": tx_hash})
         return
     records = payload.get("data") or []
+    if not isinstance(records, list):
+        json_out({"Error": "AxelarGMPMalformed", "Message": "GMP data was not a list", "API": GMP_API, "TxHash": tx_hash})
+        return
     if not records:
-        json_out({"TxHash": tx_hash, "Found": False, "Source": GMP_API,
-                  "Message": "No Axelar GMP message found for this hash (not a bridge tx, or not yet indexed)."})
+        json_out({
+            "TxHash": tx_hash,
+            "Found": False,
+            "Source": GMP_API,
+            "FetchedAt": _now(),
+            "Capability": "Axelar GMP-index search only",
+            "Message": "No GMP record found; this may be non-GMP activity, an unknown hash, or indexing delay.",
+        })
         return
     messages = []
-    for rec in records:
-        call = rec.get("call") or {}
-        rv = call.get("returnValues") or {}
-        messages.append({
-            "status": rec.get("status"),
-            "simplified_status": rec.get("simplified_status"),
-            "source_chain": call.get("chain") or rv.get("sourceChain"),
-            "destination_chain": rv.get("destinationChain"),
-            "message_id": rv.get("messageId"),
+    for record in records:
+        if not isinstance(record, dict):
+            json_out({"Error": "AxelarGMPMalformed", "Message": "GMP record was not an object", "API": GMP_API, "TxHash": tx_hash})
+            return
+        call = record.get("call") or {}
+        if not isinstance(call, dict):
+            json_out({"Error": "AxelarGMPMalformed", "Message": "GMP call was not an object", "API": GMP_API, "TxHash": tx_hash})
+            return
+        return_values = call.get("returnValues") or {}
+        if not isinstance(return_values, dict):
+            json_out({"Error": "AxelarGMPMalformed", "Message": "GMP returnValues was not an object", "API": GMP_API, "TxHash": tx_hash})
+            return
+        executed = record.get("executed") or {}
+        if not isinstance(executed, dict):
+            executed = {}
+        executed_tx = executed.get("transaction") or {}
+        if not isinstance(executed_tx, dict):
+            executed_tx = {}
+        message = {
+            "status": record.get("status"),
+            "simplified_status": record.get("simplified_status"),
+            "source_chain": call.get("chain") or return_values.get("sourceChain"),
+            "destination_chain": return_values.get("destinationChain"),
+            "message_id": return_values.get("messageId"),
             "tx_hash": call.get("transactionHash"),
-            "executed_tx_hash": ((rec.get("executed") or {}).get("transaction") or {}).get("hash"),
-            "time_spent_seconds": (rec.get("time_spent") or {}).get("total"),
-        })
-    json_out({"TxHash": tx_hash, "Found": True, "MessageCount": len(messages),
-              "Messages": messages, "Source": GMP_API})
+            "executed_tx_hash": executed_tx.get("hash"),
+            "time_spent_seconds": (record.get("time_spent") or {}).get("total") if isinstance(record.get("time_spent") or {}, dict) else None,
+        }
+        if not any(message.values()):
+            json_out({"Error": "AxelarGMPMalformed", "Message": "GMP record contained no recognized evidence fields", "API": GMP_API, "TxHash": tx_hash})
+            return
+        messages.append(message)
+    json_out({
+        "TxHash": tx_hash,
+        "Found": True,
+        "MessageCount": len(messages),
+        "Messages": messages,
+        "Source": GMP_API,
+        "FetchedAt": _now(),
+        "Capability": "Axelar GMP-index search only",
+        "TokenTransferCertified": False,
+    })
 
 
 COMMANDS = {
     "bridge-status": lambda: tool_bridge_status(*sys.argv[2:]),
     "bridge-tx": lambda: tool_bridge_tx(sys.argv[2]) if len(sys.argv) >= 3 else usage_out(
-        "bridge-tx", "bridge-tx TXHASH  (source-chain tx hash of an Axelar bridge transfer)"),
+        "bridge-tx", "bridge-tx TXHASH  (source-chain hash for Axelar GMP-index search)"
+    ),
 }

@@ -12,10 +12,10 @@ XRPL L1, the XRPL EVM Sidechain, Xahau, Flare/Songbird, Axelar, and Arweave are 
 |---|---|---|
 | XRPL L1 | live reads and structurally validated unsigned builders | certified per command/test matrix; new flows remain Testnet-first |
 | Xahau | legacy `HookOn` calculation and validated hook-chain lookup | certified partial/read-only; no compile/build/sign/deploy |
-| XRPL EVM Sidechain | balance and network/bridge metadata reads; contract template output | experimental pending full official-source and live acceptance |
-| Flare | read-only FTSOv2 call plus labeled fallback price helper | external/experimental pending source and freshness review |
-| Axelar | public status/API lookups only | external dependency; no bridge transaction construction |
-| Arweave | public storage-price estimate only | external dependency; no upload or wallet handling |
+| XRPL EVM Sidechain | validated balance/network reads plus explicit experimental contract intent | experimental read/build; no compile/simulation/deployment/bridge certification |
+| Flare | chain-ID/freshness-checked FTSOv2 read plus labeled CoinGecko context | narrow read; FAssets/LayerCake quarantined |
+| Axelar | Axelarscan registration lookup and GMP-index search | narrow/partial external read; no transfer certification |
+| Arweave | point-in-time base-network storage-price estimate | narrow external read; no upload or retrieval guarantee |
 | Evernode | knowledge discovery only | quarantined |
 | Wallet integrations | Xaman payload handoff only where configured; other wallet claims require separate proof | external dependency |
 

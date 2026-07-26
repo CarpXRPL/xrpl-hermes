@@ -16,14 +16,14 @@ Design properties worth knowing before you wire it up:
 - **Subprocess isolation.** Each `xrpl_run` call executes in a child process with a 90-second timeout, so a crashing or hanging command never takes down the server.
 - **Default-deny custody boundary.** The server refuses `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, and `xaman-payload` before execution. Builders return signer-ready JSON for external signing.
 - **Knowledge reads are sandboxed.** `xrpl_knowledge` rejects paths outside `knowledge/`, `references/`, and `skills/` (covered by tests).
-- **Live-network commands need the repo's Python deps.** `xrpl_list_commands`, `xrpl_knowledge_index`, and `xrpl_knowledge` work even without `xrpl-py` installed; `xrpl_run` needs `pip install -r requirements.txt` done once in the Python that runs the server.
+- **Install the project, not only requirements.** `pip install .` installs the CLI/MCP entry points and packages the complete knowledge/reference/workflow corpus.
 
-In all examples below, replace `/path/to/xrpl-hermes` with your actual clone path. If you installed the repo's dependencies into a virtualenv, use that venv's Python (e.g. `/path/to/xrpl-hermes/.venv/bin/python3`) as the command.
+In all examples below, replace `/path/to/xrpl-hermes` with your clone path after running `bash setup.sh`. Use `/path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp`.
 
 ## Claude Code
 
 ```bash
-claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
+claude mcp add xrpl-hermes -- /path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp
 ```
 
 Verify inside a session: `/mcp` should show `xrpl-hermes` connected with the four tools. Then ask something like *"check whether the Batch amendment is enabled on XRPL mainnet"* — the agent should call `xrpl_run` with `command="amendment"`.
@@ -36,8 +36,7 @@ Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
 {
   "mcpServers": {
     "xrpl-hermes": {
-      "command": "python3",
-      "args": ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+      "command": "/path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp"
     }
   }
 }
@@ -51,8 +50,7 @@ Add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.xrpl-hermes]
-command = "python3"
-args = ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+command = "/path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp"
 ```
 
 ## Claude Desktop
@@ -64,11 +62,13 @@ Add the same JSON block as Cursor's to `claude_desktop_config.json` (Settings �
 Hermes loads xrpl-hermes natively as a skill — the MCP server is optional there:
 
 ```bash
-mkdir -p ~/.hermes/skills
-cp -r xrpl-hermes ~/.hermes/skills/xrpl-hermes
+mkdir -p ~/.hermes/skills/xrpl-hermes
+cp -r xrpl-hermes/SKILL.md xrpl-hermes/knowledge xrpl-hermes/references xrpl-hermes/skills ~/.hermes/skills/xrpl-hermes/
+hermes mcp add xrpl-hermes --command "/path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp"
+hermes mcp test xrpl-hermes
 ```
 
-Activate with `activate xrpl-hermes`. The skill prompt (`SKILL.md`) gives the agent the same commands via the terminal plus the knowledge-citation and freshness rules. If your Hermes setup prefers MCP, the generic stdio config below works too.
+Launch Hermes with `hermes -s xrpl-hermes` (or load it in-session with `/skill xrpl-hermes`). The MCP runtime supplies the isolated command surface and packaged knowledge corpus.
 
 ## Any other MCP client
 
@@ -78,14 +78,13 @@ The server speaks standard JSON-RPC 2.0 over stdio (protocol version `2025-06-18
 {
   "mcpServers": {
     "xrpl-hermes": {
-      "command": "python3",
-      "args": ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+      "command": "/path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp"
     }
   }
 }
 ```
 
-No environment variables are required. Optional ones (`XRPL_PRIVATE_RPC` for your own node, `XUMM_API_KEY`/`XUMM_API_SECRET` for `xaman-payload`) can be passed through your client's `env` block.
+No environment variables are required for the MCP server. `XRPL_PRIVATE_RPC` may point read-only requests at infrastructure you operate. Xaman credentials are not an MCP configuration surface because `xaman-payload` is denied before execution.
 
 ## Smoke test without any client
 
@@ -96,7 +95,7 @@ printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"smoke","version":"0"}}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
   '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"xrpl_run","arguments":{"command":"ledger","args":[]}}}' \
-  | python3 scripts/mcp_server.py
+  | .venv/bin/xrpl-hermes-mcp
 ```
 
 You should see three JSON-RPC responses; the third contains live validated-ledger data.
@@ -104,8 +103,8 @@ You should see three JSON-RPC responses; the third contains live validated-ledge
 ## Prompting patterns that work well
 
 - *"Use xrpl_knowledge_index, read the AMM file, then build an AMMDeposit for …"* — knowledge first, then build; this matches how the skill is designed to be used.
-- *"Check the live amendment status before using any post-2024 transaction type."* — the builders do this themselves for MPT/Credential/Oracle/Batch, but saying it keeps the agent honest for everything else.
-- *"Run token-intel for CODE rISSUER and interpret the risk flags."* — one `xrpl_run` call (`command="token-intel"`, `args=["CODE","rISSUER"]`) returns the ≥5-live-datapoints, confidence-scored, missing-data-listed report; `knowledge/64` is the methodology behind it.
+- *"Check the live amendment status before using any post-2024 transaction type."* — MPT/Credential/Oracle builders perform live checks; Batch is security-retired and unregistered.
+- *"Run token-intel for CODE rISSUER and interpret the evidence gaps."* — one `xrpl_run` call returns an explicitly partial, freshness-stamped report; confidence describes data completeness only.
 - *"Check the XRP AMM pool for CODE:rISSUER."* — `command="amm-info"`, `args=["XRP","CODE:rISSUER"]` returns live reserves, trading fee, and auction slot, or an honest `AMMExists: false`.
 
 ### Starter prompts by role
@@ -132,8 +131,7 @@ Copy-paste these into any connected MCP client; each resolves to live read-only 
 
 | Symptom | Cause / fix |
 |---|---|
-| `xrpl_run` returns `dispatcher unavailable: …` | The Python running the server can't import `xrpl-py`. Run `pip install -r requirements.txt` with that same Python, or point the client at your venv's `python3`. |
+| `xrpl_run` returns `dispatcher unavailable: …` | Install the project with `pip install .`, then point the client at that environment's `xrpl-hermes-mcp` entry point. |
 | Knowledge tools work but commands fail | Same as above — knowledge needs no deps, commands do. |
 | `command timed out after 90s` | Public endpoint slow or unreachable; retry, or set `XRPL_PRIVATE_RPC` to your own rippled/Clio. |
-| Client shows no tools | Check the path in your config is absolute and the file is executable by `python3`. Run the smoke test above outside the client. |
-| `xaman-payload` returns `MissingCredentials` | Expected without `XUMM_API_KEY`/`XUMM_API_SECRET`; get free keys at apps.xumm.dev or sign the JSON manually in Xaman's Developer tab. |
+| Client shows no tools | Check that the configured `.venv/bin/xrpl-hermes-mcp` path is absolute and executable. Run the smoke test above outside the client first. |

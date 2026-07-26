@@ -18,19 +18,19 @@ xrpl-hermes/
 │       ├── credentials.py  batch.py  ledger.py  wallet.py  amendments.py
 │       └── evm.py  xahau.py  flare.py  xaman.py
 ├── knowledge/               # 65 numbered deep-dive files (the agent's library)
-├── references/              # 14 quick-reference cards pointing into knowledge/
+├── references/              # 15 quick-reference cards pointing into knowledge/
 ├── skills/                  # multi-step workflow playbooks (token launch, AMM bot, …)
-├── examples/                # runnable end-to-end scripts (Python; testnet, env-var seeds)
-│   └── js/                  # runnable xrpl.js twins (build-only, no seeds) — npm install
+├── examples/                # signer-separated Python build/read examples + retired stubs
+│   └── js/                  # runnable xrpl.js build-only examples (no seeds) — npm install
 ├── tests/                   # pytest: CLI regressions, tool outputs, MCP end-to-end
-├── deploy/                  # rippled/Clio docker-compose for a private node
+├── deploy/                  # retirement notice; no node deployment templates
 ├── SKILL.md                 # Hermes Agent master prompt (agent behavior rules live here)
-└── STANDALONE.md            # in-depth CLI usage for humans (full 72-command list: SKILL.md)
+└── STANDALONE.md            # retirement notice for the former duplicated bundle
 ```
 
 ### Dispatcher pattern
 
-`scripts/xrpl_tools.py` imports every module in `scripts/tools/` and merges their `COMMANDS` dicts (`command-name -> zero-arg callable that reads sys.argv`). It contains no tool logic itself. The CLI, dev-test matrix, and tests consume this registry directly. The MCP server applies a second, positive allowlist: a newly registered command is local-CLI-only by default until a maintainer explicitly classifies it as agent-safe.
+`scripts/xrpl_tools.py` imports every module in `scripts/tools/` and merges their `COMMANDS` dicts (`command-name -> zero-arg callable that reads sys.argv`). It contains no tool logic itself. The MCP server applies a second, positive allowlist: a new command is denied by default until explicitly classified as agent-safe.
 
 ### Dual-stack boundary (Python engine, language-neutral output)
 
@@ -48,7 +48,7 @@ The CLI and MCP server are **Python (`xrpl-py`) by design** — that is the engi
 1. `build-*` commands emit **unsigned, signer-ready JSON only**. No builder may accept, derive, or require a seed.
 2. Amendment-gated builders (`MPT`, `Credential`, `Oracle`) check live mainnet status and print an explicit note; new builders for not-yet-enabled features must do the same. XLS-56 `Batch` is retired and must remain unregistered.
 3. No fabricated data: a failed lookup reports the failing endpoint, never a plausible guess.
-4. `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, and `xaman-payload` remain local-CLI-only and are denied over MCP before any subprocess spawn.
+4. Five sensitive registrations are denied over MCP before any subprocess spawn. Legacy key/broadcast surfaces remain quarantined; Xaman is a guarded Payment-only external side effect.
 
 ## Adding a command (checklist)
 
@@ -56,7 +56,7 @@ The CLI and MCP server are **Python (`xrpl-py`) by design** — that is the engi
 2. **Implement** using `_shared` helpers for endpoints and output. Validate args and print a `Usage:` line on bad input rather than raising.
 3. **Register a safe test invocation** in the `TESTS` dict in `scripts/dev_test_matrix.py` — one that exercises the real code path without submitting a transaction or printing a seed.
 4. **Add pytest coverage** in `tests/` for the output shape (see `tests/test_tool_outputs.py` for the pattern).
-5. **Document it** in `STANDALONE.md` (in-depth usage) and, if user-facing, the README command-coverage table and `SKILL.md` tool table. Update the command count everywhere it appears (README, SKILL.md, LIMITATIONS.md, mcp_server docstring) — the MCP test asserts a minimum command count (`count >= 73`) — keep it in sync, so additions are cheap, removals are not.
+5. **Document it** in the canonical README/SKILL/knowledge surfaces; do not revive the retired duplicated standalone bundle. Update command counts and MCP classification everywhere. Tests require the dispatcher to partition exactly into the allowlist and deny-list.
 6. **Run the verification suite** (below) and regenerate the matrix.
 
 ## MCP server internals
@@ -85,7 +85,7 @@ python3 -m pytest -q
 - `tests/test_tool_outputs.py` — output-shape checks for builders.
 - `tests/test_mcp_server.py` — full stdio session against the real server: initialize, tools/list, a real dispatcher call, knowledge reads, and rejection of bad commands/path traversal.
 
-CI (`.github/workflows/ci.yml`) runs pytest plus a live `server-info` on every push/PR.
+CI (`.github/workflows/ci.yml`) runs pytest on Python 3.10, 3.11 and 3.12, project quality/compilation checks, an offline CLI smoke test, and a separate clean-wheel installation acceptance. It does not depend on a public XRPL endpoint to pass.
 
 ### 2. Dev-test matrix (live, every command)
 
@@ -93,7 +93,7 @@ CI (`.github/workflows/ci.yml`) runs pytest plus a live `server-info` on every p
 python3 scripts/dev_test_matrix.py
 ```
 
-Runs all registered commands with safe arguments and writes [`AUDIT-tool-matrix.md`](../AUDIT-tool-matrix.md) — command, status, exit code, latency, exact argv, and a 500-char output sample (with any seed-shaped strings redacted). Pass criteria are deliberately strict:
+Runs all registered commands with safe arguments and writes [`AUDIT-tool-matrix.md`](../AUDIT-tool-matrix.md) — command, status, exit code, latency, and bounded evidence. Actionable argument/output details for legacy key/broadcast probes are omitted rather than merely redacted. Pass criteria are deliberately strict:
 
 - read commands must exit 0 with no traceback;
 - `build-*` output containing an `"Error"` payload is a FAIL even at exit 0;
@@ -111,7 +111,7 @@ The script exits non-zero and lists failures if anything regresses. The committe
 
 ## Release flow
 
-1. All checks green: pytest, dev-test matrix 73/73 (or the new count), MCP smoke test.
+1. All checks green: both supported xrpl-py test environments, quality audit, compilation, dev-test matrix, package acceptance, clean wheel/install, MCP smoke test, link scan, and `git diff --check`.
 2. Bump the version in **three places**: `pyproject.toml`, `SKILL.md` frontmatter, and `SERVER_INFO` in `scripts/mcp_server.py`.
 3. Add a `CHANGELOG.md` entry: what was Added / Fixed / Verified, with dates on live verifications.
 4. Commit with the `vX.Y.Z: summary` message format used throughout the history.
@@ -122,11 +122,10 @@ The script exits non-zero and lists failures if anything regresses. The committe
    git push origin main
    # after `gh auth login`:
    gh repo edit CarpXRPL/xrpl-hermes \
-     --description "Open-source XRPL agent stack: MCP tools, signer-separated transaction builders, live XRPL knowledge, Python + xrpl.js examples, x402, RLUSD, and on-ledger receipts."
+     --description "Model-agnostic XRPL capability layer: certified L1 reads, unsigned builders, curated knowledge, and a default-deny MCP boundary. Keys stay yours."
    gh repo edit CarpXRPL/xrpl-hermes \
      --add-topic xrpl --add-topic xrp-ledger --add-topic mcp --add-topic ai-agents \
-     --add-topic agentic-payments --add-topic x402 --add-topic xrpl-js --add-topic xrpl-py \
-     --add-topic xaman --add-topic rlusd
+     --add-topic hermes-agent --add-topic python --add-topic open-source
    ```
 
    On WSL, if `gh auth login` can't open a browser, open `https://github.com/login/device` in Windows and

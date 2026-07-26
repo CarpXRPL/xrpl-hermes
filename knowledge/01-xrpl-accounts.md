@@ -20,40 +20,24 @@ The base58 encoding uses the following alphabet: `rpshnaf39wBUDNEGHJKLM4PQRST7VW
 Accounts are created by sending XRP to a brand new address that doesn't yet exist on the ledger. The payment automatically creates the account if:
 
 1. The destination address is a valid XRPL address
-2. The amount sent is at least the **account reserve** (currently 1 XRP base)
+2. The amount sent satisfies the selected network's **current validated account-reserve requirement**
 3. The destination address does not already exist on the ledger
 
 There is no explicit "create account" transaction — it happens implicitly via a payment to a non-existent address.
 
 ### Creating an Account (Python Example)
 
-```python
-from xrpl.wallet import Wallet
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import Payment
-from xrpl.models.amounts import IssuedCurrencyAmount
-from xrpl.utils import xrp_to_drops
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Generate a new wallet (offline)
-new_wallet = Wallet.create()
-
-# Fund it from an existing account (on-chain)
-payment = Payment(
-    account=source_wallet.classic_address,
-    destination=new_wallet.classic_address,
-    amount=xrp_to_drops(20),  # 20 XRP — covers reserve + some buffer
-)
-response = submit_and_wait(payment, client, source_wallet)
-```
 
 ## Account Reserve
 
 Every XRPL account must hold a minimum amount of XRP, called the **reserve**. This prevents ledger bloat and is a core part of XRPL's anti-spam mechanism.
 
-| Reserve Component | Current Amount |
+| Reserve component | Source of truth |
 |---|---|
-| Base Reserve | 1 XRP |
-| Owner Reserve (per owned object) | 0.2 XRP |
+| Base reserve | Selected network's validated ledger state |
+| Incremental owner reserve | Selected network's validated ledger state |
 
 **Owned objects** include:
 - Trust lines
@@ -65,7 +49,7 @@ Every XRPL account must hold a minimum amount of XRP, called the **reserve**. Th
 - Tickets
 - NFT pages (each page holds up to 32 NFTs)
 
-So an account with 5 trust lines and 3 offers would need: 1 + (8 × 0.2) = 2.6 XRP reserved.
+For any account, derive the reserve requirement from the current validated-ledger base and incremental reserve fields together with the account's actual owner-object count. Do not reuse a fixed XRP total.
 
 The reserve is **not** spent — it's locked. An account cannot send XRP that would drop its balance below the reserve.
 
@@ -130,7 +114,7 @@ Balances are stored as UInt64 (unsigned 64-bit integer), but the XRPL caps the m
 
 ### OwnerCount
 
-The `OwnerCount` tracks how many ledger objects the account owns. Each object increases required reserve by the owner reserve amount (0.2 XRP per object).
+The `OwnerCount` tracks how many ledger objects the account owns. Each qualifying object increases required reserve by the network's current incremental owner-reserve amount.
 
 Max objects per account is typically bounded by the transaction cost — each object creation costs a base fee + the reserve. There's no hard cap, but at some point it becomes economically impractical.
 
@@ -184,45 +168,19 @@ Use `AccountSet` with the `ClearFlag` field:
 
 ## Account Deletion
 
-Accounts **CAN be deleted** using the `AccountDelete` transaction type (enabled via the DeletableAccounts amendment on 2020-05-08). The transaction deletes the account's AccountRoot and all owned ledger objects, sending the remaining XRP to a specified destination account.
+Accounts can be deleted with `AccountDelete` when the amendment is enabled, but deletion is a high-risk, state-dependent operation. Verify the current first-party transaction reference and the selected network's validated state immediately before constructing intent.
 
-### Requirements for Deletion
+### Safety requirements
 
-1. **Sequence + 255 ≤ current Ledger Index** — prevents replay attacks after account resurrection
-2. **Fewer than 1000 objects** owned in the ledger (otherwise `tefTOO_BIG` error)
-3. **No deletion blockers** — the account must not have non-removable objects such as:
-   - Outstanding token issuance (nonzero IOU balances held by others)
-   - Active escrows, checks, payment channels, or XChainBridge objects
-   - Unburned NFTs (if the account minted NFTs, they must all be burned)
-4. **Destination account** must exist and be a different account
-5. **Cannot be a signer list member** on another account's signer list
+- The account must satisfy the current age/sequence rule.
+- Owned objects, issued obligations and amendment-specific blockers must be resolved within the protocol's current limits.
+- The destination and any required destination tag must be reviewed.
+- The special minimum `Fee` is tied to the network's **current incremental owner reserve**; query validated network state instead of copying an XRP/drop value.
+- A failed transaction included with a `tec` result can still consume the special fee and sequence.
 
-### Special Transaction Cost (Burn)
+XRPL-Hermes does not auto-clean an account or submit deletion. Re-read `account_info` and `account_objects` after each separately reviewed cleanup transaction, then hand the final unsigned intent to the user's external signer. After authorization, verify the resulting hash and `validated: true` outcome independently.
 
-Instead of the standard ~0.00001 XRP fee, `AccountDelete` requires burning **the owner reserve amount** (currently **0.2 XRP**). This cost is:
-- Paid regardless of whether the deletion succeeds or fails
-- Captured by the `Fee` field (e.g., `"Fee": "200000"` for 0.2 XRP)
-- Designed to discourage ledger spam and frivolous account creation/deletion
-
-> ⚠️ **Recommendation:** Use `fail_hard` when submitting AccountDelete to avoid paying the high fee if the transaction cannot succeed.
-
-### How the Remaining Balance is Handled
-
-The sender's XRP balance minus the reserve (1 XRP base reserve) minus the deletion fee is sent to the `Destination` account. The deleted account's reserve is partially recovered — the 0.2 XRP owner reserve is burned, but the 1 XRP base reserve is effectively recovered since the account is removed from the ledger.
-
-### Example Transaction
-
-```json
-{
-    "TransactionType": "AccountDelete",
-    "Account": "rWYkbWkCeg8dP6rXALnjgZSjjLyih5NXm",
-    "Destination": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
-    "DestinationTag": 13,
-    "Fee": "200000",
-    "Sequence": 2470665,
-    "Flags": 2147483648
-}
-```
+The destination receives the protocol-defined remaining XRP after the transaction fee when deletion succeeds. Do not subtract a copied base-reserve value in application code or claim a recoverable amount before validated execution.
 
 ### Re-creation
 

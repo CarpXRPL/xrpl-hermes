@@ -37,9 +37,9 @@ git diff --check                               # whitespace / conflict markers
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}' | python3 scripts/mcp_server.py
 ```
 
-`dev_test_matrix.py` rewrites `AUDIT-tool-matrix.md` with fresh timestamps/live output. If the command
-set did **not** change, that diff is drift — revert it (`git checkout -- AUDIT-tool-matrix.md`) rather
-than commit noise. Stage real files explicitly; don't `git add -A` the regenerated matrix.
+`dev_test_matrix.py` rewrites `AUDIT-tool-matrix.md` with fresh UTC/live evidence. Review the diff and
+commit it only when it is deliberate release evidence; otherwise revert timestamp/latency-only drift.
+Legacy key/broadcast probes intentionally omit actionable arguments and output.
 
 ## Safety invariants (never regress)
 

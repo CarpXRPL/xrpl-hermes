@@ -35,7 +35,7 @@ Establishes or updates the signer list:
       }
     }
   ],
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 1
 }
 ```
@@ -65,7 +65,7 @@ Set `SignerQuorum: 0` and omit `SignerEntries`:
   "TransactionType": "SignerListSet",
   "Account": "rMASTER...",
   "SignerQuorum": 0,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 2
 }
 ```
@@ -82,7 +82,7 @@ Multi-signed transactions use the `Signers` array instead of a single `TxnSignat
   "Account": "rMASTER...",
   "Destination": "rDEST...",
   "Amount": "1000000",
-  "Fee": "36",
+  "Fee": "<autofill>",
   "Sequence": 10,
   "SigningPubKey": "",
   "Signers": [
@@ -112,96 +112,23 @@ Important:
 Fee calculation:
 ```python
 n_signers = 2
-base_fee = 12  # drops
-min_fee = base_fee * (n_signers + 1)  # = 36 drops
+base_fee = fetch_validated_base_fee_drops(selected_network)
+min_fee = base_fee * (n_signers + 1)
 ```
 
 ---
 
 ## 4. Python: Building a Multi-Signed Transaction
 
-```python
-from xrpl.clients import JsonRpcClient
-from xrpl.models.transactions import Payment
-from xrpl.wallet import Wallet
-from xrpl.transaction import (
-    autofill,
-    sign,
-    submit_and_wait
-)
-from xrpl.core.keypairs import sign as keypairs_sign
-from xrpl.models.transactions.transaction import Signer
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-client = JsonRpcClient("https://xrplcluster.com")
-
-# Wallets
-signer1 = Wallet.from_seed("sn...")
-signer2 = Wallet.from_seed("sn...")
-
-# Build transaction
-tx = Payment(
-    account="rMASTER...",
-    destination="rDEST...",
-    amount="1000000",
-    signing_pub_key="",      # empty for multisig
-    sequence=10,
-    fee="36",
-    last_ledger_sequence=client.get_ledger_index() + 20
-)
-
-# Each signer independently signs
-def sign_multisig(tx, wallet):
-    return wallet.sign(tx.to_xrpl(), multisign=True)
-
-sig1 = sign_multisig(tx, signer1)
-sig2 = sign_multisig(tx, signer2)
-
-# Combine signatures (must be in sorted Account order)
-from xrpl.transaction import multisign
-signed_tx = multisign(tx, [sig1, sig2])
-
-result = submit_and_wait(signed_tx, client)
-print(result.result["meta"]["TransactionResult"])
-```
 
 ---
 
 ## 5. JavaScript: Multi-Signing with xrpl.js
 
-```javascript
-const xrpl = require('xrpl');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async function multiSign() {
-  const client = new xrpl.Client('wss://xrplcluster.com');
-  await client.connect();
-
-  const masterAddress = 'rMASTER...';
-  const signer1 = xrpl.Wallet.fromSeed('sn...');
-  const signer2 = xrpl.Wallet.fromSeed('sn...');
-
-  const tx = {
-    TransactionType: 'Payment',
-    Account: masterAddress,
-    Destination: 'rDEST...',
-    Amount: '1000000',
-    SigningPubKey: '',
-    Sequence: 10,
-    Fee: '36',
-    LastLedgerSequence: (await client.getLedgerIndex()) + 20
-  };
-
-  // Each signer produces their partial signature
-  const sig1 = signer1.sign(tx, true);  // true = multisign
-  const sig2 = signer2.sign(tx, true);
-
-  // Combine
-  const combined = xrpl.multisign([sig1.tx_blob, sig2.tx_blob]);
-  const result = await client.submitAndWait(combined);
-  console.log(result.result.meta.TransactionResult);
-
-  await client.disconnect();
-}
-```
 
 ---
 
@@ -216,7 +143,7 @@ A signer in the SignerList can sign using either their master key or an assigned
   "TransactionType": "SetRegularKey",
   "Account": "rSIGNER1...",
   "RegularKey": "rREGKEY...",
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 1
 }
 ```
@@ -228,7 +155,7 @@ Then disable master key (optional for security):
   "TransactionType": "AccountSet",
   "Account": "rSIGNER1...",
   "SetFlag": 4,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 2
 }
 ```
@@ -321,7 +248,7 @@ Once signer list is in place, disable the master key for maximum security:
   "TransactionType": "AccountSet",
   "Account": "rMASTER...",
   "SetFlag": 4,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 5
 }
 ```
@@ -332,12 +259,7 @@ Once signer list is in place, disable the master key for maximum security:
 
 ## 10. Reserve Impact
 
-Each SignerEntry costs 0.2 XRP reserve:
-```
-required_reserve = 10 + (2 × N_signers_in_list)
-```
-
-5-signer list: 10 + 10 = 20 XRP locked as reserve on master account.
+Signer-list reserve impact depends on the current protocol/amendments and the selected network's live incremental owner reserve. Read validated account state and current first-party `SignerListSet` documentation before estimating capacity; do not multiply a copied XRP constant.
 
 ---
 

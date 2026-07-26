@@ -714,7 +714,7 @@ while True:
 
 ## Related Files
 
-- [40-xrpl-monitoring](knowledge/40-xrpl-monitoring.md)
-- [41-xrpl-bots-patterns](knowledge/41-xrpl-bots-patterns.md)
-- [04-xrpl-dex](knowledge/04-xrpl-dex.md)
-- [30-xrpl-xrplpy](knowledge/30-xrpl-xrplpy.md)
+- [40-xrpl-monitoring](40-xrpl-monitoring.md)
+- [41-xrpl-bots-patterns](41-xrpl-bots-patterns.md)
+- [04-xrpl-dex](04-xrpl-dex.md)
+- [30-xrpl-xrplpy](30-xrpl-xrplpy.md)

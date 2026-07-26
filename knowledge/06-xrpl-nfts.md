@@ -62,26 +62,15 @@ Mints (creates) a new NFT.
   "TransferFee": 250,  // 2.5% royalty
   "URI": "697066733A2F2F...",  // hex-encoded IPFS URI
   "Flags": 9,  // tfBurnable (1) + tfTransferable (8)
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 10
 }
 ```
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import NFTokenMint
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-mint_tx = NFTokenMint(
-    account="rIssuerAddress",
-    nftoken_taxon=0,
-    transfer_fee=250,
-    uri="697066733A2F2F626166796265696764...",
-    flags=1,  # tfBurnable
-)
-response = submit_and_wait(mint_tx, client, wallet)
-```
 
 ### Minting for Another Account
 
@@ -236,10 +225,7 @@ NFTokenPage
 
 ### Reserve Cost
 
-Each NFTokenPage consumes 1 owner reserve unit (0.2 XRP). So:
-- 1-32 NFTs = 1 page = 0.2 XRP reserve
-- 33-64 NFTs = 2 pages = 4 XRP reserve
-- Etc.
+Each owned `NFTokenPage` consumes one incremental owner-reserve unit. Pages can hold up to 32 NFTs, but page split/merge behavior and the live reserve amount must be read from validated network state. Do not price NFT storage with a copied XRP constant.
 
 The issuer pays the reserve for the first page (when minting), but subsequent holders pay the reserve if they hold NFTs in their own pages.
 

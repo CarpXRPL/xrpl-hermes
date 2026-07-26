@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — transaction correctness work targeting v1.9.0
+## v1.9.0 — 2026-07-26
 
 ### Transaction correctness
 - Amount builders preserve exact issued-currency decimal text, enforce XRPL precision/range rules,
@@ -30,6 +30,34 @@
   encoded; for example, the text URI `cafe` is now correctly encoded as `63616665`.
 - `--uri` and `--uri-hex` are mutually exclusive. Invalid or ambiguous input returns `UsageError`
   without emitting a transaction.
+
+### Xahau/Hooks certification
+- Corrected legacy `HookOn` to the current 256-bit exclusion-mask semantics, including the special
+  active-high `SetHook` bit, and pinned the transaction-type map against live Xahau definitions.
+- `hooks-info` now requires explicit Mainnet/Testnet selection, verifies the observed network ID,
+  reports validated-ledger provenance and returns controlled RPC errors instead of false zero-hook success.
+- Xahau scope is explicitly read-only/partial: HookOn calculation and installed-chain inspection.
+  Compile, WASM production, SetHook serialization, signing, submission and deployment are unsupported.
+
+### Ecosystem certification and quarantine
+- EVM helpers now reject invalid networks/addresses/RPC errors and chain-ID mismatches. Balance and
+  network identity are experimental reads; contract output is an experimental intent, never deployment proof.
+- `xaman-payload` is restricted to locally validated unsigned XRPL L1 Payments, rejects secrets,
+  signatures, Xahau and malformed provider responses, and remains denied over MCP as an external side effect.
+- Flare FTSOv2 reads verify chain ID 14 and label feed age/staleness; CoinGecko is market context only.
+- Axelar tools are limited to chain registration and GMP-index search; they do not certify routes or transfers.
+- Arweave is limited to strict point-in-time base-network fee estimates; it never uploads or guarantees retrieval.
+- `token-intel` is explicitly a five-query ledger snapshot, caps confidence at Medium and emits no recommendation.
+- Unsupported bridge, Evernode, TX ecosystem, third-party token API, FAssets/LayerCake, Arweave upload,
+  EVM deployment and direct custody/sign/submit recipes were removed or replaced with certification boundaries.
+
+### Verification
+- Current and minimum-supported xrpl-py environments: 390 tests passed.
+- Development matrix: 70 passed, 0 failed, 2 safety-skipped; 72 commands remain partitioned as
+  67 MCP-safe and 5 denied before execution.
+- Project quality audit: 5/5 checks passed.
+- Clean wheel/install acceptance verifies both console entry points and packages 65 knowledge files,
+  15 reference cards and 25 workflow files; CI covers Python 3.10, 3.11 and 3.12 plus a clean-wheel job.
 
 ## v1.8.3 — MCP agent boundary (default-deny) + XLS-56 Batch retirement — Security Hotfix (2026-07-24)
 
@@ -310,7 +338,7 @@ Brings XRPL-native agentic payments up to date with the June 2026 official XRPL 
 
 ### Added
 - `references/agentic-payments.md` — the signer-separated two-layer model (payment builder vs wallet/signing layer), dual-stack guidance (xrpl-py + xrpl.js for the *user's* code), a primitive coverage map cross-linking existing knowledge files, the strict 8-rule safety set, and a testnet-first Hermes implementation roadmap for the three official equivalents (payment-builder = mostly shipped; wallet-signing-layer = documented design only, no custody; x402 = plan).
-- `references/x402-payments.md` — HTTP-402 machine-to-machine payment flow, the t54 facilitator, `x402_xrpl` (Python) / `x402Fetch` (TS), network ids (`xrpl:1`/`xrpl:0`), pricing in drops, and safety — all framed "verify live before production."
+- Historical x402/t54 research was added in this release; v1.9.0 later superseded it with an experimental external-dependency boundary and no certified provider/package.
 - `skills/agentic-payment-flow.md` — tested flow backing the new 5th Core Mission.
 - `build-payment` / `build-cross-currency-payment`: `--source-tag` (SourceTag), `--dest-tag` (DestinationTag), and a now-functional `--memo` (UTF-8 → hex MemoData). Tags are validated as UInt32; `--tag` stays a back-compat alias for `--dest-tag`. Builders still emit unsigned JSON only.
 - Canonical "Source & Destination Tags" section in `knowledge/02-xrpl-payments.md`; testnet RLUSD issuer added to `references/rlusd.md`.
@@ -492,7 +520,7 @@ Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatche
 - Added live amendment commands: `amendments`, `amendment`, and `amendment-status`.
 - Re-verified XRPL mainnet amendment state against live `feature` RPC and XRPL.org Known Amendments.
 - Updated `knowledge/37-xrpl-amendments.md` with current status for AMMClawback, MPTokensV1, DID, Credentials, PriceOracle, TokenEscrow, PermissionedDEX, XRPFees, Batch, PermissionDelegation, XChainBridge, DynamicMPT, LendingProtocol, and SingleAssetVault.
-- Added live amendment warnings to MPT, Credential, Oracle, and Batch builders. Batch is supported by current servers but not enabled on XRPL mainnet, so the builder now warns that payloads are build-only unless targeting another network.
+- Historical Batch-builder warning behavior was added here; v1.9.0 later security-retired and unregistered `build-batch`.
 - Replaced broken/null `flare-price` endpoint behavior with an honest CoinGecko fallback. Output now labels the source clearly and does not claim direct FTSO proof.
 - Added `scripts/dev_test_matrix.py` and generated `AUDIT-tool-matrix.md`; all 67 registered commands passed the safe dev-test matrix.
 - Humanized README and updated public positioning around open-source XRPL builder infrastructure, signer-ready JSON, and verified amendment status.
@@ -556,7 +584,7 @@ Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatche
 
 ### 🐛 Fixes
 - **Deleted** stale transaction-builder script with broken import path (`xrpl.binary_codec` → `xrpl.core.binarycodec`)
-- **Fake Xaman URLs** replaced in `knowledge/56-telegram-xrpl-bots.md` and `examples/example-telegram-bot.py` — the old `https://xumm.app/sign/{json}` pattern would 404. Replaced with real `xaman-payload` CLI flow
+- **Fake Xaman URLs** were removed; v1.9.0 later restricted `xaman-payload` to reviewed XRPL L1 Payments and removed raw wallet-bypass recipes.
 - **Clawback flag** wrong constant (`536870912`) corrected to `2147483648` in `knowledge/07-xrpl-clawback.md`
 
 ### 📚 Knowledge Expansion (59 → 63 files)
@@ -691,7 +719,7 @@ Full audit pass by Claude (Fable 5): all 9 existing tests pass, all 67 dispatche
 - `build-clawback --memo`: Fixed `MemoWrapper` ImportError — uses `Memo` directly
 - `build-mpt-issuance-create --transfer-fee`: Auto-sets `tfMPTCanTransfer` flag
 - `hooks-bitmask`: Disabled with warning (was using fictional event names, wrong spec)
-- Dead Xaman URL removed from `build-payment` — replaced with honest manual-sign instructions
+- Dead Xaman URL removed from `build-payment`; v1.9.0 later standardized generic external-wallet handoff and removed manual raw-wallet recipes.
 
 ### 🧹 Docs & Knowledge
 - `knowledge/07-xrpl-clawback.md`: `SetFlag` 14→16 (`asfAllowTrustLineClawback`), removed "no partial clawback" lie

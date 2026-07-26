@@ -7,6 +7,7 @@ fetched live; anything that cannot be fetched is reported in missing_data —
 nothing is invented.
 """
 from decimal import Decimal, InvalidOperation
+from datetime import datetime, timezone
 from ._shared import (
     _request, json_out, usage_out, normalize_currency_code, drops_to_xrp,
     AccountInfo, AccountLines, AccountTx, BookOffers,
@@ -202,6 +203,7 @@ def _summarize(currency: str, issuer: str, datapoints: dict, risk_flags: list, m
 def build_token_intel_report(currency: str, issuer: str,
                              tx_limit: int = 10, trustline_limit: int = 200) -> dict:
     report = {
+        "fetched_at": datetime.now(timezone.utc).isoformat(),
         "input": {"currency": currency, "issuer": issuer,
                   "tx_limit": int(tx_limit), "trustline_limit": int(trustline_limit)},
         "normalized_currency": None,
@@ -209,6 +211,8 @@ def build_token_intel_report(currency: str, issuer: str,
         "datapoints": {},
         "risk_flags": [],
         "confidence": "none",
+        "confidence_scope": "XRPL ledger snapshot only; not identity, legal, social, or off-ledger due diligence",
+        "recommendation": "not provided",
         "missing_data": [],
         "plain_english_summary": "",
     }
@@ -241,7 +245,11 @@ def build_token_intel_report(currency: str, issuer: str,
 
     report["risk_flags"] = _derive_risk_flags(report["datapoints"])
     fetched = len(report["datapoints"])
-    report["confidence"] = "high" if fetched >= 5 else "medium" if fetched >= 3 else "low" if fetched >= 1 else "none"
+    # Five successful RPC categories establish a useful ledger snapshot, not
+    # high-confidence token safety. They do not prove issuer identity, complete
+    # holder distribution, off-ledger liquidity, legal status, or current
+    # project control. Keep the ceiling at medium.
+    report["confidence"] = "medium" if fetched >= 5 else "low" if fetched >= 1 else "none"
     report["plain_english_summary"] = _summarize(
         currency, issuer, report["datapoints"], report["risk_flags"], report["missing_data"])
     return report

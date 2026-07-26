@@ -1,8 +1,8 @@
 # ☤ xrpl-hermes
 
-Open-source XRPL tooling for AI agents and Python users. It combines a 65-file XRPL knowledge base with 72 CLI commands — plus an MCP server that exposes the agent-safe subset of them, and the whole knowledge base, to any MCP client — for live ledger queries, signer-ready transaction JSON, amendment checks, token intelligence, and ecosystem workflows across XRPL L1, issued tokens, NFTs, AMMs, MPTs, Xaman, Xahau, Flare, Axelar, Arweave, and the XRPL EVM Sidechain.
+Open-source XRPL tooling for AI agents and Python users. It combines a curated XRPL knowledge base with **72 local CLI commands**. The MCP server exposes only the default-deny agent-safe subset (currently 67). XRPL L1 reads and unsigned builders are the certified core; adjacent-network/provider tools are narrowly labeled as experimental reads, external side effects, or quarantined workflows.
 
-**Custody boundary:** all 72 commands run locally. Over MCP, an agent gets 67 of them — read-only queries and unsigned builders. The five that touch key material, broadcast, or create an external signing request (`wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, `xaman-payload`) are refused over MCP and stay in your local CLI. See [MCP agent boundary](#mcp-agent-boundary).
+**Custody boundary:** the dispatcher registers 72 commands. Over MCP, an agent gets 67—read-only queries and unsigned builders. Five sensitive registrations are refused before execution; legacy key/broadcast surfaces are quarantined, while guarded `xaman-payload` is a local Payment-only external side effect. See [MCP agent boundary](#mcp-agent-boundary).
 
 **Staying current:** xrpl-hermes ships with markdown knowledge, but agents are instructed to verify live ledger state and current official docs before making claims (`knowledge/65-agent-freshness-and-source-policy.md`). Stale-able facts in the knowledge base are date-stamped where they appear.
 
@@ -13,7 +13,7 @@ Open-source XRPL tooling for AI agents and Python users. It combines a 65-file X
 
 ## What this is
 
-xrpl-hermes is a practical builder kit. The agent/MCP flow never accepts wallet seeds or broadcasts transactions, and it does not pretend draft features are live. Optional key and broadcast utilities remain local-CLI-only and outside the agent boundary. The normal flow is:
+xrpl-hermes is a practical builder kit. The agent/MCP flow never accepts wallet seeds or broadcasts transactions, and it does not pretend draft features are live. Legacy key and broadcast registrations are quarantined and MCP-denied. The normal flow is:
 
 1. read the relevant knowledge file,
 2. check live network/amendment status when the feature depends on one,
@@ -58,11 +58,11 @@ examples for both stacks live in [`examples/`](examples/) (Python) and [`example
 
 ## Run your own XRPL agent
 
-XRPL-native agents — pre-trained on the ledger, able to launch tokens, deploy sites, and run bots — exist today as hosted platforms. xrpl-hermes is not a pitch against any of them. It is the open-source path for people who want to run that kind of agent themselves:
+XRPL-Hermes is an open-source XRPL infrastructure layer for people who want to run an agent with explicit custody, network and certification boundaries:
 
 - **Bring your own runtime.** Works as a Hermes Agent skill, or in OpenClaw, Claude Code, Cursor, and anything else that speaks MCP.
-- **Bring your own infrastructure.** Your machine, your VPS, or your own rippled/Clio node — public endpoints work out of the box.
-- **Keys stay yours.** Builders and MCP tools emit signer-ready JSON without accepting or storing a seed. Optional local-only wallet utilities are never exposed to agents.
+- **Bring your own infrastructure.** Your machine, VPS, or separately operated rippled/Clio node. Public endpoints are convenient external dependencies, not availability guarantees.
+- **Keys stay yours.** Builders and MCP tools emit signer-ready JSON without accepting or storing a seed. Legacy key utilities are quarantined and never exposed to agents.
 - **MIT licensed.** Use it, fork it, ship it inside your own product.
 
 If a hosted platform fits you better, use it — this repo exists so that self-hosting is a real option, not a compromise.
@@ -81,17 +81,17 @@ not a shipped feature.
 | AMM / DEX | Create pools, deposit/withdraw, vote fees, auction-slot bids, live pool + orderbook reads (`build-amm-*`, `amm-info`, `book-offers`, `path-find`) | CLI + live tool |
 | Payments (XRP) | Signer-ready `Payment` JSON with `SourceTag`/`DestinationTag`/`Memos`, reserve-aware (`build-payment`) — Python + xrpl.js examples | CLI |
 | RLUSD / issued-currency | Dollar-denominated payments with 160-bit currency codes + trust-line and compliance guidance (`references/rlusd.md`, `knowledge/58`) | CLI + ref |
-| x402 / HTTP-402 paid APIs | The XRPL Payment that settles a 402 charge + the t54-facilitator flow | ref + roadmap |
+| x402 / HTTP-402 paid APIs | Experimental external integration plan around an unsigned XRPL Payment; no provider/package certified | ref + roadmap |
 | Bots & monitors | Treasury/AMM monitor playbooks, Telegram/Discord examples, WebSocket `subscribe` | CLI + pattern |
-| Wallets & auth | Xaman/Joey/Privy/MetaMask login + signer handoff (`xaman-payload`, `knowledge/53`) | live tool + ref |
+| Wallets & auth | External wallet boundaries; Xaman payload creation is local-only and requires configured app credentials | external dependency + guarded tool |
 | MPT operations | MPT issuance/authorization payloads with live amendment checks (`build-mpt-*`) | CLI |
-| Treasury & escrow | Multisig, tickets, checks, escrow, payment channels (`build-*`, `submit-multisigned`) | CLI |
-| EVM Sidechain | Balance, contract-deploy JSON, bridge status (`evm-balance`, `evm-contract`, `evm-bridge`) | live tool + ref |
+| Treasury & escrow | Unsigned multisig, ticket, check, escrow and payment-channel builders; external authorization/broadcast | CLI build + external signer |
+| EVM Sidechain | Validated balance/network reads; experimental contract intent; no bridge certification (`evm-balance`, `evm-contract`, `evm-bridge`) | experimental read/build |
 | Xahau Hooks | Legacy HookOn calculator + validated Mainnet/Testnet chain lookup; no compile/build/sign/deploy (`hooks-bitmask`, `hooks-info`) | CLI + live read |
-| Flare price context | On-chain FTSOv2 oracle reads + a public price fallback (`flare-ftso`, `flare-price`) | live tool |
-| Axelar bridge | Route/registration status and transfer tracking (`bridge-status`, `bridge-tx`) | live tool |
-| Arweave storage | Permanent-storage cost estimates, never uploads (`arweave-cost`) | live tool |
-| Token intelligence | One-shot live token report with risk flags + missing-data honesty (`token-intel`) | live tool |
+| Flare price context | Chain-ID/freshness-checked FTSOv2 reads; CoinGecko fallback is market context only (`flare-ftso`, `flare-price`) | narrow live read |
+| Axelar | Axelarscan registration lookup and GMP-index search; no route/transfer certification (`bridge-status`, `bridge-tx`) | narrow/partial read |
+| Arweave storage | Point-in-time base-network cost estimate; never uploads or guarantees retrieval (`arweave-cost`) | narrow live read |
+| Token intelligence | Five-query XRPL ledger snapshot; confidence capped at Medium and no recommendation (`token-intel`) | partial live read |
 | Attention bridge / social cards | Product framing for "bring eyes to XRPL" / discovery ideas (`references/xrpl-attention-bridge.md`) | ref |
 | Agent / skill receipts | Record what an agent did, or how a skill improved (v1→v2), as an unsigned on-chain `NFTokenMint` — provenance, timestamp, public verifiability; no seed, no autonomous signing (`build-nft-mint` + `skills/agent-receipt-flow.md` + `examples/js/agent-receipt-nft.js`) | CLI + pattern |
 
@@ -100,8 +100,11 @@ Both stacks are first-class for the code you write on top — see **Choose your 
 ## Quick start
 
 ```bash
-pip install -r requirements.txt
-python3 -m scripts.xrpl_tools ledger
+git clone https://github.com/CarpXRPL/xrpl-hermes.git
+cd xrpl-hermes
+bash setup.sh
+. .venv/bin/activate
+xrpl-hermes ledger
 ```
 
 Useful first commands:
@@ -125,7 +128,7 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | [`docs/MCP-CLIENTS.md`](docs/MCP-CLIENTS.md) | Hooking the MCP server into Claude Code, Cursor, Codex, Hermes, or any MCP client |
 | [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Architecture, adding commands, MCP internals, testing, release flow |
 | [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md) | Freshness cadence and the exact verification commands that keep the repo current |
-| [`STANDALONE.md`](STANDALONE.md) | In-depth CLI usage for the common commands (full 72-command list: `SKILL.md` tool table) |
+| [`STANDALONE.md`](STANDALONE.md) | Retirement notice for the former duplicated standalone bundle; use canonical docs instead |
 | [`SECURITY.md`](SECURITY.md) · [`LIMITATIONS.md`](LIMITATIONS.md) | Safety model and honest scope |
 | [`AUDIT-tool-matrix.md`](AUDIT-tool-matrix.md) | Generated verification matrix — safe commands exercised, side-effect commands explicitly skipped, zero failures |
 | [`docs/BUILD-BENCHMARK.md`](docs/BUILD-BENCHMARK.md) | Build-proof benchmark — L1→L3 + adversarial safety tasks proving an agent builds on XRPL safely (complements the tool matrix) |
@@ -133,11 +136,11 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 
 ## Command coverage
 
-72 commands are split across focused Python modules in `scripts/tools/`. All 72 run locally; 67 of them are also reachable over MCP (see [MCP agent boundary](#mcp-agent-boundary)).
+72 commands are registered across focused Python modules in `scripts/tools/`. The supported agent surface is the MCP allowlist with 67 entries; legacy sensitive registrations are classified and quarantined (see [MCP agent boundary](#mcp-agent-boundary)).
 
 | Ecosystem | Count | Commands |
 |---|---:|---|
-| XRPL L1 core and ops | 41 | `account`, `balance`, `account_objects`, `account-tx`, `trustlines`, `build-payment`, `build-trustset`, `build-offer`, `book-offers`, `path-find`, `ledger`, `ledger-entry`, `server-info`, `tx-info`, `decode`, `submit`, `submit-multisigned`, `build-account-set`, `build-account-delete`, `build-set-regular-key`, `build-deposit-preauth`, `build-signer-list-set`, `build-ticket-create`, `build-escrow-create`, `build-escrow-finish`, `build-escrow-cancel`, `build-check-create`, `build-check-cash`, `build-check-cancel`, `build-paychannel-create`, `build-paychannel-fund`, `build-paychannel-claim`, `build-clawback`, `build-cross-currency-payment`, `build-set-oracle`, `build-credential-create`, `build-credential-accept`, `build-credential-delete`, `build-mpt-issuance-create`, `build-mpt-authorize`, `subscribe` |
+| XRPL L1 core and ops | 41 | 39 read/build commands (`account` through `subscribe`) plus 2 registered legacy broadcast surfaces that are quarantined and MCP-denied; see `SKILL.md` for the safe catalog |
 | Amendment status | 3 | `amendments`, `amendment`, `amendment-status` |
 | NFT marketplace | 7 | `nft-info`, `nft-offers`, `build-nft-mint`, `build-nft-create-offer`, `build-nft-accept-offer`, `build-nft-cancel-offer`, `build-nft-burn` |
 | AMM liquidity | 6 | `amm-info`, `build-amm-create`, `build-amm-deposit`, `build-amm-withdraw`, `build-amm-vote`, `build-amm-bid` |
@@ -146,10 +149,10 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 | Xahau Hooks | 2 | `hooks-bitmask`, `hooks-info` |
 | Flare / price context | 2 | `flare-price`, `flare-ftso` |
 | Axelar / Arweave | 3 | `bridge-status`, `bridge-tx`, `arweave-cost` |
-| Wallet utils | 3 | `wallet-generate`, `wallet-from-seed`, `validate-address` |
+| Address/key compatibility | 3 | `validate-address` plus two legacy quarantined key registrations |
 | Xaman Platform | 1 | `xaman-payload` |
 
-`build-batch` is retired and unregistered because XLS-56 Batch is not enabled on XRPL mainnet. MPT, Credential, and Oracle builders check the live amendment state before emitting JSON.
+`build-batch` is security-retired and unregistered; protocol amendment status does not re-enable it. MPT, Credential, and Oracle builders check the live amendment state before emitting JSON.
 
 ## Knowledge map
 
@@ -168,17 +171,21 @@ python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 10000
 ```bash
 git clone https://github.com/CarpXRPL/xrpl-hermes.git
 cd xrpl-hermes
-pip install -r requirements.txt
+bash setup.sh
 
-# Install as a local Hermes skill. Use the path your Hermes profile loads from.
-mkdir -p ~/.hermes/skills
-cp -r . ~/.hermes/skills/xrpl-hermes
+# Optional native skill copy (knowledge/instructions)
+mkdir -p ~/.hermes/skills/xrpl-hermes
+cp -r SKILL.md knowledge references skills ~/.hermes/skills/xrpl-hermes/
 ```
 
 Activate with:
 
-```text
-activate xrpl-hermes
+```bash
+hermes -s xrpl-hermes
+
+# Recommended: connect the isolated venv MCP runtime too
+hermes mcp add xrpl-hermes --command "$PWD/.venv/bin/xrpl-hermes-mcp"
+hermes mcp test xrpl-hermes
 ```
 
 ## MCP server (Claude Code, OpenClaw, Cursor, any MCP client)
@@ -186,8 +193,8 @@ activate xrpl-hermes
 `scripts/mcp_server.py` is a dependency-free stdio MCP server exposing four tools: `xrpl_list_commands`, `xrpl_run` (the 67 agent-safe commands), `xrpl_knowledge_index`, and `xrpl_knowledge`.
 
 ```bash
-# Claude Code
-claude mcp add xrpl-hermes -- python3 /path/to/xrpl-hermes/scripts/mcp_server.py
+# Claude Code, using the installed console entry point
+claude mcp add xrpl-hermes -- /path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp
 ```
 
 Generic MCP client config:
@@ -196,8 +203,7 @@ Generic MCP client config:
 {
   "mcpServers": {
     "xrpl-hermes": {
-      "command": "python3",
-      "args": ["/path/to/xrpl-hermes/scripts/mcp_server.py"]
+      "command": "/path/to/xrpl-hermes/.venv/bin/xrpl-hermes-mcp"
     }
   }
 }
@@ -212,17 +218,16 @@ exactly into 67 that an agent may run and 5 that it may not:
 
 | Surface | Count | What it covers |
 |---|---:|---|
-| **Local CLI** — `python3 -m scripts.xrpl_tools` | **72** | Every registered command |
+| **Registered local dispatcher** | **72** | Complete compatibility catalog; not every registration is a supported workflow |
 | **MCP-safe** — `xrpl_run` / `xrpl_list_commands` | **67** | Read-only live queries and unsigned, signer-ready builders |
-| **Denied over MCP** — local CLI only | **5** | `wallet-generate`, `wallet-from-seed`, `submit`, `submit-multisigned`, `xaman-payload` |
+| **Denied over MCP** | **5** | two legacy key registrations, two legacy broadcast registrations, and guarded Payment-only `xaman-payload` |
 
-Those five are the custody and broadcast surface: two touch secret key material
-(`wallet-generate` emits a seed, `wallet-from-seed` consumes one), two broadcast to a live
-network, and one creates a real external wallet signing request. They still work exactly as
-before when *you* run them locally — they are simply not something an agent can reach.
+Those five are outside the agent boundary: two legacy registrations touch key material, two
+legacy registrations broadcast, and one creates a guarded external Xaman request for a reviewed
+XRPL L1 Payment only. Legacy key/broadcast surfaces are quarantined from supported workflows.
 
 - A denied command is refused **before any subprocess is spawned**, so it never executes and no
-  MCP response can carry a seed. The refusal names the local CLI invocation to use instead.
+  MCP response can carry a seed or trigger an external side effect.
 - `xrpl_list_commands` lists only the agent-safe set, so a client cannot discover a denied
   command and try it.
 - The allowlist is positive: any command not on it — **including commands added in future
@@ -236,8 +241,8 @@ disjoint and must exactly cover the dispatcher, so a new command cannot ship unc
 
 - No hardcoded wallet seeds or private keys.
 - Transaction builders output JSON for external signing.
-- Key-management, broadcast, and Xaman signing-request commands are local-CLI-only and denied over MCP.
-- `submit` exists for advanced users with signed blobs only.
+- Legacy key-management and broadcast registrations are quarantined and denied over MCP.
+- Guarded `xaman-payload` is Payment-only, denied over MCP, and never proves signing or settlement.
 - Amendment-dependent builders check live XRPL mainnet status or emit build-only warnings.
 - Flare price output is labeled by source: `flare-price` is a public price fallback, while `flare-ftso` performs live read-only FTSOv2 `eth_call` lookups.
 

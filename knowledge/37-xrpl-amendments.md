@@ -190,7 +190,7 @@ The table below is not a hand-written guess. It was refreshed from live XRPL mai
 | **PermissionedDEX** | Enabled | `677E401A423E3708363A36BA8B3A7D019D21AC5ABD00387BDBEA6BDE4C91247E` | Permissioned DEX is live; tooling/docs need a dedicated workflow before public claims. |
 | **PermissionedDomains** | Enabled | `A730EB18A9D4BB52502C898589558B4CCEB4BE10044500EE5581137A2E80E849` | Permissioned domain primitives are live. |
 | **XRPFees** | Enabled | `93E516234E35E08CA689FA33A6D38E103881F8DCB53023F728C307AA89D515A7` | Fee docs should use current XRP fee behavior. |
-| **Batch** | Supported, not enabled | `894646DD5284E97DECFE6674A6D6152686791C4A95F8C132CCA9BAF9E5812FB6` | XRPL-Hermes may build Batch JSON, but must warn it is build-only for mainnet. |
+| **Batch** | Supported, not enabled | `894646DD5284E97DECFE6674A6D6152686791C4A95F8C132CCA9BAF9E5812FB6` | Security-retired in XRPL-Hermes; `build-batch` is unregistered. |
 | **PermissionDelegation** | Supported, not enabled | `AE6AB9028EEB7299EBB03C7CBCC3F2A4F5FBE00EA28B8223AA3118A0B436C1C5` | Do not document as production mainnet functionality. |
 | **XChainBridge** | Supported, not enabled | `C98D98EE9616ACD36E81FDEB8D41D349BF5F1B41DD64A0ABC1FE9AA5EA267E9C` | XRPL L1 XChainBridge is not a mainnet builder path; XRPL EVM bridge docs must stay separate. |
 | **DynamicMPT / LendingProtocol / SingleAssetVault** | Supported, not enabled | see live `amendments` tool | Research/devnet only unless status changes. |
@@ -202,7 +202,7 @@ The table below is not a hand-written guess. It was refreshed from live XRPL mai
 | Feature | Stage from live mainnet check | Purpose |
 |-----------|-------|---------|
 | **Hooks on XRPL L1** | Not an enabled XRPL mainnet amendment | WebAssembly smart hooks are live on Xahau, not XRPL L1 mainnet. Keep Xahau workflows separate. |
-| **Batch** | Supported by servers, not enabled | Group transactions into one submission. XRPL-Hermes builders must emit build-only warnings. |
+| **Batch** | Supported by servers, not enabled | Grouping concept only; XRPL-Hermes security-retired and unregistered its builder. |
 | **PermissionDelegation** | Supported by servers, not enabled | Delegated account permissions; do not use for production mainnet claims yet. |
 | **XChainBridge** | Supported by servers, not enabled | Native XRPL bridge amendment is not mainnet-enabled. Do not confuse with XRPL EVM sidechain bridge tooling. |
 | **DynamicMPT / LendingProtocol / SingleAssetVault** | Supported by servers, not enabled | Treat as research/devnet until enabled. |
@@ -291,11 +291,11 @@ Vetoing means the node will never vote YES even if the operator upgrades the sof
 
 ---
 
-## Tracking Real-Time
+## Tracking Current Status
 
-- **XRPSCAN Amendments:** https://xrpscan.com/amendments (shows vote counts + majority timers)
-- **XRPl.org Amendments:** https://xrpl.org/known-amendments.html
-- **GitHub Tracking Issues:** https://github.com/XRPLF/rippled/issues?q=label%3Aamendment
+- Use Hermes `amendments` / `amendment NAME` against a current validated XRPL node.
+- Cross-check [XRPL.org Known Amendments](https://xrpl.org/known-amendments.html) and current XRPLF/rippled release material.
+- Third-party explorer amendment pages are uncertified external context.
 
 ---
 

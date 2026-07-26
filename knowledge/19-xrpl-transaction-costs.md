@@ -1,342 +1,97 @@
-# XRPL Transaction Costs
+# XRPL Transaction Fees and Reserves
 
-## Overview
+## Status
 
-Every XRPL transaction requires a fee (destroyed, not redistributed) and every account object increases the reserve requirement. Understanding both is essential for accurate balance checks and avoiding failed transactions.
+**Certified boundary:** XRPL-Hermes reads current validated-ledger fee/reserve fields and builds unsigned transaction intent. Fee levels and reserves are live network state; this file intentionally does not publish fixed “current” XRP values.
 
----
+XRPL-Hermes does not sign or broadcast transactions. A user-controlled external signer must review the selected network, fee, sequence and intent, then Hermes verifies the returned transaction on a validated ledger.
 
-## 1. Transaction Fees
+## Exact conversion
 
-### Base Fee
-
-```
-Base fee: 10 drops (0.00001 XRP)
-```
-
-The minimum fee is **10 drops** under normal network load. Fees are **burned** permanently — not paid to validators.
+One XRP is exactly `1,000,000` drops. Native XRP transaction amounts and fees use integer drops.
 
 ```python
-# Convert between XRP and drops
 DROPS_PER_XRP = 1_000_000
 
-def xrp_to_drops(xrp: float) -> int:
-    return int(xrp * DROPS_PER_XRP)
 
-def drops_to_xrp(drops: int) -> float:
-    return drops / DROPS_PER_XRP
-
-base_fee_drops = 10
-base_fee_xrp = drops_to_xrp(10)  # 0.00001 XRP
+def xrp_text_to_drops(value: str) -> int:
+    from decimal import Decimal
+    drops = Decimal(value) * DROPS_PER_XRP
+    if drops != drops.to_integral_value():
+        raise ValueError("XRP amount must resolve to whole drops")
+    return int(drops)
 ```
 
-### Special Fee Rules
+Do not use binary floating point to produce a transaction amount or fee.
 
-| Transaction Type | Minimum Fee |
-|-----------------|-------------|
-| Most transactions | 10 drops |
-| AccountDelete | 2,000,000 drops (2 XRP) |
-| EscrowFinish with condition | 10 + (33 × fulfillment_bytes / 16) drops |
-| Multi-signed | 10 × (N_signers + 1) drops |
-| TicketCreate (N tickets) | 10 drops (flat, not per ticket) |
-| PaymentChannelCreate | 10 drops |
+## Read live values
 
----
+Use the selected network's validated state immediately before building and authorizing:
 
-## 2. Fee Escalation
-
-During high network load, the required fee increases exponentially:
-
-```
-fee_level = reference_fee_level = 256 (normal)
-fee = (base_fee × fee_level) / 256
-
-# Escalated example:
-fee_level = 5120  (20× congestion)
-fee = (10 × 5120) / 256 = 200 drops
+```bash
+python3 -m scripts.xrpl_tools server-info
+python3 -m scripts.xrpl_tools account rADDRESS
 ```
 
-Formula from rippled source:
+`server-info` reports observed build/network state plus validated-ledger fee and reserve fields when the selected server supplies them. An application can also call the XRPL `fee` method against its chosen rippled endpoint.
+
+Treat public endpoints as external dependencies. Bound timeouts/retries, record the endpoint and observation time, and reject a response from the wrong network.
+
+## Transaction fee rules
+
+- The `Fee` field is XRP in integer drops and is destroyed, not paid to validators.
+- The open-ledger fee can rise with load. Never assume a copied minimum is currently sufficient.
+- A signer/wallet may autofill a fee, but the user must still review the resulting upper bound.
+- Multisigned and condition-bearing transactions can require a higher fee than a simple transaction.
+- `AccountDelete` has a special minimum tied to the network's **current incremental owner reserve**. Query validated network state; do not hard-code an old XRP amount.
+- A failed transaction with a `tec` result can still consume its fee and sequence when included in a validated ledger.
+
+XRPL-Hermes builders emit intent for external autofill/authorization. Production policy should cap acceptable fees and reject an authorization response whose fee exceeds the reviewed limit.
+
+## Account reserve
+
+An account's reserve requirement is based on live validated network values:
+
+```text
+required reserve = base reserve + (OwnerCount × incremental owner reserve)
+```
+
+The base and incremental reserve can change through network governance. Read them from the selected validated ledger rather than embedding historical values.
+
+Many owned ledger objects can increase `OwnerCount`, including trust lines, offers, escrows, checks, tickets, payment channels and NFT pages. Exact ownership/reserve behavior is transaction- and amendment-specific; inspect `account_info` and `account_objects` before assuming an object can be removed.
+
+A conservative spendable-balance calculation is:
 
 ```python
-def calculate_escalated_fee(
-    base_fee: int,
-    fee_level: int,
-    ref_fee_level: int = 256
-) -> int:
-    """
-    fee_level comes from server_info.load_factor
-    """
-    return (base_fee * fee_level + ref_fee_level - 1) // ref_fee_level
-
-# Query current escalated fee
-def get_current_fee(client) -> int:
-    from xrpl.models.requests import Fee
-    resp = client.request(Fee())
-    return int(resp.result["drops"]["open_ledger_fee"])
+def spendable_drops(balance: int, owner_count: int, base: int, increment: int) -> int:
+    return max(0, balance - (base + owner_count * increment))
 ```
 
-### Checking Fee from Server
+Use values from the same selected network and a sufficiently recent validated ledger. If provenance or freshness is missing, report that rather than presenting a spendable balance as current.
 
-```python
-from xrpl.models.requests import Fee
+## Object cleanup and account deletion
 
-resp = client.request(Fee())
-print(f"Base fee: {resp.result['drops']['base_fee']} drops")
-print(f"Open ledger fee: {resp.result['drops']['open_ledger_fee']} drops")
-print(f"Median fee: {resp.result['drops']['median_fee']} drops")
-print(f"Minimum fee: {resp.result['drops']['minimum_fee']} drops")
+Cleanup is a sequence of reviewed unsigned transactions, not an automatic loop:
 
-# Use open_ledger_fee for immediate inclusion
-# Use median_fee for batching later
-```
+1. Read `account_objects` from a validated ledger.
+2. Identify obligations and objects by type.
+3. Build the specific cancellation/removal transaction with the matching `build-*` command.
+4. Review and authorize it in the external signer.
+5. Verify `validated: true` and the final engine result.
+6. Re-read account state before building the next step.
 
-### Fee Cushion Strategy
+Before an `AccountDelete` intent, verify current official transaction documentation and validated account state. Requirements include age/sequence constraints, no blocking obligations, an appropriate destination, and the dynamic special fee. Failure can consume a fee; never construct deletion from stale copied values.
 
-```python
-def safe_fee(client, multiplier: float = 1.2) -> str:
-    """Add 20% cushion to open ledger fee."""
-    resp = client.request(Fee())
-    base = int(resp.result["drops"]["open_ledger_fee"])
-    return str(max(10, int(base * multiplier)))
-```
+## Operational checklist
 
----
+- Select Testnet explicitly for new flows.
+- Capture network, endpoint, ledger index/hash and UTC observation time.
+- Query live fee/reserve values.
+- Apply a user-approved maximum fee policy.
+- Keep amount and fee arithmetic in integers/decimal text.
+- Never estimate total cost from fees alone; owned objects also lock reserve.
+- Re-read state after every validated transaction.
+- Do not retry `tem`, `tel`, `ter` or `tec` results under one generic policy.
+- Mainnet value movement requires explicit authorization, bounded value/fees and monitoring.
 
-## 3. Account Reserve
-
-Every XRPL account must hold a minimum XRP balance to exist on-ledger. This is the **base reserve** plus an **owner reserve** per ledger object.
-
-### Current Values (as of 2025)
-
-```
-Base reserve:  1 XRP (1,000,000 drops)
-Owner reserve:  0.2 XRP  (200,000 drops) per object
-
-Total required = 1 XRP + (owner_count × 0.2 XRP)
-```
-
-> **Important:** Reserve values can change via validator voting; always query `server_info` → `validated_ledger.reserve_base_xrp` for live values.
-
-### Objects That Consume Reserve
-
-| Object | Reserve Cost |
-|--------|-------------|
-| Trust line | 0.2 XRP |
-| DEX Offer | 0.2 XRP |
-| Escrow | 0.2 XRP |
-| Payment Channel | 0.2 XRP |
-| Signer List | 0.2 XRP |
-| NFT page (up to 32 NFTs) | 0.2 XRP |
-| Ticket | 0.2 XRP |
-| AMM LP token trust line | 0.2 XRP |
-| Check | 0.2 XRP |
-| DepositPreauth | 0.2 XRP |
-| DID | 0.2 XRP |
-
-### Computing Required Reserve
-
-```python
-def compute_reserve(owner_count: int) -> int:
-    """Returns minimum required balance in drops. Always fetch live values from server_info."""
-    BASE_RESERVE = 1_000_000    # 1 XRP (as of 2025 — verify with server_info)
-    OWNER_RESERVE = 200_000     # 0.2 XRP per object
-    return BASE_RESERVE + (owner_count * OWNER_RESERVE)
-
-# Check if account can afford new object
-def can_afford_object(balance: int, owner_count: int) -> bool:
-    required = compute_reserve(owner_count + 1)  # after adding object
-    return balance >= required
-
-# Example
-balance_drops = 2_000_000    # 2 XRP
-owner_count = 2              # 2 existing objects
-current_reserve = compute_reserve(owner_count)  # 1.4 XRP
-print(f"Spendable: {balance_drops - current_reserve} drops")  # 0.6 XRP
-```
-
-### Querying from Ledger
-
-```python
-from xrpl.models.requests import AccountInfo, ServerInfo
-
-# Get owner count
-resp = client.request(AccountInfo(account="rN7n...", ledger_index="validated"))
-acct = resp.result["account_data"]
-owner_count = acct["OwnerCount"]
-balance = int(acct["Balance"])
-
-# Get reserve values from server
-server_resp = client.request(ServerInfo())
-server_info = server_resp.result["info"]["validated_ledger"]
-base_reserve = int(float(server_info["reserve_base_xrp"]) * 1_000_000)
-owner_reserve = int(float(server_info["reserve_inc_xrp"]) * 1_000_000)
-
-total_reserve = base_reserve + (owner_count * owner_reserve)
-spendable = balance - total_reserve
-print(f"Balance: {balance / 1e6:.6f} XRP")
-print(f"Reserve locked: {total_reserve / 1e6:.6f} XRP")
-print(f"Spendable: {spendable / 1e6:.6f} XRP")
-```
-
----
-
-## 4. Maximum Object Count
-
-An account can hold at most **4,294,967,295** objects technically, but practical limits are:
-- Each object locks 0.2 XRP
-- At 250 objects: 1 + 50 = 51 XRP locked as reserve
-- At 1000 objects: 1 + 200 = 201 XRP locked
-
-### NFT Exception
-
-NFTs are packed into **NFTokenPage** objects:
-- Each NFTokenPage holds up to 32 NFTs
-- Only 1 owner reserve per page (not per NFT)
-- 32 NFTs = 1 page = 0.2 XRP reserve
-
-```python
-def nft_reserve(nft_count: int) -> int:
-    """Owner reserve for NFTs in drops."""
-    pages = (nft_count + 31) // 32  # ceiling division
-    return pages * 2_000_000
-```
-
----
-
-## 5. Reserve Optimization
-
-### Remove Unnecessary Trust Lines
-
-```json
-{
-  "TransactionType": "TrustSet",
-  "Account": "rN7n...",
-  "LimitAmount": {
-    "currency": "USD",
-    "issuer": "rISSUER...",
-    "value": "0"
-  },
-  "Fee": "12",
-  "Sequence": 10
-}
-```
-
-Trust line is removed only if:
-- Limit is 0
-- Balance is 0
-- No outstanding offers in that asset
-
-### Cancel Stale Offers
-
-```python
-# Get all offers
-from xrpl.models.requests import AccountObjects
-
-resp = client.request(AccountObjects(
-    account="rN7n...",
-    type="offer"
-))
-
-# Cancel them
-for offer in resp.result["account_objects"]:
-    cancel_tx = {
-        "TransactionType": "OfferCancel",
-        "Account": "rN7n...",
-        "OfferSequence": offer["Sequence"],
-        "Fee": "12",
-        "Sequence": get_sequence()
-    }
-    submit(cancel_tx)
-```
-
-### Account Deletion (2 XRP fee)
-
-Requirements for account deletion — **all must be met**:
-- Account Sequence ≥ 256 (or current ledger index - 256, whichever is higher)
-- Owner count = 0 (all trust lines, offers, escrows, etc. must be removed first)
-- Destination account exists and is different from sender
-- If the destination requires a `DestinationTag` (lsfRequireDestTag flag), you **must** include one
-
-```json
-{
-  "TransactionType": "AccountDelete",
-  "Account": "rOLD...",
-  "Destination": "rNEW...",
-  "DestinationTag": 0,
-  "Fee": "2000000",
-  "Sequence": 300
-}
-```
-
-> **Note:** AccountDelete does **not** unconditionally return all XRP. The remaining balance (total XRP minus the 2 XRP fee) is sent to the destination only if **all** requirements above are satisfied. Failure to meet any condition results in `tecNO_DST`, `tecTOO_SOON`, or `tecHAS_OBLIGATIONS`.
-
----
-
-## 6. Fee Voting Changes
-
-Validators can vote to change reserve values. Process:
-
-1. Validator sets fee vote in config:
-```ini
-[voting]
-account_reserve = 1000000    # 1 XRP (current mainnet as of 2025)
-owner_reserve = 200000       # 0.2 XRP
-fee_default = 10             # drops
-```
-
-2. Network median becomes new value after enough validators agree
-3. Changes take effect in next ledger
-
-Current values are unlikely to change without broad validator consensus.
-
----
-
-## 7. Cost Summary Table
-
-```
-Action                          XRP Cost
-─────────────────────────────────────────
-Send XRP                        0.00001 XRP fee
-Send token                      0.00001 XRP fee
-Create trust line               0.00001 fee + 0.2 XRP reserve
-Create DEX offer                0.00001 fee + 0.2 XRP reserve
-Cancel DEX offer                0.00001 fee, -0.2 XRP reserve returned
-Mint NFT (first, new page)      0.00001 fee + 0.2 XRP reserve
-Mint NFT (same page)            0.00001 fee (no extra reserve)
-Create escrow                   0.00001 fee + 0.2 XRP reserve
-Finish escrow                   0.00001+ fee, -0.2 XRP reserve returned
-Open payment channel            0.00001 fee + 0.2 XRP reserve + funded amount
-| Create ticket | 0.00001 fee + 0.2 XRP/ticket reserve |
-Delete account                  2.0000 XRP fee, all reserve returned
-Set signer list (5 signers)     0.00001 fee + 0.2 XRP reserve
-AccountSet                      0.00001 XRP fee (no reserve)
-```
-
----
-
-## 8. Production Fee Recommendation
-
-```python
-async def get_recommended_fee(client, safety_margin: float = 1.5) -> str:
-    """
-    For immediate inclusion: use open_ledger_fee × 1.5
-    For queued (next few ledgers): use median_fee
-    """
-    resp = await client.request(Fee())
-    drops = resp.result["drops"]
-    
-    open_fee = int(drops["open_ledger_fee"])
-    median_fee = int(drops["median_fee"])
-    
-    immediate_fee = max(10, int(open_fee * safety_margin))
-    return str(immediate_fee)
-```
-
----
-
-## Related Files
-
-- `knowledge/02-xrpl-payments.md` — fees on Payment txs
-- `knowledge/15-xrpl-transaction-format.md` — Fee field encoding
-- `knowledge/25-xrpl-audit-security.md` — fee escalation under load
+For exact transaction semantics, use current first-party XRPL documentation and observed validated-ledger state. Historical fee/reserve examples are not release evidence.

@@ -33,7 +33,7 @@ python3 scripts/xrpl_tools.py bridge-tx TX_HASH
 Interpretation:
 
 - `evm-balance` is a JSON-RPC balance read on the selected EVM network.
-- `evm-bridge` reports configured/public bridge metadata and must not be treated as transfer authorization.
+- `evm-bridge` reports only EVM RPC identity/latest-block status and explicitly sets `BridgeCertified: false`.
 - `bridge-status` and `bridge-tx` depend on public Axelar APIs and may be stale, unavailable, or incomplete.
 - None of these commands proves that an asset route is open or safe.
 
@@ -72,9 +72,9 @@ Xahau is not part of an XRPL L1 ↔ EVM bridge path by default. Do not use the X
 
 | Capability | Status |
 |---|---|
-| EVM JSON-RPC balance read | implemented; acceptance pending ecosystem review |
-| EVM network/bridge metadata read | implemented; provenance review pending |
-| Axelar public status lookup | external dependency |
+| EVM JSON-RPC balance read | implemented experimental read with configured/observed chain-ID enforcement |
+| EVM network identity read | implemented; explicitly not bridge metadata or transfer certification |
+| Axelar registration/GMP-index lookup | external dependency; no route or transfer certification |
 | XRPL → EVM unsigned bridge builder | not implemented/certified |
 | EVM → XRPL unsigned bridge builder | not implemented/certified |
 | Bridge signing/submission | intentionally unavailable |

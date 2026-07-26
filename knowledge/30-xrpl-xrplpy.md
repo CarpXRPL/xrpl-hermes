@@ -2,7 +2,7 @@
 
 ## Overview
 
-`xrpl-py` is the official Python SDK for the XRP Ledger. Supports synchronous and async clients, wallet management, all transaction types, and multi-client failover.
+`xrpl-py` is an official Python SDK for the XRP Ledger. It provides synchronous and asynchronous clients plus transaction/request models whose exact coverage depends on the installed release. XRPL-Hermes v1.9.0 tests against xrpl-py 4.2.0 and 5.0.0; verify current SDK documentation for any model outside the certified builders.
 
 ```bash
 pip install xrpl-py
@@ -12,99 +12,8 @@ pip install xrpl-py
 
 ## 1. Core Imports
 
-```python
-# Clients
-from xrpl.clients import JsonRpcClient
-from xrpl.asyncio.clients import AsyncJsonRpcClient, AsyncWebsocketClient
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Wallet
-from xrpl.wallet import Wallet
-
-# Models - Requests
-from xrpl.models.requests import (
-    AccountInfo,
-    AccountLines,
-    AccountOffers,
-    AccountObjects,
-    AccountNFTs,
-    AccountChannels,
-    AccountTx,
-    Ledger,
-    LedgerData,
-    LedgerEntry,
-    Tx,
-    Fee,
-    ServerInfo,
-    Subscribe,
-    BookOffers,
-    AMMInfo,
-    NFTSellOffers,
-    NFTBuyOffers,
-    NFTInfo,
-    SubmitOnly,
-)
-
-# Models - Transactions
-from xrpl.models.transactions import (
-    Payment,
-    TrustSet,
-    OfferCreate,
-    OfferCancel,
-    AccountSet,
-    SetRegularKey,
-    SignerListSet,
-    NFTokenMint,
-    NFTokenBurn,
-    NFTokenCreateOffer,
-    NFTokenAcceptOffer,
-    NFTokenCancelOffer,
-    AMMCreate,
-    AMMDeposit,
-    AMMWithdraw,
-    AMMVote,
-    AMMBid,
-    EscrowCreate,
-    EscrowFinish,
-    EscrowCancel,
-    PaymentChannelCreate,
-    PaymentChannelFund,
-    PaymentChannelClaim,
-    TicketCreate,
-    DepositPreauth,
-    Clawback,
-)
-
-# Transaction processing
-from xrpl.transaction import (
-    autofill,
-    autofill_and_sign,
-    sign,
-    submit,
-    submit_and_wait,
-    multisign,
-)
-
-# Utils
-from xrpl.utils import (
-    xrp_to_drops,
-    drops_to_xrp,
-    ripple_time_to_datetime,
-    datetime_to_ripple_time,
-    str_to_hex,
-    hex_to_str,
-)
-
-# Keypairs
-from xrpl.core.keypairs import (
-    generate_seed,
-    derive_keypair,
-    sign as keypairs_sign,
-    is_valid_message,
-)
-
-# Ledger utils
-from xrpl.ledger import get_latest_validated_ledger_sequence
-```
 
 ---
 
@@ -155,34 +64,8 @@ async def subscribe_to_ledger():
 
 ## 3. Wallet
 
-```python
-from xrpl.wallet import Wallet
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Generate new wallet (offline — do this once, store seed securely)
-wallet = Wallet.create()
-print(wallet.address)      # safe to log
-print(wallet.public_key)   # safe to log
-# wallet.seed and wallet.private_key — NEVER print or log these
-# Store wallet.seed in a secrets manager (env var, vault, etc.)
-
-# Load wallet from environment variable (correct pattern for scripts)
-import os
-wallet = Wallet.from_seed(os.environ["XRPL_WALLET_SEED"])
-
-# From mnemonic (BIP39)
-wallet = Wallet.from_mnemonic("word1 word2 ... word12")
-
-# Classic address from public key
-from xrpl.core.keypairs import derive_classic_address
-address = derive_classic_address(public_key)
-
-# Check balance
-from xrpl.account import get_balance
-
-client = JsonRpcClient("https://xrplcluster.com")
-balance_drops = get_balance(wallet.address, client)
-balance_xrp = drops_to_xrp(str(balance_drops))
-```
 
 ---
 
@@ -234,31 +117,8 @@ async def get_all_trust_lines(address: str) -> list:
 
 ## 5. Sending XRP
 
-```python
-from xrpl.models.transactions import Payment
-from xrpl.transaction import autofill_and_sign, submit_and_wait
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-client = JsonRpcClient("https://xrplcluster.com")
-wallet = Wallet.from_seed("sn...")
-
-tx = Payment(
-    account=wallet.address,
-    destination="rDEST...",
-    amount=xrp_to_drops(10),  # 10 XRP
-    destination_tag=1234,
-    memos=[{
-        "Memo": {
-            "MemoData": str_to_hex("Hello XRPL"),
-            "MemoType": str_to_hex("text/plain")
-        }
-    }]
-)
-
-signed = autofill_and_sign(tx, wallet, client)
-result = submit_and_wait(signed, client)
-print(result.result["meta"]["TransactionResult"])
-print(f"TX hash: {result.result['hash']}")
-```
 
 ---
 
@@ -285,48 +145,15 @@ tx = Payment(
 
 ## 7. Trust Set
 
-```python
-from xrpl.models.transactions import TrustSet
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# "SOLO" is 4 chars — codes longer than 3 chars require the 160-bit hex form
-SOLO_CUR = "534F4C4F00000000000000000000000000000000"
-SOLO_ISSUER = "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz"  # Sologenic (verify on-ledger)
-
-tx = TrustSet(
-    account=wallet.address,
-    limit_amount={
-        "currency": SOLO_CUR,
-        "issuer": SOLO_ISSUER,
-        "value": "1000000"
-    },
-    fee="12"
-)
-signed = autofill_and_sign(tx, wallet, client)
-submit_and_wait(signed, client)
-```
 
 ---
 
 ## 8. DEX: OfferCreate
 
-```python
-from xrpl.models.transactions import OfferCreate
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Buy 1000 SOLO for 10 XRP (constants from the TrustSet example above)
-tx = OfferCreate(
-    account=wallet.address,
-    taker_pays={
-        "currency": SOLO_CUR,
-        "issuer": SOLO_ISSUER,
-        "value": "1000"
-    },
-    taker_gets=xrp_to_drops(10),  # 10 XRP
-    flags=0,  # or tfSell = 0x00080000
-    fee="12"
-)
-signed = autofill_and_sign(tx, wallet, client)
-result = submit_and_wait(signed, client)
-```
 
 ---
 
@@ -348,7 +175,7 @@ tx = AMMDeposit(
     },
     amount=xrp_to_drops(100),   # deposit 100 XRP
     flags=AMMDepositFlag.TF_SINGLE_ASSET,
-    fee="12"
+    fee="<autofill>"
 )
 
 # Double-asset deposit
@@ -359,7 +186,7 @@ tx = AMMDeposit(
     amount=xrp_to_drops(100),       # XRP side
     amount2={"currency": "USD", "issuer": "rISSUER...", "value": "50"},  # token side
     flags=AMMDepositFlag.TF_TWO_ASSET,
-    fee="12"
+    fee="<autofill>"
 )
 ```
 
@@ -367,21 +194,8 @@ tx = AMMDeposit(
 
 ## 10. NFTokenMint
 
-```python
-from xrpl.models.transactions import NFTokenMint
-import binascii
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-tx = NFTokenMint(
-    account=wallet.address,
-    nftoken_taxon=0,
-    flags=0x0000000B,
-    transfer_fee=5000,  # 5%
-    uri=binascii.hexlify("ipfs://QmXXX...".encode()).decode().upper(),
-    fee="12"
-)
-signed = autofill_and_sign(tx, wallet, client)
-result = submit_and_wait(signed, client)
-```
 
 ---
 
@@ -441,54 +255,15 @@ client = FailoverClient(NODES)
 
 ## 13. Async Signing and Submission
 
-```python
-import asyncio
-from xrpl.asyncio.clients import AsyncJsonRpcClient
-from xrpl.asyncio.transaction import (
-    autofill,
-    autofill_and_sign,
-    submit_and_wait
-)
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async def send_payment_async(seed: str, destination: str, amount_xrp: float):
-    wallet = Wallet.from_seed(seed)
-    
-    async with AsyncJsonRpcClient("https://xrplcluster.com") as client:
-        tx = Payment(
-            account=wallet.address,
-            destination=destination,
-            amount=xrp_to_drops(amount_xrp)
-        )
-        
-        # Async autofill fills Sequence, Fee, LastLedgerSequence
-        signed = await autofill_and_sign(tx, wallet, client)
-        result = await submit_and_wait(signed, client)
-        
-        return result.result["meta"]["TransactionResult"]
-
-result = asyncio.run(send_payment_async("sn...", "rDEST...", 10))
-```
 
 ---
 
 ## 14. Signing Without Submitting
 
-```python
-from xrpl.transaction import autofill, sign
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Useful for offline signing
-tx = Payment(...)
-tx_autofilled = autofill(tx, client)
-tx_signed = sign(tx_autofilled, wallet)
-
-# Get the blob and hash
-blob = tx_signed.to_hex()
-hash = tx_signed.get_hash()
-
-# Submit later
-from xrpl.models.requests import SubmitOnly
-resp = client.request(SubmitOnly(tx_blob=blob))
-```
 
 ---
 

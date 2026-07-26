@@ -113,7 +113,7 @@ cmake --build . --parallel $(nproc)
     "port": 5432,
     "database": "clio",
     "user": "clio_user",
-    "password": "secure_password",
+    "password": "${CLIO_DB_PASSWORD}",
     "max_connections": 10
   },
   "etl_sources": [
@@ -144,9 +144,10 @@ cmake --build . --parallel $(nproc)
 
 ### PostgreSQL Setup
 
+Set `CLIO_DB_PASSWORD` through your host or managed secret store. Do not commit it to a Clio configuration file. The following SQL shows only the role/database relationship; set authentication separately with your deployment platform's secret-injection mechanism.
+
 ```sql
--- Create database and user
-CREATE USER clio_user WITH PASSWORD 'secure_password';
+CREATE USER clio_user;
 CREATE DATABASE clio OWNER clio_user;
 GRANT ALL PRIVILEGES ON DATABASE clio TO clio_user;
 

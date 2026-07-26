@@ -34,7 +34,7 @@ If the user has already supplied the answer, do not ask again. State assumptions
 
 ## Custody decision tree
 
-- **Users sign with their own wallets** → preferred. Design wallet handoff: decoded unsigned JSON preview → Xaman/Joey/Privy/manual signing → `tx-info` confirmation.
+- **Users authorize with their own external signer** → preferred. Design handoff: decoded unsigned JSON preview → separately accepted compatible wallet/HSM/KMS → `tx-info` confirmation. Joey/Privy are not certified defaults; Xaman is Payment-only through the guarded helper.
 - **User's own policy-gated signer for their own funds** → allowed outside the skill. Require scoped transaction types, amount caps, allowlists, dry-run/preview, logs, monitoring, and circuit breaker. The skill still emits unsigned JSON only.
 - **Hold users' funds, seeds, or private keys** → stop and warn. Do not design custody workarounds. Redesign as wallet-handoff or tell the user this is regulated/legal/security territory outside XRPL-Hermes.
 

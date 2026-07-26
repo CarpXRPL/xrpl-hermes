@@ -16,7 +16,8 @@ Agent boundary (positive allowlist, default-deny). The MCP surface exposes
 read-only live queries and unsigned/signer-ready transaction builders only.
 Secret-touching commands (`wallet-generate`, `wallet-from-seed`), broadcast
 commands (`submit`, `submit-multisigned`), and external signing-request creation
-(`xaman-payload`) are denied here and remain in the local developer CLI.
+(`xaman-payload`) are denied here. Legacy key/broadcast registrations are quarantined;
+the guarded Xaman helper is an explicit, Payment-only local side effect.
 Any command not on the allowlist — including future additions — is denied until
 a maintainer explicitly adds it, so the boundary is a maintainable invariant
 rather than a one-time patch.
@@ -29,9 +30,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+_SOURCE_ROOT = Path(__file__).resolve().parents[1]
+_INSTALLED_DATA_ROOT = Path(sys.prefix) / "share" / "xrpl-hermes"
+ROOT = _SOURCE_ROOT if (_SOURCE_ROOT / "knowledge").is_dir() else _INSTALLED_DATA_ROOT
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xrpl-hermes", "version": "1.8.3"}
+SERVER_INFO = {"name": "xrpl-hermes", "version": "1.9.0"}
 RUN_TIMEOUT_SECONDS = 90
 
 _KNOWLEDGE_DIRS = ("knowledge", "references", "skills")
@@ -69,8 +72,8 @@ _ALLOWED_COMMANDS = frozenset({
     # so a request for it is default-denied as an unknown command.
 })
 
-# Denied on the agent surface, with the reason to relay to the client. These stay
-# available in the local developer CLI (developer-owned, explicit, shell-audited).
+# Denied on the agent surface, with the reason to relay to the client. Legacy
+# key/broadcast registrations are quarantined from supported workflows.
 _DENIED_COMMANDS = {
     "wallet-generate": "generates a wallet and emits a secret seed",
     "wallet-from-seed": "takes a secret seed as input",
@@ -81,18 +84,19 @@ _DENIED_COMMANDS = {
 
 
 def _deny_reason(command: str, known: bool) -> str:
-    """Human-readable denial for a non-allowlisted command, redirecting to the CLI."""
+    """Human-readable denial without recommending a sensitive invocation."""
     reason = _DENIED_COMMANDS.get(command)
     if reason:
         return (f"'{command}' is not available over MCP: it {reason}. XRPL-Hermes keeps "
-                "key material and broadcasting out of the agent boundary. Run it yourself in "
-                f"the local developer CLI: python3 -m scripts.xrpl_tools {command} …")
+                "key material, broadcasting, and guarded external side effects out of the "
+                "agent boundary. Legacy key/broadcast surfaces are quarantined; use a separately "
+                "accepted user-controlled external signer and verify the resulting ledger hash.")
     if not known:
         return (f"unknown command '{command}'. Use xrpl_list_commands to see the "
                 "agent-safe surface.")
     return (f"'{command}' is not on the MCP agent allowlist (default-deny). This surface "
             "exposes read-only live queries and unsigned transaction builders only. "
-            "Use xrpl_list_commands, or run it in the local developer CLI.")
+            "Use xrpl_list_commands and the documented supported workflows.")
 
 
 def _command_names():
@@ -159,7 +163,7 @@ TOOLS = [
         "description": "List the agent-safe xrpl-hermes commands exposed over MCP: live XRPL "
                        "queries, signer-ready (unsigned) transaction builders, amendment checks, "
                        "and EVM/Xahau/Flare helpers. Key-management, broadcast, and Xaman signing "
-                       "request creation are not exposed here — they live in the local developer CLI.",
+                       "request creation are not exposed here; legacy key/broadcast surfaces are quarantined.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {
@@ -171,8 +175,8 @@ TOOLS = [
                        "currency is 'CUR:ISSUER:VALUE'; "
                        "command='amendment' args=['MPTokensV1']. Builders return signer-ready "
                        "JSON — they never ask for or use secret keys. Secret-touching and broadcast "
-                       "commands are denied on this surface (see xrpl_list_commands); run those in the "
-                       "local developer CLI.",
+                       "commands are denied on this surface (see xrpl_list_commands); legacy sensitive "
+                       "surfaces are not supported agent workflows.",
         "inputSchema": {
             "type": "object",
             "properties": {

@@ -35,7 +35,7 @@ Creates a new check that the destination can cash later.
   "Destination": "rReceiverAddress",
   "SendMax": "10000000",  // 10 XRP
   "Expiration": 791635710,
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 20
 }
 ```
@@ -53,28 +53,15 @@ Creates a new check that the destination can cash later.
     "value": "1000"
   },
   "Expiration": 791635710,
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 20
 }
 ```
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import CheckCreate
-from xrpl.utils import xrp_to_drops
-from xrpl.models.amounts import IssuedCurrencyAmount
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# XRP check
-check = CheckCreate(
-    account="rSenderAddress",
-    destination="rReceiverAddress",
-    send_max=xrp_to_drops(10),
-    expiration=791635710,
-)
-response = submit_and_wait(check, client, wallet)
-```
 
 ## CheckCash Transaction
 
@@ -98,7 +85,7 @@ You must specify either `Amount` (exact) or `DeliverMin` (minimum) depending on 
   "Account": "rReceiverAddress",
   "CheckID": "49647F0D748DC3FE26BDACBC57F251AADEFFF391403EC9BF87C97F67E9977FB0",
   "Amount": "10000000",  // Cash exactly 10 XRP
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 30
 }
 ```
@@ -115,7 +102,7 @@ You must specify either `Amount` (exact) or `DeliverMin` (minimum) depending on 
     "issuer": "rIssuerAddress",
     "value": "500"
   },
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 30
 }
 ```
@@ -136,7 +123,7 @@ Cancels a check before it's cashed. Either the sender or the destination can can
   "TransactionType": "CheckCancel",
   "Account": "rSenderAddress",
   "CheckID": "49647F0D748DC3FE26BDACBC57F251AADEFFF391403EC9BF87C97F67E9977FB0",
-  "Fee": "10"
+  "Fee": "<autofill>"
 }
 ```
 
@@ -223,7 +210,7 @@ You can find the CheckID by looking up the check object on the ledger using `acc
 
 ## Reserve and Checks
 
-Each check the sender creates consumes 1 owner reserve unit (0.2 XRP). The destination does NOT pay a reserve for checks made out to them.
+Each owned Check can consume one incremental owner-reserve unit for its owner. Query current validated reserve values before estimating capacity.
 
 **Optimization:** Cancel expired or unwanted checks promptly to free up reserve.
 
@@ -270,7 +257,7 @@ For recurring payments, payment channels are often preferable to checks:
 | Aspect | Check | Payment Channel |
 |---|---|---|
 | Setup | One CheckCreate per payment | One channel, many claims |
-| Reserve | 0.2 XRP per check (one-time) | ~0.2 XRP per channel (ongoing) |
+| Reserve | One live incremental unit per owned Check | One live incremental unit per owned channel |
 | Cost | One transaction per payment | One claim (off-chain) per payment |
 | Streaming | No | Yes |
 | Trust | Requires trust to cancel | Trustless incremental claims |

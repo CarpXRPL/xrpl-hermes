@@ -4,68 +4,18 @@
 
 Before minting, choose the right token type:
 
-| Type | Standard | Reserve | Best For |
-|------|----------|---------|---------|
-| IOU (Trust Line) | Native | 5 XRP/holder | Stablecoins, rewards, complex permissions |
-| NFToken | XLS-20 | 0.2 XRP/page (16-32 per page) | Unique digital items, collectibles |
-| MPToken | XLS-33 | ~0.1 XRP/issuance | High-volume tokens, regulated assets |
+| Type | Standard | Reserve model | Best For |
+|------|----------|---------------|---------|
+| IOU (Trust Line) | Native | Trust-line ownership; query live incremental reserve | Stablecoins, rewards, complex permissions |
+| NFToken | XLS-20 | NFTokenPage ownership; query live incremental reserve | Unique digital items, collectibles |
+| MPToken | XLS-33 | Amendment-specific issuance/holder objects; query live state | High-volume tokens, regulated assets |
 
 ---
 
 ## IOU Issuance: Complete Setup
 
-```python
-import xrpl
-from xrpl.clients import JsonRpcClient
-from xrpl.wallet import Wallet
-from xrpl.models.transactions import AccountSet, TrustSet, Payment
-from xrpl.models.transactions.account_set import AccountSetFlag
-from xrpl.models.amounts import IssuedCurrencyAmount
-from xrpl.transaction import submit_and_wait
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-client = JsonRpcClient("https://xrplcluster.com")
-
-# NEVER hardcode secrets — load from environment or vault
-import os
-issuer = Wallet.from_secret(os.environ["ISSUER_SECRET"])
-
-# Step 1: Configure issuer account
-# asfDefaultRipple: allows tokens to ripple through (essential for DEX trading)
-# asfRequireDestTag: requires destination tag for incoming payments
-setup_tx = AccountSet(
-    account=issuer.classic_address,
-    set_flag=AccountSetFlag.ASF_DEFAULT_RIPPLE,
-    # NOTE: Never set DefaultRipple if you intend to use Clawback
-)
-resp = submit_and_wait(setup_tx, client, issuer)
-print(f"Issuer setup: {resp.result['meta']['TransactionResult']}")
-
-# Step 2: Holder must set a trust line BEFORE receiving tokens
-holder = Wallet.from_secret(os.environ["HOLDER_SECRET"])
-trust_tx = TrustSet(
-    account=holder.classic_address,
-    limit_amount=IssuedCurrencyAmount(
-        currency="TKN",  # 3-char demo code; 4+ char codes need the 160-bit hex form
-        issuer=issuer.classic_address,
-        value="1000000000",  # Max they're willing to hold
-    ),
-)
-resp = submit_and_wait(trust_tx, client, holder)
-print(f"Trust line: {resp.result['meta']['TransactionResult']}")
-
-# Step 3: Issue tokens (payment from issuer "creates" them)
-issue_tx = Payment(
-    account=issuer.classic_address,
-    destination=holder.classic_address,
-    amount=IssuedCurrencyAmount(
-        currency="TKN",
-        issuer=issuer.classic_address,
-        value="500000",  # Issue 500K tokens
-    ),
-)
-resp = submit_and_wait(issue_tx, client, issuer)
-print(f"Issued: {resp.result['meta']['TransactionResult']}")
-```
 
 ---
 
@@ -73,92 +23,8 @@ print(f"Issued: {resp.result['meta']['TransactionResult']}")
 
 The XRPL normally requires sequential `Sequence` numbers. Tickets let you pre-allocate a block and submit transactions in any order — essential for batch operations.
 
-```python
-from xrpl.models.transactions import TicketCreate
-from xrpl.models.requests import AccountInfo
-import asyncio, concurrent.futures
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-def create_ticket_block(client, wallet, count: int) -> list[int]:
-    """Create N tickets and return their sequence numbers."""
-    tx = TicketCreate(
-        account=wallet.classic_address,
-        ticket_count=count,
-    )
-    resp = submit_and_wait(tx, client, wallet)
-    if resp.result['meta']['TransactionResult'] != 'tesSUCCESS':
-        raise RuntimeError(f"TicketCreate failed: {resp.result['meta']['TransactionResult']}")
-
-    # Extract ticket sequences from created ledger objects
-    tickets = []
-    for node in resp.result['meta'].get('AffectedNodes', []):
-        created = node.get('CreatedNode', {})
-        if created.get('LedgerEntryType') == 'Ticket':
-            tickets.append(created['NewFields']['TicketSequence'])
-    tickets.sort()
-    return tickets
-
-
-def batch_issue_tokens(
-    client, issuer, recipients: list[dict], currency: str
-) -> list[dict]:
-    """
-    recipients: [{"address": "r...", "amount": "1000"}, ...]
-    Returns list of {address, hash, result}
-    """
-    count = len(recipients)
-    tickets = create_ticket_block(client, issuer, count)
-
-    results = []
-    for ticket_seq, recipient in zip(tickets, recipients):
-        tx = Payment(
-            account=issuer.classic_address,
-            destination=recipient["address"],
-            amount=IssuedCurrencyAmount(
-                currency=currency,
-                issuer=issuer.classic_address,
-                value=str(recipient["amount"]),
-            ),
-            ticket_sequence=ticket_seq,
-            sequence=0,  # MUST be 0 when using ticket
-        )
-        # Fire-and-forget; collect hashes for later verification
-        resp = client.submit(tx, issuer)
-        tx_hash = resp.result.get("tx_json", {}).get("hash", "")
-        results.append({
-            "address": recipient["address"],
-            "hash": tx_hash,
-            "preliminary": resp.result.get("engine_result"),
-        })
-
-    return results
-
-
-def verify_batch(client, hashes: list[str], timeout_s: int = 60) -> dict:
-    """Poll until all hashes are validated or timeout."""
-    import time
-    from xrpl.models.requests import Tx
-
-    pending = set(hashes)
-    final = {}
-    start = time.time()
-
-    while pending and time.time() - start < timeout_s:
-        for tx_hash in list(pending):
-            try:
-                resp = client.request(Tx(transaction=tx_hash))
-                if resp.result.get("validated"):
-                    result = resp.result["meta"]["TransactionResult"]
-                    final[tx_hash] = result
-                    pending.remove(tx_hash)
-            except Exception:
-                pass
-        if pending:
-            time.sleep(4)  # Wait one ledger close
-
-    for h in pending:
-        final[h] = "TIMEOUT"
-    return final
-```
 
 ---
 
@@ -319,102 +185,20 @@ def token_metrics(client, issuer_addr: str, currency: str) -> dict:
 
 ## TransferRate (Fee) Revenue Collection
 
-```python
-# TransferRate encodes as: (1 + fee%) * 10^9
-# 1% fee = 1_010_000_000
-# 0.5% fee = 1_005_000_000
-# 0.1% fee = 1_001_000_000
-# 0% fee = 1_000_000_000 (or leave unset)
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-from xrpl.models.transactions import AccountSet
-
-set_fee = AccountSet(
-    account=issuer.classic_address,
-    transfer_rate=1_005_000_000,  # 0.5% fee on all transfers
-)
-resp = submit_and_wait(set_fee, client, issuer)
-```
 
 When a transfer occurs, the fee stays on the issuer's trust line as a positive balance. Collect it via a Payment back to your treasury:
 
-```python
-# Sweep collected TransferFee revenue
-# From issuer's perspective: positive balance on their own trust line
-def sweep_fee_revenue(client, issuer, currency, treasury_addr):
-    """Send accumulated fee revenue to treasury."""
-    # Get issuer's self-balance (fee income)
-    lines = client.request(AccountLines(account=issuer.classic_address))
-    fee_income = 0.0
-    for line in lines.result.get("lines", []):
-        if line["currency"] == currency and float(line["balance"]) > 0:
-            fee_income += float(line["balance"])
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-    if fee_income < 1.0:
-        return None  # Not worth sweeping
-
-    sweep = Payment(
-        account=issuer.classic_address,
-        destination=treasury_addr,
-        amount=IssuedCurrencyAmount(
-            currency=currency,
-            issuer=issuer.classic_address,
-            value=str(fee_income),
-        ),
-        # tfNoRippleDirect prevents path-finding issues
-        flags=0x00010000,
-    )
-    return submit_and_wait(sweep, client, issuer)
-```
 
 ---
 
 ## Global Freeze & Individual Freeze
 
-```python
-from xrpl.models.transactions.account_set import AccountSetFlag
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# GLOBAL FREEZE: freezes ALL trust lines for this issuer's token
-# No transfers possible until thawed; DEX offers cancelled
-freeze_all = AccountSet(
-    account=issuer.classic_address,
-    set_flag=AccountSetFlag.ASF_GLOBAL_FREEZE,
-)
-resp = submit_and_wait(freeze_all, client, issuer)
-
-# THAW (after remediation)
-thaw_all = AccountSet(
-    account=issuer.classic_address,
-    clear_flag=AccountSetFlag.ASF_GLOBAL_FREEZE,
-)
-resp = submit_and_wait(thaw_all, client, issuer)
-
-
-# INDIVIDUAL FREEZE: freeze one specific holder's trust line
-def freeze_holder(client, issuer, holder_addr: str, currency: str):
-    freeze_tx = TrustSet(
-        account=issuer.classic_address,
-        limit_amount=IssuedCurrencyAmount(
-            currency=currency,
-            issuer=holder_addr,   # When issuer sets TrustSet, it targets the holder
-            value="0",            # Limit doesn't matter for freeze
-        ),
-        flags=0x00100000,  # tfSetFreeze
-    )
-    return submit_and_wait(freeze_tx, client, issuer)
-
-
-def unfreeze_holder(client, issuer, holder_addr: str, currency: str):
-    unfreeze_tx = TrustSet(
-        account=issuer.classic_address,
-        limit_amount=IssuedCurrencyAmount(
-            currency=currency,
-            issuer=holder_addr,
-            value="0",
-        ),
-        flags=0x00200000,  # tfClearFreeze
-    )
-    return submit_and_wait(unfreeze_tx, client, issuer)
-```
 
 ---
 
@@ -467,79 +251,15 @@ issue_hex = Payment(
 
 After issuing tokens, create initial DEX buy orders to establish price discovery:
 
-```python
-from xrpl.models.transactions import OfferCreate
-from xrpl.models.transactions.offer_create import OfferCreateFlag
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Sell 100,000 TKN for 1,000 XRP → price = 0.01 XRP per TKN
-initial_offer = OfferCreate(
-    account=issuer.classic_address,
-    taker_gets=IssuedCurrencyAmount(
-        currency="TKN",
-        issuer=issuer.classic_address,
-        value="100000",
-    ),
-    taker_pays=xrpl.utils.xrp_to_drops("1000"),
-    flags=OfferCreateFlag.TF_SELL,  # Sell order
-)
-resp = submit_and_wait(initial_offer, client, issuer)
-
-# Buy side: purchase 50,000 TKN for up to 600 XRP
-buy_offer = OfferCreate(
-    account=market_maker.classic_address,
-    taker_gets=xrpl.utils.xrp_to_drops("600"),
-    taker_pays=IssuedCurrencyAmount(
-        currency="TKN",
-        issuer=issuer.classic_address,
-        value="50000",
-    ),
-)
-resp = submit_and_wait(buy_offer, client, market_maker)
-```
 
 ---
 
 ## Error Recovery in Batch Operations
 
-```python
-RETRYABLE_ERRORS = {
-    "tefPAST_SEQ",      # Sequence too low — refetch
-    "tefMAX_LEDGER",    # LastLedgerSequence exceeded — resubmit
-    "telCAN_NOT_QUEUE", # Temporarily full queue
-    "tooBusy",          # Node overloaded — rotate endpoint
-}
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-def robust_issue(client, issuer, recipient, amount, currency, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            acc = client.request(AccountInfo(account=issuer.classic_address, ledger_index="current"))
-            seq = acc.result["account_data"]["Sequence"]
-            tx = Payment(
-                account=issuer.classic_address,
-                destination=recipient,
-                amount=IssuedCurrencyAmount(
-                    currency=currency,
-                    issuer=issuer.classic_address,
-                    value=str(amount),
-                ),
-                sequence=seq,
-                last_ledger_sequence=seq + 20,  # 20-ledger window ≈ 80s
-                fee="12",
-            )
-            resp = submit_and_wait(tx, client, issuer)
-            result = resp.result["meta"]["TransactionResult"]
-            if result == "tesSUCCESS":
-                return True, resp
-            elif result in RETRYABLE_ERRORS:
-                print(f"Retry {attempt+1}/{max_retries}: {result}")
-                import time; time.sleep(4)
-            else:
-                return False, resp  # Non-retryable failure
-        except Exception as e:
-            print(f"Exception on attempt {attempt+1}: {e}")
-            import time; time.sleep(4)
-    return False, None
-```
 
 ---
 

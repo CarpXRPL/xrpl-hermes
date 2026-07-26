@@ -1,12 +1,52 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
 jobs:
   test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install project
+        run: python -m pip install . pytest
+      - name: Test
+        run: python -m pytest -q
+      - name: Quality and compilation
+        run: |
+          python scripts/audit_project_quality.py
+          python -m compileall -q scripts tests examples
+          python -m scripts.package_acceptance
+      - name: Offline CLI smoke test
+        run: xrpl-hermes validate-address rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
+
+  wheel:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
-      - run: pip install -r requirements.txt pytest
-      - run: python3 -m pytest -q
-      - run: python3 -m scripts.xrpl_tools server-info
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Build wheel and source distribution
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Install wheel into a clean environment
+        run: |
+          python -m venv /tmp/xrpl-hermes-wheel
+          /tmp/xrpl-hermes-wheel/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/xrpl-hermes-wheel/bin/python -m scripts.package_acceptance

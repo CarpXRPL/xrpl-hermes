@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrpl-hermes"
-version = "1.8.3"
-description = "Open-source XRPL ecosystem toolkit — 65 knowledge files + 72 commands (67 exposed over MCP; key-management and broadcast stay local) + MCP server covering L1, EVM Sidechain, Xahau Hooks, Flare FTSOv2, Axelar status, Arweave cost estimates, token intelligence, AMMs, and live amendment checks"
+version = "1.9.0"
+description = "Open-source XRPL ecosystem toolkit — 65 knowledge files + 72 registered commands (67 agent-safe over MCP; legacy key-management and broadcast surfaces quarantined) with certified XRPL L1 reads and unsigned builders"
 authors = [{name = "CarpXRPL"}]
-license = {text = "MIT"}
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -19,6 +19,15 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 include = ["scripts*"]
+
+[tool.setuptools.data-files]
+"share/xrpl-hermes" = ["SKILL.md", "README.md", "QUICKSTART.md", "LIMITATIONS.md", "SECURITY.md", "CHANGELOG.md", "LICENSE"]
+"share/xrpl-hermes/knowledge" = ["knowledge/*.md"]
+"share/xrpl-hermes/references" = ["references/*.md"]
+"share/xrpl-hermes/skills" = ["skills/*.md"]
+"share/xrpl-hermes/docs" = ["docs/*.md"]
+"share/xrpl-hermes/examples" = ["examples/*.py", "examples/*.md"]
+"share/xrpl-hermes/examples/js" = ["examples/js/*.md", "examples/js/*.js"]
 
 [project.scripts]
 xrpl-hermes = "scripts.xrpl_tools:main"

@@ -109,7 +109,9 @@ def test_report_shape_with_all_datapoints(monkeypatch):
     assert set(report["datapoints"]) == {
         "issuer_account", "issuer_recent_transactions", "trustline_sample",
         "dex_orderbook_vs_xrp", "amm_pool_vs_xrp"}
-    assert report["confidence"] == "high"
+    assert report["confidence"] == "medium"
+    assert report["recommendation"] == "not provided"
+    assert "ledger snapshot only" in report["confidence_scope"]
     assert report["missing_data"] == []
     assert len(report["sources"]) == 5
 

@@ -1,6 +1,6 @@
 # Wallet Signing UX Product Flow
 
-Use this product playbook when the user wants wallet login, transaction signing handoff, Xaman/Joey/Privy/MetaMask integration, or a reusable "sign this unsigned XRPL JSON" component.
+Use this product playbook for a generic external-wallet authorization handoff or the guarded Xaman XRPL L1 Payment-only helper. Joey/Privy/MetaMask integrations are uncertified external dependencies until separately accepted.
 
 This is a **cross-cutting product component**: every XRPL product that moves value should depend on it instead of inventing signing UX again.
 
@@ -39,7 +39,7 @@ Builders creating web apps, dashboards, bots, launch tools, payment apps, or age
 ## Commands/tools
 
 - `validate-address rADDR`
-- `xaman-payload '{...}'` when Xaman API keys are configured
+- `xaman-payload PAYMENT_JSON` for reviewed XRPL L1 Payments when Xaman API keys are configured
 - `decode TX_BLOB` for signed material review
 - `tx-info HASH` for final validated confirmation
 - the relevant `build-*` command from the operation flow
@@ -48,8 +48,8 @@ Builders creating web apps, dashboards, bots, launch tools, payment apps, or age
 
 A wallet-handoff component spec with three paths:
 
-1. **Manual path** — copy unsigned JSON into a wallet/developer signing surface. Requires no API keys.
-2. **Xaman path** — create a payload/QR/deeplink with `xaman-payload` where credentials exist.
+1. **Generic external-signer path** — pass reviewed unsigned intent only through a separately accepted wallet/provider integration; do not assume a raw developer-paste surface exists or is safe.
+2. **Xaman path** — for XRPL L1 Payments only, create a payload/QR/deeplink with `xaman-payload` where credentials exist.
 3. **Callback/confirmation path** — after signing/submission, verify the tx hash with `tx-info` and require `validated: true` before marking complete.
 
 ## Required UX rules

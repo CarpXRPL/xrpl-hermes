@@ -39,7 +39,7 @@ This allows very large and very small amounts, but with 15 significant decimal d
 ## 2. Issuer Requirements
 
 For an account to issue tokens:
-1. Must be funded (≥ 1 XRP reserve)
+1. Must satisfy the selected network's current validated-ledger reserve requirement
 2. Should set `DefaultRipple` flag (for rippling between holders)
 3. Should set `TickSize` for DEX precision (2–8 decimal places)
 4. Optional: set `TransferRate`, `Domain`, `RequireAuth`
@@ -52,7 +52,7 @@ from xrpl.models.transactions.account_set import AccountSetAsfFlag
 tx = AccountSet(
     account="rISSUER...",
     set_flag=AccountSetAsfFlag.ASF_DEFAULT_RIPPLE,
-    fee="12",
+    fee="<autofill>",
     sequence=1
 )
 ```
@@ -91,7 +91,7 @@ from xrpl.models.transactions import AccountSet
 tx = AccountSet(
     account="rISSUER...",
     transfer_rate=1_005_000_000,  # 0.5%
-    fee="12",
+    fee="<autofill>",
     sequence=2
 )
 ```
@@ -156,7 +156,7 @@ Issuers with `RequireAuth` enabled must authorize each trust line before tokens 
 tx = AccountSet(
     account="rISSUER...",
     set_flag=AccountSetAsfFlag.ASF_REQUIRE_AUTH,
-    fee="12",
+    fee="<autofill>",
     sequence=3
 )
 
@@ -236,7 +236,7 @@ If the issuer sets `AllowTrustLineClawback`, they can reclaim tokens:
     "issuer": "rHOLDER...",
     "value": "100"
   },
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 10
 }
 ```
@@ -250,7 +250,7 @@ Note: Enabling clawback disables NoFreeze and global freeze.
 | Feature | Issued Currency | MPT |
 |---------|----------------|-----|
 | Storage | Trust line objects | MPT objects |
-| Reserve per holder | 0.2 XRP | Much less |
+| Reserve per holder | Trust-line ownership under live reserve values | Amendment/object-specific; query live state |
 | Maximum holders | Millions | Millions |
 | Fractional amounts | 15 sig digits | Configurable precision |
 | Transfer fee | Yes | Yes |
@@ -286,7 +286,7 @@ Blackholing makes the issuer account permanently unable to transact, making the 
 set_key = SetRegularKey(
     account="rISSUER...",
     regular_key="rrrrrrrrrrrrrrrrrrrrBZbvji",  # the "black hole"
-    fee="12",
+    fee="<autofill>",
     sequence=99
 )
 
@@ -294,7 +294,7 @@ set_key = SetRegularKey(
 disable_master = AccountSet(
     account="rISSUER...",
     set_flag=AccountSetAsfFlag.ASF_DISABLE_MASTER,
-    fee="12",
+    fee="<autofill>",
     sequence=100
 )
 ```
@@ -317,7 +317,7 @@ Before issuing tokens on mainnet:
 - [ ] Test trust line creation with a test wallet
 - [ ] Issue initial token supply to distributing wallet
 - [ ] Create AMM or DEX offers for liquidity
-- [ ] Register on XRPLMeta / Bithomp / xrpl.to
+- [ ] If external metadata listing is needed, verify the provider's current first-party process and contract separately
 - [ ] Blackhole issuer if supply should be fixed
 
 ---

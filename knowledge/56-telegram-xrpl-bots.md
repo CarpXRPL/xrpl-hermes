@@ -1,6 +1,9 @@
-# 56 — Telegram XRPL Bots (Expanded)
+# 56 — Telegram XRPL Bot Patterns
 
-Build production-ready Telegram bots that monitor wallets, stream ledger events, send price alerts, and deliver Xaman sign requests. Based on `python-telegram-bot >=20.0` and `xrpl-py >= 2.5.0`.
+Illustrative read/build bot patterns—not production acceptance. Before deployment, add authentication,
+authorization, abuse/rate limits, async-client isolation, persistence, callback verification,
+observability and failure recovery. Any Xaman payload must use the guarded Payment-only
+`xaman-payload` command and remains an external side effect; these snippets do not certify it.
 
 ## Stack
 
@@ -116,13 +119,9 @@ async def menu(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 ## Xaman Sign Requests
 
-Use the `xaman-payload` CLI tool to generate sign URLs:
+`xaman-payload` can create a real signing request for a locally validated XRPL L1 Payment only. Build and review the Payment first, then pass its actual JSON locally; it is denied over MCP. Do not use placeholder addresses in a live request.
 
-```bash
-python3 -m scripts.xrpl_tools xaman-payload '{"TransactionType": "Payment", "Account": "rSENDER", "Destination": "rDEST", "Amount": "1000000"}'
-```
-
-Requires `XUMM_API_KEY` and `XUMM_API_SECRET` environment variables. Get free dev keys at https://apps.xumm.dev.
+This guarded local helper requires credentials provisioned through current first-party Xaman Platform documentation. Never place those credentials in bot messages, MCP configuration, example files or logs.
 
 ## Production Deployment
 
@@ -192,7 +191,7 @@ keyboard = InlineKeyboardMarkup([[
 ]])
 ```
 
-Use the xaman-payload CLI tool with this TX JSON when a user needs to sign a response transaction.
+Use a compatible external signer for the response transaction. Use `xaman-payload` only if the response is a validated XRPL L1 Payment.
 
 ## Error Recovery and Reconnection
 
@@ -226,7 +225,7 @@ WantedBy=multi-user.target
 - Use a private Clio endpoint for busy bots.
 - Rate-limit commands per user and per chat.
 - Log transaction hashes, not wallet secrets.
-- Send signing requests through `python3 -m scripts.xrpl_tools xaman-payload '{...}'`.
+- Create `xaman-payload` requests only for reviewed XRPL L1 Payments and only after explicit user action.
 
 ### 1. Webhook vs Polling
 
@@ -234,7 +233,7 @@ Telegram supports both. `run_polling()` is fine for small bots. For production, 
 
 ### 2. User Authentication / Wallet Linking
 
-Allow users to link their XRPL address to their Telegram user ID. Store the mapping in SQLite. Verify ownership by asking them to submit a small micro-payment or sign a message (use xaman-payload). This enables address-specific commands like /mybalance without requiring the user to type their address every time.
+Allow users to link their XRPL address to their Telegram user ID. Store the mapping in SQLite. Define and independently verify a current wallet-auth challenge/callback flow; do not treat payload creation alone as proof of account ownership.
 
 ### 3. Inline Keyboards & Callback Queries
 

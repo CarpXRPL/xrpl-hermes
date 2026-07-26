@@ -13,7 +13,7 @@
 | Feature | Trust Lines | MPTokens |
 |---|---|---|
 | Relationship | Bilateral (both parties agree) | Unilateral (issuer controls) |
-| Reserve cost | 0.2 XRP per trust line per account | Single MPTokenIssuance entry |
+| Reserve cost | Trust-line ownership under live reserve values | Amendment-specific issuance/holder objects; query live state |
 | Transfer fees | Via TransferRate (global) | Per-issuance (can vary per issuance) |
 | Freezing | Per trust line or global | Per-holder or global |
 | Locking | Not available natively | Built-in locking mechanism |
@@ -140,7 +140,7 @@ MPTokens have a single designated issuer. There is no "both sides" concept like 
 
 ### No Reserve Per Holder
 
-With trust lines, each holder pays 0.2 XRP reserve per trust line. With MPTokens, only the issuer pays reserve for the MPTokenIssuance object. Holders pay a smaller reserve for their MPToken balance object.
+Trust-line and MPT reserve ownership differ by object and amendment behavior. Query current validated state for both issuer and holder accounts; do not assume a fixed XRP value or that only one side bears reserve.
 
 ### Transfer Fees
 

@@ -60,7 +60,7 @@ The `Clawback` transaction type allows an issuer to reclaim tokens from a holder
     "issuer": "rHolderAddress",
     "value": "1000"
   },
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 50
 }
 ```
@@ -69,38 +69,13 @@ This claws back 1000 USD from `rHolderAddress` that was originally issued by `rI
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import Clawback
-from xrpl.models.amounts import IssuedCurrencyAmount
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-clawback_tx = Clawback(
-    account="rIssuerAddress",
-    amount=IssuedCurrencyAmount(
-        currency="USD",
-        issuer="rHolderAddress",
-        value="1000",
-    ),
-)
-response = submit_and_wait(clawback_tx, client, issuer_wallet)
-```
 
 ### JavaScript Example
 
-```javascript
-const { Clawback } = require('xrpl');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-const clawback = {
-  TransactionType: 'Clawback',
-  Account: 'rIssuerAddress',
-  Amount: {
-    currency: 'USD',
-    issuer: 'rHolderAddress',
-    value: '1000',
-  },
-};
-const response = await client.submitAndWait(clawback, { wallet: issuerWallet });
-```
 
 ## Trust Line Creation Window
 

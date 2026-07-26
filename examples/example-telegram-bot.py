@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-xrpl-hermes — Telegram bot with XRPL balance, tx, and sign-link commands.
+xrpl-hermes — Telegram bot with XRPL balance, tx, and unsigned Payment previews.
 
 Commands:
     /balance rADDRESS    — fetch XRP balance
     /tx HASH             — look up a transaction
-    /pay rDEST AMOUNT    — generate Xaman sign link
+    /pay rDEST AMOUNT    — generate unsigned Payment JSON for external review/signing
 
 Usage:
     pip install python-telegram-bot xrpl-py
@@ -15,11 +15,11 @@ Usage:
 
 import os
 import json
-from urllib.parse import quote
 
 from xrpl.clients import JsonRpcClient
 from xrpl.models.requests import AccountInfo, Tx
 from xrpl.utils import drops_to_xrp
+from xrpl.core.addresscodec import is_valid_classic_address
 
 try:
     from telegram import Update
@@ -29,10 +29,6 @@ except ImportError:
     raise
 
 XRPL_CLIENT = JsonRpcClient("https://xrplcluster.com")
-
-
-def xaman_url(tx_json: dict) -> str:
-    return "Use the xaman-payload CLI tool with this TX JSON"
 
 
 async def balance(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -81,19 +77,29 @@ async def tx_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def pay(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    message = update.effective_message
+    if message is None:
+        return
     if len(ctx.args) < 2:
-        await update.message.reply_text("Usage: /pay rDEST AMOUNT_IN_DROPS")
+        await message.reply_text("Usage: /pay rDEST AMOUNT_IN_DROPS")
         return
     dest, amount = ctx.args[0], ctx.args[1]
+    if not is_valid_classic_address(dest):
+        await message.reply_text("Destination must be a valid classic r-address.")
+        return
+    if not amount.isascii() or not amount.isdigit() or int(amount) <= 0:
+        await message.reply_text("Amount must be positive integer drops.")
+        return
     tx_json = {
         "TransactionType": "Payment",
         "Destination": dest,
         "Amount": amount,
     }
-    url = xaman_url(tx_json)
-    await update.message.reply_text(
-        f"[Sign this payment in Xaman]({url})\n"
-        f"Dest: `{dest}` | Amount: {int(amount)/1_000_000:.6f} XRP",
+    await message.reply_text(
+        "Unsigned Payment preview — review every field, then use a compatible user-owned signer. "
+        "The local `xaman-payload` command currently accepts validated Payments only.\n"
+        f"```json\n{json.dumps(tx_json, indent=2)}\n```\n"
+        f"Amount: {int(amount)/1_000_000:.6f} XRP",
         parse_mode="Markdown",
     )
 

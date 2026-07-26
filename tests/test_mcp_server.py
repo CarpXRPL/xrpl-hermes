@@ -55,7 +55,7 @@ def test_mcp_session():
                            "params": {"protocolVersion": "2025-06-18",
                                       "capabilities": {}, "clientInfo": {"name": "pytest", "version": "0"}}})
         assert init["result"]["serverInfo"]["name"] == "xrpl-hermes"
-        assert init["result"]["serverInfo"]["version"] == "1.8.3"
+        assert init["result"]["serverInfo"]["version"] == "1.9.0"
 
         # notification: must produce no response (next reply is for id 2)
         proc.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
@@ -164,7 +164,7 @@ def test_denied_commands_refused_before_subprocess(monkeypatch, command):
         mcp._run_command(command, [])
     text = str(exc.value)
     assert "not available over MCP" in text
-    assert "local developer CLI" in text
+    assert "quarantined" in text
     assert not _contains_decodable_seed(text)
 
 
@@ -211,7 +211,7 @@ def test_mcp_denies_secret_and_broadcast_commands_over_stdio():
             assert resp["result"]["isError"] is True, cmd
             text = resp["result"]["content"][0]["text"]
             assert "not available over MCP" in text, (cmd, text)
-            assert "local developer CLI" in text, (cmd, text)
+            assert "quarantined" in text, (cmd, text)
             assert not _contains_decodable_seed(text), (cmd, "denial response leaked a seed")
             assert "master_seed" not in text and "seed_hex" not in text, cmd
 
@@ -239,16 +239,16 @@ def test_mcp_denies_secret_and_broadcast_commands_over_stdio():
         proc.wait(timeout=10)
 
 
-def test_version_surfaces_report_1_8_3():
+def test_version_surfaces_report_1_9_0():
     """Version synchronization: pyproject, SKILL.md, MCP SERVER_INFO, and the newest
     CHANGELOG entry all report this hotfix release."""
     import scripts.mcp_server as mcp
     from scripts.audit_project_quality import check_version_sync
 
-    assert mcp.SERVER_INFO["version"] == "1.8.3"
-    assert re.search(r'^version\s*=\s*"1\.8\.3"', (ROOT / "pyproject.toml").read_text(), re.M)
-    assert re.search(r"^version:\s*1\.8\.3\s*$", (ROOT / "SKILL.md").read_text(), re.M)
-    assert re.search(r"^##\s*v?1\.8\.3\b", (ROOT / "CHANGELOG.md").read_text(), re.M)
+    assert mcp.SERVER_INFO["version"] == "1.9.0"
+    assert re.search(r'^version\s*=\s*"1\.9\.0"', (ROOT / "pyproject.toml").read_text(), re.M)
+    assert re.search(r"^version:\s*1\.9\.0\s*$", (ROOT / "SKILL.md").read_text(), re.M)
+    assert re.search(r"^##\s*v?1\.9\.0\b", (ROOT / "CHANGELOG.md").read_text(), re.M)
     assert check_version_sync([]) == [], "version surfaces disagree"
 
 

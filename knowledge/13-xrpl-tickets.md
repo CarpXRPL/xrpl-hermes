@@ -27,7 +27,7 @@ With tickets:
   "TransactionType": "TicketCreate",
   "Account": "rBOT...",
   "TicketCount": 10,
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 100
 }
 ```
@@ -41,7 +41,7 @@ After this transaction succeeds:
 - 10 ticket objects are created on ledger
 - Each ticket has a `TicketSequence` value: 101, 102, ... 110
 
-**Reserve cost**: Each ticket costs 0.2 XRP reserve (returned when ticket is consumed or cancelled).
+**Reserve cost**: Each owned Ticket adds one live incremental owner-reserve unit until consumed or removed with the account.
 
 ---
 
@@ -57,7 +57,7 @@ A transaction using a ticket sets `Sequence: 0` and `TicketSequence` to the rese
   "Amount": "1000000",
   "Sequence": 0,
   "TicketSequence": 101,
-  "Fee": "12"
+  "Fee": "<autofill>"
 }
 ```
 
@@ -69,7 +69,7 @@ A transaction using a ticket sets `Sequence: 0` and `TicketSequence` to the rese
   "Amount": "2000000",
   "Sequence": 0,
   "TicketSequence": 102,
-  "Fee": "12"
+  "Fee": "<autofill>"
 }
 ```
 
@@ -109,119 +109,15 @@ Response ticket object:
 
 ## 5. Python: High-Throughput Parallel Submission
 
-```python
-import asyncio
-from xrpl.asyncio.clients import AsyncJsonRpcClient
-from xrpl.models.transactions import Payment, TicketCreate
-from xrpl.asyncio.transaction import autofill_and_sign, submit_and_wait
-from xrpl.wallet import Wallet
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async def parallel_payments(destinations: list, amounts: list):
-    client = AsyncJsonRpcClient("https://xrplcluster.com")
-    wallet = Wallet.from_seed("sn...")
-    n = len(destinations)
-
-    # Step 1: Create tickets
-    ticket_tx = TicketCreate(
-        account=wallet.address,
-        ticket_count=n,
-        sequence=wallet.sequence
-    )
-    signed = await autofill_and_sign(ticket_tx, wallet, client)
-    result = await submit_and_wait(signed, client)
-    assert result.result["meta"]["TransactionResult"] == "tesSUCCESS"
-
-    # Step 2: Get tickets
-    from xrpl.models.requests import AccountObjects
-    resp = await client.request(AccountObjects(account=wallet.address, type="ticket"))
-    ticket_seqs = sorted([t["TicketSequence"] for t in resp.result["account_objects"]])
-
-    # Step 3: Submit all payments in parallel
-    async def send_payment(dest, amount, ticket_seq):
-        tx = Payment(
-            account=wallet.address,
-            destination=dest,
-            amount=str(amount),
-            sequence=0,
-            ticket_sequence=ticket_seq,
-            fee="12"
-        )
-        signed = wallet.sign(tx)
-        return await submit_and_wait(signed, client)
-
-    tasks = [
-        send_payment(destinations[i], amounts[i], ticket_seqs[i])
-        for i in range(n)
-    ]
-    results = await asyncio.gather(*tasks)
-    
-    for i, r in enumerate(results):
-        print(f"Ticket {ticket_seqs[i]}: {r.result['meta']['TransactionResult']}")
-    
-    await client.close()
-
-asyncio.run(parallel_payments(
-    ["rA...", "rB...", "rC..."],
-    [1000000, 2000000, 3000000]
-))
-```
 
 ---
 
 ## 6. JavaScript: Parallel Submission with Tickets
 
-```javascript
-const xrpl = require('xrpl');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async function parallelWithTickets(destinations, amounts) {
-  const client = new xrpl.Client('wss://xrplcluster.com');
-  await client.connect();
-
-  const wallet = xrpl.Wallet.fromSeed('sn...');
-  const n = destinations.length;
-
-  // Create tickets
-  const ticketTx = await client.autofill({
-    TransactionType: 'TicketCreate',
-    Account: wallet.address,
-    TicketCount: n
-  });
-  const { tx_blob } = wallet.sign(ticketTx);
-  await client.submitAndWait(tx_blob);
-
-  // Get ticket sequences
-  const resp = await client.request({
-    command: 'account_objects',
-    account: wallet.address,
-    type: 'ticket'
-  });
-  const ticketSeqs = resp.result.account_objects
-    .map(t => t.TicketSequence)
-    .sort((a, b) => a - b);
-
-  // Submit all payments in parallel
-  const promises = destinations.map(async (dest, i) => {
-    const tx = {
-      TransactionType: 'Payment',
-      Account: wallet.address,
-      Destination: dest,
-      Amount: String(amounts[i]),
-      Sequence: 0,
-      TicketSequence: ticketSeqs[i],
-      Fee: '12'
-    };
-    const { tx_blob } = wallet.sign(tx);
-    return client.submitAndWait(tx_blob);
-  });
-
-  const results = await Promise.all(promises);
-  results.forEach((r, i) => {
-    console.log(`Ticket ${ticketSeqs[i]}: ${r.result.meta.TransactionResult}`);
-  });
-
-  await client.disconnect();
-}
-```
 
 ---
 
@@ -229,32 +125,14 @@ async function parallelWithTickets(destinations, amounts) {
 
 Multi-signing often takes minutes (waiting for multiple signers). Use tickets so the master account's sequence doesn't block:
 
-```python
-# Coordinator creates 5 tickets for 5 pending multi-sig proposals
-# Each proposal gets its own ticket
-# Signers can work on proposals in any order
-# Once quorum reached, submit with that ticket's sequence
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-proposals = [
-    {"ticket": 101, "tx": payment_tx_1, "sigs": []},
-    {"ticket": 102, "tx": nft_mint_tx, "sigs": []},
-    {"ticket": 103, "tx": trust_set_tx, "sigs": []},
-]
-
-# When proposal gets enough signatures, submit
-async def submit_when_ready(proposal):
-    while len(proposal["sigs"]) < QUORUM:
-        await asyncio.sleep(5)
-    
-    combined = multisign(proposal["tx"], proposal["sigs"])
-    return await submit_and_wait(combined, client)
-```
 
 ---
 
 ## 8. Cancelling Unused Tickets
 
-Unused tickets lock 0.2 XRP each. Cancel by submitting an `AccountDelete` (not usually practical) or... you cannot directly cancel. Instead submit a trivial transaction using the ticket:
+There is no `TicketCancel` transaction. To consume an unused Ticket, build a legitimate reviewed transaction that uses `Sequence: 0` and that `TicketSequence`; do not create a meaningless value-moving transaction merely to release reserve. Authorization and submission remain in the user's external signer.
 
 ```json
 {
@@ -262,11 +140,11 @@ Unused tickets lock 0.2 XRP each. Cancel by submitting an `AccountDelete` (not u
   "Account": "rBOT...",
   "Sequence": 0,
   "TicketSequence": 105,
-  "Fee": "12"
+  "Fee": "<autofill>"
 }
 ```
 
-This "wastes" the ticket but releases the 0.2 XRP reserve.
+After the externally authorized transaction is validated, re-read account state to confirm the Ticket is gone and reserve accounting changed as expected.
 
 ---
 
@@ -319,9 +197,9 @@ async def airdrop(recipients: list, amount: int):
 |-----------|-------|
 | Max tickets per TicketCreate | 250 |
 | Max outstanding tickets per account | 250 |
-| Reserve per ticket | 0.2 XRP |
+| Reserve per ticket | One live incremental owner-reserve unit |
 | Ticket lifetime | Until used or account deleted |
-| TicketCount upper bound cost | 250 × 0.2 = 50 XRP reserve |
+| TicketCount upper bound cost | Query live increment × requested TicketCount |
 
 ---
 

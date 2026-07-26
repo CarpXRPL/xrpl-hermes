@@ -1,62 +1,44 @@
-# XRPL-Hermes examples (Python)
+# XRPL-Hermes examples
 
-Runnable Python examples. They fall into **three layers — know which one you're
-running.** The signer-separated model is the whole point: builders produce
-*unsigned* JSON; your wallet/signing layer signs; **keys stay with you.**
-JavaScript/TypeScript (`xrpl.js`) build-only twins live in [`js/`](js/).
+The supported pattern is signer-separated:
 
-## 1. Builder layer — unsigned, no seed, no signing
+1. XRPL-Hermes produces **unsigned** transaction JSON with a validated `build-*` command.
+2. The user reviews it and hands it to a compatible user-owned wallet/signing system.
+3. XRPL-Hermes verifies the final result with `tx-info` and requires `validated: true`.
 
-Construct signer-ready transaction JSON and print it. They never read a seed,
-never sign, and never submit — exactly like the `build-*` CLI commands and the
-[`js/`](js/) twins.
+No example reads a seed/private key, signs, submits or uploads.
 
-| Example | Builds |
+## Runnable build/read examples
+
+| Example | Status |
 |---|---|
-| `example-agent-receipt.py` | Unsigned `NFTokenMint` recording an agent run / skill evolution as an on-chain receipt (compact base64 `data:` URI, 256-byte limit enforced after encoding). Twin of [`js/agent-receipt-nft.js`](js/agent-receipt-nft.js); flow in [`../skills/agent-receipt-flow.md`](../skills/agent-receipt-flow.md). |
+| `example-agent-receipt.py` | Build-only unsigned `NFTokenMint` receipt; no signing/submission |
+| `example-token-safety-check.py` | Read-only token ledger snapshot/risk check |
+| `example-telegram-bot.py` | Read-only bot plus unsigned Payment preview |
+| `example-discord-bot.py` | Read-only bot pattern; verify current dependencies before deployment |
+| `js/agent-receipt-nft.js` | Build-only JavaScript receipt twin |
 
-Most builders are one CLI call — `python3 scripts/xrpl_tools.py build-payment …`
-emits the same unsigned JSON. Full command list: the tool table in [`../SKILL.md`](../SKILL.md).
-
-## 2. Wallet layer — signs + submits with YOUR testnet seed
-
-These demonstrate the **other half** of the signer-separated model working end to
-end: the *user's* wallet/signing stack autofills, signs, and submits on
-**testnet**. They are intentionally **not** build-only — they show that the part
-the agent never touches (the keys) lives here, in your stack. This is the North
-Star in practice: *the agent builds; your wallet signs.*
-
-Each reads `XRPL_SEED` from the environment (never hardcoded, never committed) and
-targets testnet. Move to mainnet deliberately, behind explicit approval.
+Most transaction examples are one CLI call:
 
 ```bash
-export XRPL_SEED=sEd...            # a funded testnet wallet; faucet: https://faucet.altnet.rippletest.net
-python3 examples/example-build-payment.py
+python3 -m scripts.xrpl_tools build-payment --from rSRC --to rDST --amount 1000000
 ```
 
-| Example | Signs + submits (testnet) |
-|---|---|
-| `example-build-payment.py` | sends XRP (`Payment`) |
-| `example-setup-trustline.py` | opens a trust line (`TrustSet`) |
-| `example-create-offer.py` | places a DEX offer (`OfferCreate`) |
-| `example-cross-currency.py` | cross-currency payment |
-| `example-mint-nft.py` | mints an NFT (`NFTokenMint`) |
-| `example-nft-buy.py` | buys an NFT |
-| `example-amm-deposit.py` | adds AMM liquidity |
-| `example-clawback.py` | issuer clawback |
-| `example-multisig.py` | multisigned submission |
+Use the command table in [`../SKILL.md`](../SKILL.md) for exact builder syntax. Placeholder addresses above are documentation tokens, not executable addresses.
 
-## 3. Read-only — live queries, no wallet
+## Retired direct-sign examples
 
-| Example | Reads |
-|---|---|
-| `example-token-safety-check.py` | live token risk report (exit code 0/1/2 for scripts) |
-| `example-telegram-bot.py` · `example-discord-bot.py` | bot patterns: query the ledger, alert |
-| `example-evm-swap.py` | XRPL EVM Sidechain swap pattern |
+The following filenames are retained as explicit migration stubs. Running one returns a JSON retirement notice and exit code 2; it never reads a key, signs or submits:
 
----
+- `example-build-payment.py`
+- `example-setup-trustline.py`
+- `example-create-offer.py`
+- `example-cross-currency.py`
+- `example-mint-nft.py`
+- `example-nft-buy.py`
+- `example-amm-deposit.py`
+- `example-clawback.py`
+- `example-multisig.py`
+- `example-evm-swap.py` (also lacks a certified route/router)
 
-**Safety (all examples):** no seeds or private keys are committed; builder
-examples never sign; wallet-layer examples sign only with *your* env-supplied
-testnet seed. See [`../SECURITY.md`](../SECURITY.md) and the Safety rules in
-[`../SKILL.md`](../SKILL.md).
+Use the named `build-*` replacement in each stub, external signing, and validated-ledger verification.

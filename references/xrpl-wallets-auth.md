@@ -52,7 +52,7 @@ XRPL-Hermes can only calculate legacy `HookOn` and inspect validated installed h
 
 ## Xaman notes
 
-Use `xaman-payload` only with valid Xaman Platform credentials and a complete, reviewed unsigned XRPL transaction. Creating a payload is an external side effect. Never expose the application secret client-side. Verify the returned payload UUID and then verify the final XRPL transaction independently.
+Use `xaman-payload` only with valid Xaman Platform credentials and a complete, reviewed unsigned XRPL L1 Payment. Other transaction types are rejected until independently validated. Creating a payload is an external side effect. Never expose the application secret client-side. Verify the returned payload UUID and then verify the final XRPL transaction independently.
 
 Current first-party documentation: <https://docs.xaman.dev/>
 

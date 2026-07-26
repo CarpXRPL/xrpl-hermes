@@ -1,49 +1,72 @@
 #!/usr/bin/env python3
-"""Flare price feeds.
-
-flare-ftso reads FTSOv2 feeds directly from the Flare C-chain via eth_call —
-real on-chain oracle values. flare-price remains a CoinGecko convenience
-fallback and labels its source honestly.
-"""
-import sys
+"""Narrow Flare FTSOv2 reads plus labeled CoinGecko context."""
 from datetime import datetime, timezone
+import sys
+
 import httpx
-from ._shared import json_out, note_out, usage_out
+
+from ._shared import json_out, usage_out
 
 FLARE_RPC = "https://flare-api.flare.network/ext/C/rpc"
-# FlareContractRegistry has the same address on all Flare networks (dev.flare.network).
+FLARE_CHAIN_ID = 14
 FLARE_CONTRACT_REGISTRY = "0xaD67FE66660Fb8dFE9d6b1b4240d8650e30F6019"
-# keccak4("getContractAddressByName(string)") / keccak4("getFeedById(bytes21)")
 _SEL_GET_CONTRACT_BY_NAME = "0x82760fca"
 _SEL_GET_FEED_BY_ID = "0x93e9f806"
+MAX_FEED_AGE_SECONDS = 300
+COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
+
+
+def _rpc(method: str, params: list):
+    response = httpx.post(
+        FLARE_RPC,
+        json={"jsonrpc": "2.0", "method": method, "params": params, "id": 1},
+        timeout=15,
+    )
+    response.raise_for_status()
+    body = response.json()
+    if not isinstance(body, dict):
+        raise RuntimeError("Flare JSON-RPC response was not an object")
+    if body.get("error"):
+        error = body["error"]
+        message = error.get("message") if isinstance(error, dict) else str(error)
+        raise RuntimeError(message or "Flare JSON-RPC call failed")
+    if "result" not in body:
+        raise RuntimeError("Flare JSON-RPC response omitted result")
+    return body["result"]
 
 
 def _eth_call(to: str, data: str) -> str:
-    payload = {"jsonrpc": "2.0", "method": "eth_call",
-               "params": [{"to": to, "data": data}, "latest"], "id": 1}
-    resp = httpx.post(FLARE_RPC, json=payload, timeout=15)
-    resp.raise_for_status()
-    body = resp.json()
-    if "error" in body:
-        raise RuntimeError(body["error"].get("message", "eth_call failed"))
-    return body.get("result", "0x")
+    result = _rpc("eth_call", [{"to": to, "data": data}, "latest"])
+    if not isinstance(result, str) or not result.startswith("0x"):
+        raise RuntimeError("eth_call result was not hexadecimal")
+    return result
+
+
+def _chain_id() -> int:
+    result = _rpc("eth_chainId", [])
+    if not isinstance(result, str) or not result.startswith("0x"):
+        raise RuntimeError("eth_chainId result was not hexadecimal")
+    return int(result, 16)
 
 
 def _resolve_ftso_v2() -> str:
     name = b"FtsoV2"
-    data = (_SEL_GET_CONTRACT_BY_NAME
-            + (32).to_bytes(32, "big").hex()
-            + len(name).to_bytes(32, "big").hex()
-            + name.hex().ljust(64, "0"))
+    data = (
+        _SEL_GET_CONTRACT_BY_NAME
+        + (32).to_bytes(32, "big").hex()
+        + len(name).to_bytes(32, "big").hex()
+        + name.hex().ljust(64, "0")
+    )
     result = _eth_call(FLARE_CONTRACT_REGISTRY, data)
-    addr = "0x" + result[-40:]
-    if int(addr, 16) == 0:
+    if len(result) < 42:
+        raise RuntimeError("ContractRegistry returned a short address result")
+    address = "0x" + result[-40:]
+    if int(address, 16) == 0:
         raise RuntimeError("ContractRegistry returned zero address for FtsoV2")
-    return addr
+    return address
 
 
 def _feed_id(pair: str) -> str:
-    """FTSOv2 feed ID: category byte 0x01 (crypto) + ASCII pair name, 21 bytes."""
     name = pair.encode("ascii")
     if len(name) > 20:
         raise ValueError(f"feed name '{pair}' longer than 20 bytes")
@@ -53,14 +76,16 @@ def _feed_id(pair: str) -> str:
 def _read_feed(ftso_addr: str, pair: str) -> dict:
     data = _SEL_GET_FEED_BY_ID + _feed_id(pair).ljust(64, "0")
     result = _eth_call(ftso_addr, data)
-    h = result[2:]
-    if len(h) < 192:
+    encoded = result[2:]
+    if len(encoded) < 192:
         raise RuntimeError(f"unexpected eth_call result: {result}")
-    value = int(h[0:64], 16)
-    decimals = int(h[64:128], 16)
-    if decimals >= 2 ** 255:  # int8 sign-extended to 256 bits
+    value = int(encoded[0:64], 16)
+    decimals = int(encoded[64:128], 16)
+    if decimals >= 2 ** 255:
         decimals -= 2 ** 256
-    timestamp = int(h[128:192], 16)
+    if decimals < -18 or decimals > 18:
+        raise RuntimeError(f"feed decimals out of accepted range: {decimals}")
+    timestamp = int(encoded[128:192], 16)
     return {
         "value": value,
         "decimals": decimals,
@@ -71,83 +96,92 @@ def _read_feed(ftso_addr: str, pair: str) -> dict:
 
 
 def tool_flare_ftso(*pairs: str):
-    requested = [p.upper() for p in (pairs or ("FLR/USD", "XRP/USD"))]
-    bad = [p for p in requested if "/" not in p]
-    if bad:
-        usage_out("flare-ftso", "flare-ftso [PAIR ...]  (e.g. flare-ftso XRP/USD BTC/USD; default FLR/USD XRP/USD)")
+    requested = [pair.upper() for pair in (pairs or ("FLR/USD", "XRP/USD"))]
+    if any("/" not in pair for pair in requested):
+        usage_out("flare-ftso", "flare-ftso [PAIR ...]  (e.g. XRP/USD BTC/USD)")
         return
+    fetched_at = datetime.now(timezone.utc)
     try:
-        ftso_addr = _resolve_ftso_v2()
-    except Exception as e:
-        json_out({"Error": "FtsoV2Unavailable", "Message": str(e),
-                  "RPC": FLARE_RPC, "ContractRegistry": FLARE_CONTRACT_REGISTRY})
+        observed_chain_id = _chain_id()
+        if observed_chain_id != FLARE_CHAIN_ID:
+            raise RuntimeError(f"observed chain ID {observed_chain_id} does not match Flare Mainnet {FLARE_CHAIN_ID}")
+        ftso_address = _resolve_ftso_v2()
+    except Exception as exc:
+        json_out({
+            "Error": "FtsoV2Unavailable",
+            "Message": str(exc),
+            "RPC": FLARE_RPC,
+            "ContractRegistry": FLARE_CONTRACT_REGISTRY,
+            "FetchedAt": fetched_at.isoformat(),
+        })
         return
     feeds, missing = {}, []
+    now_epoch = int(fetched_at.timestamp())
     for pair in requested:
         try:
-            feeds[pair] = _read_feed(ftso_addr, pair)
-        except Exception as e:
-            missing.append({"pair": pair, "reason": str(e)})
+            feed = _read_feed(ftso_address, pair)
+            age = now_epoch - feed["timestamp"]
+            feed["age_seconds"] = max(0, age)
+            feed["future_timestamp"] = age < -60
+            feed["stale"] = age > MAX_FEED_AGE_SECONDS or age < -60
+            feeds[pair] = feed
+        except Exception as exc:
+            missing.append({"pair": pair, "reason": str(exc)})
     json_out({
-        "Source": "Flare FTSOv2 on-chain (eth_call)",
+        "Source": "Flare FTSOv2 on-chain eth_call",
         "RPC": FLARE_RPC,
-        "FtsoV2": ftso_addr,
+        "ObservedChainID": observed_chain_id,
+        "ExpectedChainID": FLARE_CHAIN_ID,
+        "ContractRegistry": FLARE_CONTRACT_REGISTRY,
+        "FtsoV2": ftso_address,
+        "FetchedAt": fetched_at.isoformat(),
+        "MaxFeedAgeSeconds": MAX_FEED_AGE_SECONDS,
         "Feeds": feeds,
         "MissingFeeds": missing,
-        "Note": "Values read live from the FtsoV2 contract resolved via the FlareContractRegistry. "
-                "A missing feed usually means no FTSOv2 feed exists for that pair name.",
+        "Status": "narrow-on-chain-read",
     })
 
+
 COINGECKO_IDS = {
-    "XRP": "ripple",
-    "BTC": "bitcoin",
-    "ETH": "ethereum",
-    "FLR": "flare-networks",
-    "SGB": "songbird",
-    "USDC": "usd-coin",
-    "USDT": "tether",
-    "RLUSD": "ripple-usd",
+    "XRP": "ripple", "BTC": "bitcoin", "ETH": "ethereum",
+    "FLR": "flare-networks", "SGB": "songbird", "USDC": "usd-coin",
+    "USDT": "tether", "RLUSD": "ripple-usd",
 }
 
 
 def tool_flare_price(*symbols: str):
-    requested = [s.upper() for s in (symbols or ("XRP", "FLR"))]
-    ids = {sym: COINGECKO_IDS.get(sym) for sym in requested}
-    missing = [sym for sym, coin_id in ids.items() if not coin_id]
+    requested = [symbol.upper() for symbol in (symbols or ("XRP", "FLR"))]
+    ids = {symbol: COINGECKO_IDS.get(symbol) for symbol in requested}
+    missing = [symbol for symbol, coin_id in ids.items() if not coin_id]
     query_ids = ",".join(sorted({coin_id for coin_id in ids.values() if coin_id}))
-
-    result = {sym: None for sym in requested}
-    source = "CoinGecko simple price API fallback"
+    prices = {symbol: None for symbol in requested}
+    fetched_at = datetime.now(timezone.utc).isoformat()
     if query_ids:
-        url = "https://api.coingecko.com/api/v3/simple/price"
         try:
-            resp = httpx.get(url, params={"ids": query_ids, "vs_currencies": "usd"}, timeout=15)
-            resp.raise_for_status()
-            data = resp.json()
-            reverse = {coin_id: sym for sym, coin_id in ids.items() if coin_id}
+            response = httpx.get(COINGECKO_URL, params={"ids": query_ids, "vs_currencies": "usd"}, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            if not isinstance(data, dict):
+                raise RuntimeError("CoinGecko response was not an object")
+            reverse = {coin_id: symbol for symbol, coin_id in ids.items() if coin_id}
             for coin_id, values in data.items():
-                sym = reverse.get(coin_id)
-                if sym:
-                    result[sym] = values.get("usd")
-        except Exception as e:
+                symbol = reverse.get(coin_id)
+                if symbol and isinstance(values, dict):
+                    prices[symbol] = values.get("usd")
+        except Exception as exc:
             json_out({
-                "Error": "PriceFetchFailed",
-                "Message": str(e),
-                "Source": source,
-                "PricesUSD": result,
-                "MissingSymbols": missing,
-                "Note": "This helper no longer claims direct FTSO HTTP data when public Flare endpoints are unavailable.",
+                "Error": "PriceFetchFailed", "Message": str(exc),
+                "Source": COINGECKO_URL, "FetchedAt": fetched_at,
+                "PricesUSD": prices, "MissingSymbols": missing,
+                "Capability": "market context only; not oracle proof",
             })
             return
-
-    if missing:
-        note_out(f"# Unknown price symbol(s): {', '.join(missing)}. Add a CoinGecko ID mapping before relying on them.")
-    note_out("# Price source: CoinGecko fallback, not direct on-chain FTSO proof.")
     json_out({
-        "Source": source,
-        "PricesUSD": result,
+        "Source": COINGECKO_URL,
+        "FetchedAt": fetched_at,
+        "PricesUSD": prices,
         "MissingSymbols": missing,
-        "Note": "Use this for quick market context only. For production oracle logic, query verified Flare FTSO/on-chain sources directly.",
+        "Capability": "market context only; not oracle proof",
     })
 
 

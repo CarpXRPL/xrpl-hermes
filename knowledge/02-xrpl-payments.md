@@ -73,7 +73,7 @@ The simplest payment: sending XRP directly between two accounts.
   "Account": "r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR",
   "Destination": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
   "Amount": "10000000",
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 15,
   "Flags": 0
 }
@@ -81,32 +81,13 @@ The simplest payment: sending XRP directly between two accounts.
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import Payment
-from xrpl.utils import xrp_to_drops
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-payment = Payment(
-    account="r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR",
-    destination="rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
-    amount=xrp_to_drops(10),
-)
-response = submit_and_wait(payment, client, wallet)
-```
 
 ### JavaScript Example
 
-```javascript
-const { Payment } = require('xrpl');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-const payment = {
-  TransactionType: 'Payment',
-  Account: 'r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR',
-  Destination: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
-  Amount: xrpl.xrpToDrops(10),
-};
-const response = await client.submitAndWait(payment, { wallet });
-```
 
 ## Direct Token Payment
 
@@ -124,7 +105,7 @@ Sending issued tokens (e.g., USD issued by Gateway) directly to an account that 
     "issuer": "rKiCet8SfE9T3zF3i1gXzT6YLuYQnXqXr",
     "value": "50"
   },
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 16
 }
 ```

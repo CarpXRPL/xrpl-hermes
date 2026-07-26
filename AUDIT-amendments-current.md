@@ -22,7 +22,7 @@ Counts: enabled 91, supported_not_enabled 13, vetoed 0, unsupported 0
 | `PermissionedDEX` | enabled | `677E401A423E3708363A36BA8B3A7D019D21AC5ABD00387BDBEA6BDE4C91247E` | live builder OK |
 | `PermissionedDomains` | enabled | `A730EB18A9D4BB52502C898589558B4CCEB4BE10044500EE5581137A2E80E849` | live builder OK |
 | `XRPFees` | enabled | `93E516234E35E08CA689FA33A6D38E103881F8DCB53023F728C307AA89D515A7` | live builder OK |
-| `Batch` | supported, not enabled | `894646DD5284E97DECFE6674A6D6152686791C4A95F8C132CCA9BAF9E5812FB6` | build-only warning/gating required |
+| `Batch` | supported, not enabled | `894646DD5284E97DECFE6674A6D6152686791C4A95F8C132CCA9BAF9E5812FB6` | security-retired; `build-batch` is unregistered |
 | `PermissionDelegation` | supported, not enabled | `AE6AB9028EEB7299EBB03C7CBCC3F2A4F5FBE00EA28B8223AA3118A0B436C1C5` | build-only warning/gating required |
 | `XChainBridge` | supported, not enabled | `C98D98EE9616ACD36E81FDEB8D41D349BF5F1B41DD64A0ABC1FE9AA5EA267E9C` | build-only warning/gating required |
 | `DynamicMPT` | supported, not enabled | `58E92F338758479C06084E1B6BA366BAD8F75E5329A7F0EEAFFFDA51E5106B7F` | build-only warning/gating required |
@@ -51,7 +51,7 @@ Counts: enabled 91, supported_not_enabled 13, vetoed 0, unsupported 0
 
 ## Notes
 
-- `Batch` is supported by current servers but not enabled on XRPL mainnet. XRPL-Hermes builders must warn that Batch payloads are build-only unless targeting a network where the amendment is active.
+- `Batch` is supported by current servers but not enabled on XRPL mainnet. XRPL-Hermes has security-retired and unregistered `build-batch`; amendment status does not make it an available capability.
 - `MPTokensV1`, `Credentials`, `DID`, `PriceOracle`, `AMMClawback`, `TokenEscrow`, `PermissionedDEX`, `PermissionedDomains`, and `XRPFees` returned enabled on the live mainnet feature endpoint.
 - `XChainBridge`, `PermissionDelegation`, `DynamicMPT`, `LendingProtocol`, and `SingleAssetVault` returned supported/not enabled and must not be documented as production mainnet features.
 - Hooks remain Xahau-specific in this skill unless XRPL mainnet feature status changes.

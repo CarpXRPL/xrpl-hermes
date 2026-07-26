@@ -9,7 +9,7 @@ It also covers royalties, transfer fees, taxon grouping, brokered offers, and au
 python3 -m scripts.xrpl_tools build-nft-mint --from rMINTER --taxon 1001 --uri ipfs://bafy... --transfer-fee 500 --flags 8
 ```
 
-The command prints signer-ready JSON. Send that JSON to a wallet, multisig process, or `xaman-payload`.
+The command prints signer-ready JSON. Send it to a compatible wallet or multisig process; `xaman-payload` currently accepts Payment only.
 
 ## Create Sell Offer
 
@@ -17,7 +17,7 @@ The command prints signer-ready JSON. Send that JSON to a wallet, multisig proce
 python3 -m scripts.xrpl_tools build-nft-create-offer --from rOWNER --nftoken-id NFT_ID --amount 25000000 --flags 1
 ```
 
-The command prints signer-ready JSON. Send that JSON to a wallet, multisig process, or `xaman-payload`.
+The command prints signer-ready JSON. Send it to a compatible wallet or multisig process; `xaman-payload` currently accepts Payment only.
 
 ## Discover Offers
 
@@ -25,7 +25,7 @@ The command prints signer-ready JSON. Send that JSON to a wallet, multisig proce
 python3 -m scripts.xrpl_tools nft-offers NFT_ID sell
 ```
 
-The command prints signer-ready JSON. Send that JSON to a wallet, multisig process, or `xaman-payload`.
+The command prints signer-ready JSON. Send it to a compatible wallet or multisig process; `xaman-payload` currently accepts Payment only.
 
 ## Accept Offer
 
@@ -33,7 +33,7 @@ The command prints signer-ready JSON. Send that JSON to a wallet, multisig proce
 python3 -m scripts.xrpl_tools build-nft-accept-offer --from rBUYER --sell-offer OFFER_INDEX
 ```
 
-The command prints signer-ready JSON. Send that JSON to a wallet, multisig process, or `xaman-payload`.
+The command prints signer-ready JSON. Send it to a compatible wallet or multisig process; `xaman-payload` currently accepts Payment only.
 
 ## Cancel Offer
 
@@ -41,7 +41,7 @@ The command prints signer-ready JSON. Send that JSON to a wallet, multisig proce
 python3 -m scripts.xrpl_tools build-nft-cancel-offer --from rOWNER --offers OFFER_INDEX
 ```
 
-The command prints signer-ready JSON. Send that JSON to a wallet, multisig process, or `xaman-payload`.
+The command prints signer-ready JSON. Send it to a compatible wallet or multisig process; `xaman-payload` currently accepts Payment only.
 
 ## Burn
 
@@ -49,7 +49,7 @@ The command prints signer-ready JSON. Send that JSON to a wallet, multisig proce
 python3 -m scripts.xrpl_tools build-nft-burn --from rOWNER --nftoken-id NFT_ID
 ```
 
-The command prints signer-ready JSON. Send that JSON to a wallet, multisig process, or `xaman-payload`.
+The command prints signer-ready JSON. Send it to a compatible wallet or multisig process; `xaman-payload` currently accepts Payment only.
 
 ## End-to-End Testnet Workflow
 
@@ -692,6 +692,6 @@ Implementation checklist:
 
 ## Related Files
 
-- [06-xrpl-nfts](knowledge/06-xrpl-nfts.md)
-- [23-xrpl-nft-minting](knowledge/23-xrpl-nft-minting.md)
-- [39-xrpl-nft-ops](knowledge/39-xrpl-nft-ops.md)
+- [06-xrpl-nfts](06-xrpl-nfts.md)
+- [23-xrpl-nft-minting](23-xrpl-nft-minting.md)
+- [39-xrpl-nft-ops](39-xrpl-nft-ops.md)

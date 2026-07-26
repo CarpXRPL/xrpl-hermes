@@ -1,6 +1,6 @@
 # Token Intelligence Reports — Live-Data Methodology
 
-How to produce a serious intelligence report on an XRPL issued token using live ledger data. This file is the deep companion to the **Token Intelligence Rules** in `SKILL.md`: no buy/snipe/risk call is made on fewer than 5 verified live data points, and every report carries a confidence level and a missing-data list.
+How to produce an evidence-based XRPL issued-token ledger report. The built-in `token-intel` command is a five-query snapshot, caps confidence at **Medium**, and never emits a buy/sell recommendation. A broader analyst report must distinguish ledger evidence from external identity, legal, market and social evidence.
 
 **Hard rule:** every number in a report comes from a tool run or a named API response. If a source fails, the report says *unavailable — <endpoint/command> failed*, never a plausible guess.
 
@@ -41,10 +41,10 @@ If `Domain` is set, decode it and fetch `https://<domain>/.well-known/xrp-ledger
 ```bash
 python3 -m scripts.xrpl_tools trustlines rISSUER <HEX_OR_3CHAR>
 ```
-Extract: number of returned lines (note pagination limits — public nodes cap responses; report "at least N" not "N"), balance distribution among returned lines, largest-holder share of what is visible. For full holder counts use an explorer API (XRPSCAN, xrpl.to, Bithomp) and **name the source and timestamp**; if no API is reachable, holder count is *unavailable*.
+Extract: number of returned lines (note pagination limits — public nodes cap responses; report "at least N" not "N"), balance distribution among returned lines, largest-holder share of what is visible. Full holder counts are *unavailable* unless a separately contract-tested external provider route is current, named and timestamped.
 
 ### 4. Issuer obligations (supply)
-Explorer obligations endpoints (e.g. XRPSCAN `account/{issuer}/obligations`) give outstanding supply. Cross-check against the trust-line sample. Keyed by on-ledger currency code.
+Do not infer total supply from a trust-line sample. An obligations total remains *unavailable* unless a separately contract-tested external provider route is current, named and timestamped; cross-check any such claim against ledger evidence.
 
 ### 5. Liquidity — AMM and DEX
 ```bash
@@ -66,7 +66,7 @@ python3 -m scripts.xrpl_tools account-tx rISSUER 50
 Extract: first-seen age (older = more history to judge), recent issuance bursts, large outbound payments to exchanges, freeze transactions, clawbacks. Date-stamp the window covered.
 
 ### 8. Metadata sources
-xrpl.to, XRPLMeta (`api.xrplmeta.org/token/{currency}+{issuer}` — on-ledger code form), XRPSCAN, Bithomp. Use them for names/logos/KYC labels and **say which one said what**. Metadata is claims, not ledger truth.
+Third-party metadata providers are external dependencies. Do not use a remembered endpoint. Require a current documented route, schema fixture, timestamp and successful live probe; identify the provider and treat names/logos/KYC labels as claims, not ledger truth. If no provider route is currently certified, report metadata unavailable.
 
 ---
 
@@ -90,7 +90,9 @@ xrpl.to, XRPLMeta (`api.xrplmeta.org/token/{currency}+{issuer}` — on-ledger co
 |---|---|
 | **High** | ≥8 checklist items from live data, holder + liquidity data from at least one named external source, no failed lookups on material items |
 | **Medium** | 5–7 live items; holder distribution or obligations unavailable but ledger-side data complete |
-| **Low** | <5 live items, or liquidity/issuer-flags unavailable — **no buy/snipe recommendation may be issued at Low** |
+| **Low** | <5 live items, or liquidity/issuer-flags unavailable |
+
+Confidence describes evidence coverage, not expected return or safety. XRPL-Hermes reports risks and missing data; it does not issue an automated buy/snipe/sell recommendation at any level.
 
 ---
 
@@ -122,8 +124,7 @@ Freeze: ... · Clawback: ... · TransferRate: ... · RequireAuth: ...
 - <item>: unavailable — <endpoint or command that failed>
 
 ## Assessment
-<conclusion tied to the evidence above. If confidence is Low: state that no
-trade recommendation can be made and what data would raise confidence.>
+<conclusion tied to the evidence above. State that no automated trade recommendation is provided and what missing evidence would raise confidence.>
 ```
 
 ---

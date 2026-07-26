@@ -237,48 +237,8 @@ async def find_arbitrage_opportunity(
 
 ## 5. Liquidity Provision Strategy
 
-```python
-from xrpl.models.transactions import AMMDeposit
-from xrpl.models.transactions.amm_deposit import AMMDepositFlag
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async def add_balanced_liquidity(
-    wallet,
-    xrp_amount: float,
-    currency: str,
-    issuer: str,
-    client
-):
-    """Deposit both assets proportionally."""
-    
-    # Get current pool ratios
-    amm_resp = await client.request(AMMInfo(
-        asset={"currency": "XRP"},
-        asset2={"currency": currency, "issuer": issuer}
-    ))
-    amm = amm_resp.result["amm"]
-    
-    xrp_pool = int(amm["amount"])  # drops
-    token_pool = float(amm["amount2"]["value"])
-    
-    # Calculate token amount needed for balanced deposit
-    token_ratio = token_pool / (xrp_pool / 1e6)
-    token_amount = str(round(xrp_amount * token_ratio, 8))
-    
-    tx = AMMDeposit(
-        account=wallet.address,
-        asset={"currency": "XRP"},
-        asset2={"currency": currency, "issuer": issuer},
-        amount=str(int(xrp_amount * 1e6)),  # drops
-        amount2={"currency": currency, "issuer": issuer, "value": token_amount},
-        flags=AMMDepositFlag.TF_TWO_ASSET,
-        fee="12"
-    )
-    
-    signed = await autofill_and_sign(tx, wallet, client)
-    result = await submit_and_wait(signed, client)
-    
-    return result
-```
 
 ---
 
@@ -394,29 +354,8 @@ async def get_pools_by_tvl(xrp_price_usd: float = 0.5) -> list:
 
 Vote to lower fee if you have LP tokens:
 
-```python
-from xrpl.models.transactions import AMMVote
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async def vote_for_fee(wallet, currency: str, issuer: str, new_fee: int, client):
-    """
-    new_fee: fee in 1/100000 units
-    500 = 0.5%, 200 = 0.2%, 1000 = 1%
-    """
-    tx = AMMVote(
-        account=wallet.address,
-        asset={"currency": "XRP"},
-        asset2={"currency": currency, "issuer": issuer},
-        trading_fee=new_fee,
-        fee="12"
-    )
-    
-    signed = await autofill_and_sign(tx, wallet, client)
-    result = await submit_and_wait(signed, client)
-    return result
-
-# Fee is weighted average of votes proportional to LP token holdings
-# Max: 1000 (1%), Min: 0 (0%)
-```
 
 ---
 
@@ -437,56 +376,8 @@ Examples:
   Slot expired (slot_ratio=1.0): effective_fee = base_fee (no discount)
 ```
 
-```python
-from xrpl.models.transactions import AMMBid
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async def bid_for_auction_slot(
-    wallet,
-    currency: str,
-    issuer: str,
-    lp_token_bid: str,  # LP token amount to bid
-    authorized_accounts: list,  # accounts that share the discount
-    client
-):
-    """
-    Bid LP tokens for the auction slot.
-    Winner pays effective trading fee of 0% for 24 hours.
-    """
-    
-    lp_token_info = await get_lp_token_info(currency, issuer, client)
-    
-    tx = AMMBid(
-        account=wallet.address,
-        asset={"currency": "XRP"},
-        asset2={"currency": currency, "issuer": issuer},
-        bid_min={
-            "currency": lp_token_info["currency"],
-            "issuer": lp_token_info["issuer"],
-            "value": lp_token_bid
-        },
-        auth_accounts=[{"account": acc} for acc in authorized_accounts[:4]],
-        fee="12"
-    )
-    
-    signed = await autofill_and_sign(tx, wallet, client)
-    result = await submit_and_wait(signed, client)
-    
-    if result.result["meta"]["TransactionResult"] == "tesSUCCESS":
-        print(f"Auction slot won! Reduced fee for 24 hours.")
-        # Fee reduction formula: effective_fee = (1 - slot_ratio) * base_fee
-        # slot_ratio = time_elapsed / 24h (0.0 at start, 1.0 at end)
-        # At slot_ratio=0 (just won): effective_fee = 1.0 * 0 = 0% (full discount)
-        # At slot_ratio=0.5 (halfway): effective_fee = 0.5 * base_fee
-        # At slot_ratio=1.0 (expired): slot reverts to base_fee
-    return result
-
-async def get_lp_token_info(currency, issuer, client):
-    resp = await client.request(AMMInfo(
-        asset={"currency": "XRP"},
-        asset2={"currency": currency, "issuer": issuer}
-    ))
-    return resp.result["amm"]["lp_token"]
-```
 
 ---
 

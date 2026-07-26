@@ -21,21 +21,8 @@ Master Key (offline, air-gapped)
 
 ### Never store seeds in code or git
 
-```python
-# BAD
-wallet = Wallet.from_seed("snMySeedIsHere...")
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# GOOD: Use environment variables
-import os
-seed = os.environ["XRPL_WALLET_SEED"]
-wallet = Wallet.from_seed(seed)
-
-# BETTER: Use secrets manager
-import boto3
-secrets = boto3.client("secretsmanager")
-seed = secrets.get_secret_value(SecretId="xrpl/prod/wallet-seed")["SecretString"]
-wallet = Wallet.from_seed(seed)
-```
 
 ### Hardware Security Modules (HSM)
 
@@ -47,23 +34,8 @@ For treasury wallets:
 
 ### Key Rotation
 
-```python
-# Rotate regular key
-from xrpl.models.transactions import SetRegularKey
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-new_regular_key = Wallet.create()
-
-tx = SetRegularKey(
-    account=master_wallet.address,
-    regular_key=new_regular_key.address,
-    fee="12"
-)
-# Sign with MASTER key (or old regular key)
-signed = autofill_and_sign(tx, master_wallet, client)
-submit_and_wait(signed, client)
-
-# Now master_wallet's operations use new_regular_key
-```
 
 ---
 
@@ -71,45 +43,12 @@ submit_and_wait(signed, client)
 
 Never expose private keys on internet-connected machines for high-value transactions:
 
-```python
-# OFFLINE machine: prepare and sign
-from xrpl.wallet import Wallet
-from xrpl.models.transactions import Payment
-import json
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Load seed from secure storage (USB, paper, HSM)
-wallet = Wallet.from_seed("sn...")
 
-# Transaction pre-built on online machine and transferred
-# (via QR code, USB stick, etc.)
-unsigned_tx = {
-    "TransactionType": "Payment",
-    "Account": wallet.address,
-    "Destination": "rDEST...",
-    "Amount": "10000000000",
-    "Fee": "12",
-    "Sequence": 100,
-    "LastLedgerSequence": 87700000,
-    "SigningPubKey": wallet.public_key
-}
+> **Submission remains outside XRPL-Hermes.** Move the reviewed unsigned intent through a separately accepted offline/HSM/wallet authorization process, compare the returned signed transaction with the reviewed fields, and submit through that external system. Hermes receives only the resulting hash and verifies validated-ledger outcome.
 
-tx = Payment.from_xrpl(unsigned_tx)
-signed = wallet.sign(tx)
-print(json.dumps({"tx_blob": signed.tx_blob}))
-# Transfer tx_blob to online machine for submission
-```
-
-```python
-# ONLINE machine: submit the pre-signed blob
-from xrpl.clients import JsonRpcClient
-from xrpl.models.requests import SubmitOnly
-
-client = JsonRpcClient("https://xrplcluster.com")
-tx_blob = "1200002200..."  # received from offline machine
-
-resp = client.request(SubmitOnly(tx_blob=tx_blob))
-print(resp.result)
-```
+Do not publish a generic raw-blob submission recipe as a substitute for an audited authorization, broadcast, retry and result-verification policy.
 
 ---
 
@@ -294,7 +233,7 @@ from xrpl.models.transactions.account_set import AccountSetAsfFlag
 tx = AccountSet(
     account=hot_wallet.address,
     set_flag=AccountSetAsfFlag.ASF_REQUIRE_DEST,
-    fee="12"
+    fee="<autofill>"
 )
 ```
 
@@ -375,52 +314,8 @@ async def send_alert(message: str):
 
 ## 7. Secure Transaction Submission Pattern
 
-```python
-import hashlib
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-class SecureXRPLSubmitter:
-    def __init__(self, client, wallet):
-        self.client = client
-        self.wallet = wallet
-        self.submitted_hashes = set()
-    
-    async def submit(self, tx, max_retries=3):
-        # Autofill and sign
-        signed = autofill_and_sign(tx, self.wallet, self.client)
-        tx_hash = signed.get_hash()
-        
-        # Idempotency check
-        if tx_hash in self.submitted_hashes:
-            return await self.client.request(Tx(transaction=tx_hash))
-        
-        for attempt in range(max_retries):
-            try:
-                result = await submit_and_wait(signed, self.client)
-                self.submitted_hashes.add(tx_hash)
-                
-                # Log every transaction
-                self._audit_log({
-                    "hash": tx_hash,
-                    "type": tx.transaction_type,
-                    "result": result.result["meta"]["TransactionResult"],
-                    "fee": result.result["Fee"],
-                    "ledger": result.result.get("ledger_index")
-                })
-                
-                return result
-            
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    await asyncio.sleep(2 ** attempt)
-                else:
-                    raise
-    
-    def _audit_log(self, entry: dict):
-        import json, datetime
-        entry["timestamp"] = datetime.datetime.utcnow().isoformat()
-        with open("/var/log/xrpl-audit.log", "a") as f:
-            f.write(json.dumps(entry) + "\n")
-```
 
 ---
 

@@ -37,7 +37,7 @@ Locks XRP into an escrow. The sender's XRP balance decreases by the amount, and 
   "Amount": "100000000",  // 100 XRP
   "FinishAfter": 791635710,  // Ripple timestamp (seconds since 2000-01-01)
   "CancelAfter": 791722110,
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 25
 }
 ```
@@ -53,28 +53,15 @@ Locks XRP into an escrow. The sender's XRP balance decreases by the amount, and 
   "FinishAfter": 791635710,
   "Condition": "A0258020E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855810100",
   "CancelAfter": 791722110,
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 25
 }
 ```
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import EscrowCreate
-from xrpl.utils import xrp_to_drops
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-escrow = EscrowCreate(
-    account="rSenderAddress",
-    destination="rReceiverAddress",
-    amount=xrp_to_drops(100),
-    finish_after=791635710,
-    cancel_after=791722110,
-    condition="A0258020E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855810100",
-)
-response = submit_and_wait(escrow, client, wallet)
-```
 
 ## EscrowFinish Transaction
 
@@ -97,7 +84,7 @@ Releases XRP from an escrow to the destination. Can only be executed after `Fini
   "Account": "rReceiverAddress",  // Anyone can submit this
   "Owner": "rSenderAddress",
   "OfferSequence": 25,
-  "Fee": "10"
+  "Fee": "<autofill>"
 }
 ```
 
@@ -111,7 +98,7 @@ Releases XRP from an escrow to the destination. Can only be executed after `Fini
   "OfferSequence": 25,
   "Condition": "A0258020E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855810100",
   "Fulfillment": "A0228020E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B80",
-  "Fee": "10"
+  "Fee": "<autofill>"
 }
 ```
 
@@ -125,7 +112,7 @@ Cancels an expired escrow and returns the XRP to the sender.
   "Account": "rAnyAddress",  // Anyone can cancel an expired escrow
   "Owner": "rSenderAddress",
   "OfferSequence": 25,
-  "Fee": "10"
+  "Fee": "<autofill>"
 }
 ```
 
@@ -147,10 +134,8 @@ Crypto-conditions are the cryptographic building blocks that enable conditional 
 
 This is the simplest and most commonly used condition type:
 
-```
-Condition = SHA-256(secret)
-Fulfillment = secret
-```
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
+
 
 The receiver must reveal the original secret (preimage) to claim the escrow.
 
@@ -159,17 +144,8 @@ The receiver must reveal the original secret (preimage) to claim the escrow.
 Using the `crypto-conditions` library:
 
 **Node.js:**
-```javascript
-const cc = require('five-bells-condition');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-// Generate a PREIMAGE-SHA-256 condition
-const condition = new cc.PreimageSha256();
-const secret = Buffer.from('my_secret_value', 'utf8');
-condition.setPreimage(secret);
-
-const conditionUri = condition.getConditionUri();  // Condition to put on ledger
-const fulfillment = condition.serializeFulfillment();  // Fulfillment to submit
-```
 
 **Python:**
 ```python
@@ -240,24 +216,8 @@ This guarantees atomicity: either both swaps happen or neither does.
 
 ### Step 1: Generate Condition
 
-```javascript
-const cc = require('five-bells-condition');
-const crypto = require('crypto');
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-// Generate random 256-bit secret
-const secret = crypto.randomBytes(32);
-
-// Create condition
-const cond = new cc.PreimageSha256();
-cond.setPreimage(secret);
-
-const conditionHex = cond.getConditionBinary().toString('hex').toUpperCase();
-const fulfillmentHex = cond.serializeFulfillment().toString('hex').toUpperCase();
-
-console.log('Secret:', secret.toString('hex'));
-console.log('Condition:', conditionHex);
-console.log('Fulfillment:', fulfillmentHex);
-```
 
 ### Step 2: Create Escrow (Sender)
 
@@ -317,10 +277,7 @@ function rippleToUnix(rippleTimestamp) {
 
 ## Reserve and Escrows
 
-Each escrow created consumes 1 owner reserve unit (0.2 XRP). So:
-- 5 escrows = 5 × 0.2 = 1 XRP locked as owner reserve
-- Plus 1 XRP base reserve
-- Total: 0.2 XRP locked
+Each owned escrow consumes one incremental owner-reserve unit. Compute total reserve from the selected network's live validated base/increment values and current `OwnerCount`; do not use a copied XRP total.
 
 When an escrow finishes or is cancelled, the reserve is released back to the owner.
 

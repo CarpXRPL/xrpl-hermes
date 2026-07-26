@@ -24,7 +24,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Require destination tags for incoming payments.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 1`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 1`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfRequireAuth = 2
@@ -32,7 +32,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Require authorization before holders can hold issued tokens.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 2`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 2`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDisallowXRP = 3
@@ -40,7 +40,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Discourage direct XRP payments to this account.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 3`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 3`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDisableMaster = 4
@@ -48,7 +48,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Disable the master key after setting a regular key or signer list.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 4`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 4`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfAccountTxnID = 5
@@ -56,7 +56,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Track previous transaction ID on the account.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 5`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 5`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfNoFreeze = 6
@@ -64,7 +64,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Permanently give up the ability to freeze trust lines.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 6`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 6`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfGlobalFreeze = 7
@@ -72,7 +72,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Freeze all trust lines for issued assets.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 7`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 7`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDefaultRipple = 8
@@ -80,7 +80,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Enable rippling by default on issuer trust lines.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 8`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 8`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDepositAuth = 9
@@ -88,7 +88,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Require deposit authorization for incoming payments.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 9`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 9`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfAuthorizedNFTokenMinter = 10
@@ -96,7 +96,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Allow the configured NFTokenMinter to mint on behalf of this account.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 10`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 10`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDisallowIncomingCheck = 11
@@ -104,7 +104,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Block incoming CheckCreate objects.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 11`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 11`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDisallowIncomingNFTokenOffer = 12
@@ -112,7 +112,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Block incoming NFT offers.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 12`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 12`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDisallowIncomingPayChan = 13
@@ -120,7 +120,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Block incoming payment channels.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 13`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 13`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfDisallowIncomingTrustline = 14
@@ -128,7 +128,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Block incoming trust lines.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 14`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 14`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfAllowTrustLineLocking = 15
@@ -136,7 +136,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Allow trust line locking where supported by amendments.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 15`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 15`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfAllowTrustLineClawback = 16
@@ -144,7 +144,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Enable clawback for issued trust-line assets.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 16`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 16`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ### asfAllowTrustLineFreeze = 17
@@ -152,7 +152,7 @@ Ledger state flags are different bit masks; do not confuse the AccountSet flag n
 - Purpose: Reserve value in newer amendment discussions; verify network support before use.
 - Set: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --set-flag 17`
 - Clear: `python3 -m scripts.xrpl_tools build-account-set --from rISSUER --clear-flag 17`
-- Signing: send the generated JSON through Xaman with `xaman-payload` or another signer.
+- Signing: use a compatible user-owned external signer; `xaman-payload` currently accepts Payment only.
 - Production note: test on XRPL testnet before using the same setting on mainnet.
 
 ## Issuer Setup Checklist
@@ -757,6 +757,6 @@ These are syntactically valid XRPL-style addresses used in examples. Verify fund
 
 ## Related Files
 
-- [21-token-model](knowledge/21-xrpl-token-model.md)
-- [22-token-issuance](knowledge/22-xrpl-token-issuance.md)
-- [07-clawback](knowledge/07-xrpl-clawback.md)
+- [21-token-model](21-xrpl-token-model.md)
+- [22-token-issuance](22-xrpl-token-issuance.md)
+- [07-clawback](07-xrpl-clawback.md)

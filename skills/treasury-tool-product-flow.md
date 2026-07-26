@@ -53,21 +53,21 @@ Project teams, communities, small funds, grant programs, and signer groups.
 - `server-info`
 - `build-signer-list-set`
 - escrow/check/ticket builders as needed
-- `submit-multisigned` for already-signed JSON only
+- external user-controlled multisign coordinator for authorization/broadcast; Hermes receives only the resulting hash/status
 
 ## MVP deliverable
 
 1. Read-only dashboard: balances, reserve headroom, signer list, quorum, open escrows/checks/tickets, recent txs.
 2. Proposal builder: creates unsigned JSON and a decoded preview.
 3. Signature collection checklist/link handoff; product does not sign.
-4. Assembly/submit path for already-multisigned JSON.
+4. External coordinator handoff for assembly/authorization/broadcast; no Hermes broadcast path.
 5. Receipt and alert after `validated: true`.
 
 ## Testnet demo checklist
 
 - 2-of-3 signer list setup rehearsed on testnet.
 - One payment proposal signed externally by enough signers.
-- `submit-multisigned` accepts already-signed JSON and validates.
+- External coordinator broadcasts the independently assembled transaction and returns a hash; Hermes verifies validated finality.
 - One rejected/expired proposal path is shown.
 
 ## Mainnet-safe checklist

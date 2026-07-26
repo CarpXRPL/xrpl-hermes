@@ -25,119 +25,27 @@ COLD WALLET (Air-gapped hardware)
 
 ## Account Setup: Security Flags
 
-```python
-import xrpl, os
-from xrpl.clients import JsonRpcClient
-from xrpl.wallet import Wallet
-from xrpl.models.transactions import AccountSet
-from xrpl.models.transactions.account_set import AccountSetFlag
-from xrpl.transaction import submit_and_wait
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-client = JsonRpcClient("https://xrplcluster.com")
-treasury = Wallet.from_secret(os.environ["TREASURY_SECRET"])
-
-# Configure treasury account security
-config = AccountSet(
-    account=treasury.classic_address,
-    # Require destination tag on all incoming payments (avoids misrouted funds)
-    set_flag=AccountSetFlag.ASF_REQUIRE_DEST,
-    # Optional: ASF_DISABLE_MASTER if using RegularKey + SignerList only
-    # set_flag=AccountSetFlag.ASF_DISABLE_MASTER,
-    email_hash="d41d8cd98f00b204e9800998ecf8427e",  # Optional MD5 of contact email
-)
-resp = submit_and_wait(config, client, treasury)
-print(f"Account configured: {resp.result['meta']['TransactionResult']}")
-```
 
 ---
 
 ## Multi-Signature Setup
 
-```python
-from xrpl.models.transactions import SignerListSet
-from xrpl.models.transactions.signer_list_set import SignerEntry
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Create a 2-of-3 SignerList
-signer_setup = SignerListSet(
-    account=treasury.classic_address,
-    signer_quorum=2,   # Need 2 of 3 signers
-    signer_entries=[
-        SignerEntry(
-            account="rSigner1...",
-            signer_weight=1,
-        ),
-        SignerEntry(
-            account="rSigner2...",
-            signer_weight=1,
-        ),
-        SignerEntry(
-            account="rSigner3...",
-            signer_weight=2,  # CTO key counts as 2 (can solo-approve emergencies)
-        ),
-    ],
-)
-resp = submit_and_wait(signer_setup, client, treasury)
-
-# To REMOVE a SignerList (restore to single-key): set signer_quorum=0, signer_entries=[]
-```
 
 ### Submitting a Multi-Sig Transaction
 
-```python
-from xrpl.models.transactions import Payment
-from xrpl.transaction import multisign, sign
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-signer1 = Wallet.from_secret(os.environ["SIGNER1_SECRET"])
-signer2 = Wallet.from_secret(os.environ["SIGNER2_SECRET"])
-
-# Step 1: Build the transaction (don't sign yet)
-payment = Payment(
-    account=treasury.classic_address,
-    destination="rRecipient...",
-    amount=xrpl.utils.xrp_to_drops("5000"),
-    sequence=treasury_sequence,
-    last_ledger_sequence=treasury_sequence + 50,
-    fee="20",  # Multi-sig fee = base_fee * (1 + signers)
-    signing_public_key="",  # Empty for multi-sig
-)
-
-# Step 2: Each signer signs independently
-tx_blob = payment.to_xrpl()  # Get unsigned dict
-signed1 = sign(payment, signer1, multisign=True)
-signed2 = sign(payment, signer2, multisign=True)
-
-# Step 3: Combine signatures
-combined = multisign(payment, [signed1, signed2])
-
-# Step 4: Submit combined transaction
-resp = client.submit_multisigned(combined)
-print(f"Multi-sig submit: {resp.result.get('engine_result')}")
-```
 
 ---
 
 ## Regular Key Management
 
-```python
-from xrpl.models.transactions import SetRegularKey
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Set a regular key (used for day-to-day signing; master key stays offline)
-new_hot_key = Wallet.create()
-
-set_key = SetRegularKey(
-    account=treasury.classic_address,
-    regular_key=new_hot_key.classic_address,
-)
-# MUST be signed with the MASTER key (or current regular key)
-resp = submit_and_wait(set_key, client, treasury)
-
-# Now save new_hot_key securely, revoke old one
-# To remove regular key entirely:
-remove_key = SetRegularKey(
-    account=treasury.classic_address,
-    # Omit regular_key field to clear it
-)
-```
 
 ### Rotation Schedule Enforcer
 
@@ -166,131 +74,15 @@ def record_rotation(state_file: str = "key_state.json"):
 
 ## Escrow Vault (Time-Locked Reserves)
 
-```python
-from xrpl.models.transactions import EscrowCreate, EscrowFinish, EscrowCancel
-import time
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-def create_time_locked_reserve(
-    client,
-    treasury: Wallet,
-    destination: str,
-    amount_xrp: float,
-    lock_days: int,
-) -> dict:
-    """Lock XRP in escrow; recipient can claim after lock_days."""
-    # Get current ledger time (ripple epoch = Unix - 946684800)
-    RIPPLE_EPOCH = 946684800
-    lock_seconds = lock_days * 24 * 3600
-    finish_after = int(time.time() - RIPPLE_EPOCH) + lock_seconds
-    cancel_after = finish_after + 3600  # 1-hour window to claim before auto-cancel
-
-    escrow = EscrowCreate(
-        account=treasury.classic_address,
-        destination=destination,
-        amount=xrpl.utils.xrp_to_drops(str(amount_xrp)),
-        finish_after=finish_after,
-        cancel_after=cancel_after,
-    )
-    resp = submit_and_wait(escrow, client, treasury)
-
-    # Extract escrow sequence from result
-    escrow_seq = None
-    for node in resp.result['meta']['AffectedNodes']:
-        created = node.get('CreatedNode', {})
-        if created.get('LedgerEntryType') == 'Escrow':
-            escrow_seq = created['NewFields']['Sequence']
-
-    return {
-        "hash": resp.result['hash'],
-        "escrow_sequence": escrow_seq,
-        "finish_after_unix": finish_after + RIPPLE_EPOCH,
-        "amount_xrp": amount_xrp,
-    }
-
-
-def claim_escrow(client, claimer: Wallet, escrow_owner: str, escrow_sequence: int):
-    """Claim a time-locked escrow after finish_after."""
-    finish = EscrowFinish(
-        account=claimer.classic_address,
-        owner=escrow_owner,
-        offer_sequence=escrow_sequence,
-    )
-    return submit_and_wait(finish, client, claimer)
-
-
-def cancel_expired_escrow(client, creator: Wallet, escrow_sequence: int):
-    """Cancel escrow after cancel_after window."""
-    cancel = EscrowCancel(
-        account=creator.classic_address,
-        owner=creator.classic_address,
-        offer_sequence=escrow_sequence,
-    )
-    return submit_and_wait(cancel, client, creator)
-```
 
 ---
 
 ## Payment Channels for High-Frequency Disbursements
 
-```python
-from xrpl.models.transactions import (
-    PaymentChannelCreate, PaymentChannelClaim, PaymentChannelFund
-)
-import xrpl.core.keypairs as kp
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-def create_disbursement_channel(
-    client,
-    treasury: Wallet,
-    recipient: str,
-    capacity_xrp: float,
-    settle_delay_seconds: int = 86400,
-) -> str:
-    """
-    Create payment channel for recurring payouts.
-    Returns the channel ID.
-    settle_delay: how long recipient must wait after submitting final claim.
-    """
-    channel_tx = PaymentChannelCreate(
-        account=treasury.classic_address,
-        destination=recipient,
-        amount=xrpl.utils.xrp_to_drops(str(capacity_xrp)),
-        settle_delay=settle_delay_seconds,
-        public_key=treasury.public_key,
-    )
-    resp = submit_and_wait(channel_tx, client, treasury)
-
-    channel_id = None
-    for node in resp.result['meta']['AffectedNodes']:
-        created = node.get('CreatedNode', {})
-        if created.get('LedgerEntryType') == 'PayChannel':
-            channel_id = created['NewFields'].get('Channel') or resp.result['hash']
-
-    return channel_id
-
-
-def sign_channel_claim(treasury: Wallet, channel_id: str, amount_drops: int) -> str:
-    """Sign an off-ledger payment channel claim."""
-    claim_data = xrpl.core.keypairs.sign_payment_channel_claim(
-        channel=channel_id,
-        amount=str(amount_drops),
-        private_key=treasury.private_key,
-    )
-    return claim_data
-
-
-def submit_channel_claim(client, recipient: Wallet, channel_id: str, amount_drops: int, signature: str):
-    """Recipient submits the accumulated claim to the ledger."""
-    claim = PaymentChannelClaim(
-        account=recipient.classic_address,
-        channel=channel_id,
-        amount=str(amount_drops),
-        balance=str(amount_drops),
-        signature=signature,
-        public_key=recipient.public_key,
-        flags=0x00010000,  # tfClose after claiming
-    )
-    return submit_and_wait(claim, client, recipient)
-```
 
 ---
 
@@ -369,98 +161,15 @@ limiter.record_spend("hot", 500, tx_hash)
 
 ## DCA (Dollar-Cost Averaging) Pattern
 
-```python
-import schedule, threading
-from xrpl.models.transactions import OfferCreate
-from xrpl.models.transactions.offer_create import OfferCreateFlag
-from xrpl.models.amounts import IssuedCurrencyAmount
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-def dca_buy(
-    client,
-    wallet: Wallet,
-    currency: str,
-    issuer: str,
-    xrp_per_run: float,
-    max_slippage_pct: float = 1.0,
-):
-    """Buy `currency` with XRP at market, with slippage protection."""
-    from xrpl.models.requests import BookOffers
-
-    # Check best ask price
-    asks = client.request(BookOffers(
-        taker_pays={"currency": currency, "issuer": issuer},
-        taker_gets={"currency": "XRP"},
-        limit=5,
-    )).result.get("offers", [])
-
-    if not asks:
-        print("No sell orders available")
-        return
-
-    best_ask_xrp = int(asks[0]["TakerGets"]) / 1e6
-    best_ask_token = float(asks[0]["TakerPays"]["value"])
-    market_price = best_ask_xrp / best_ask_token
-
-    # Apply slippage protection
-    max_price = market_price * (1 + max_slippage_pct / 100)
-    token_amount = xrp_per_run / max_price
-
-    buy = OfferCreate(
-        account=wallet.classic_address,
-        taker_pays=IssuedCurrencyAmount(
-            currency=currency,
-            issuer=issuer,
-            value=str(round(token_amount, 6)),
-        ),
-        taker_gets=xrpl.utils.xrp_to_drops(str(xrp_per_run)),
-        flags=OfferCreateFlag.TF_IMMEDIATE_OR_CANCEL,  # Don't leave resting order
-    )
-    resp = submit_and_wait(buy, client, wallet)
-    result = resp.result['meta']['TransactionResult']
-    print(f"DCA buy: {result} — {xrp_per_run} XRP → {currency}")
-
-
-# Schedule DCA every 24 hours
-def start_dca_scheduler(client, wallet, currency, issuer, daily_xrp):
-    schedule.every(24).hours.do(
-        dca_buy, client, wallet, currency, issuer, daily_xrp
-    )
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
-dca_thread = threading.Thread(
-    target=start_dca_scheduler,
-    args=(client, hot_wallet, "USD", "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B", 100),
-    daemon=True,
-)
-dca_thread.start()
-```
 
 ---
 
 ## DepositPreAuth (Whitelist Incoming Payments)
 
-```python
-from xrpl.models.transactions import DepositPreauth
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Treasury only accepts payments from whitelisted addresses
-whitelist = ["rOperations...", "rLiquidityBot...", "rPartner..."]
-
-for addr in whitelist:
-    preauth = DepositPreauth(
-        account=treasury.classic_address,
-        authorize=addr,
-    )
-    submit_and_wait(preauth, client, treasury)
-
-# Revoke an authorization
-revoke = DepositPreauth(
-    account=treasury.classic_address,
-    unauthorize="rOldPartner...",
-)
-submit_and_wait(revoke, client, treasury)
-```
 
 ---
 

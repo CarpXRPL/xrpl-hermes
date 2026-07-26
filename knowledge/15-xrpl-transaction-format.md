@@ -12,7 +12,7 @@ All XRPL transactions share a set of common fields and have type-specific fields
 {
   "TransactionType": "Payment",
   "Account": "rN7n3473SaZBCG4dFL83w7PB5MBhpqAzn",
-  "Fee": "12",
+  "Fee": "<autofill>",
   "Sequence": 42,
   "LastLedgerSequence": 87654350,
   "AccountTxnID": "OPTIONAL_PREV_TX_HASH",
@@ -55,8 +55,8 @@ All XRPL transactions share a set of common fields and have type-specific fields
 The fee is always in **drops** (1 XRP = 1,000,000 drops).
 
 ```python
-# Minimum fee: 10 drops for most transactions
-# Reference fee from server:
+# Query the selected server's current fee; do not hard-code a minimum.
+# Reference/open-ledger fee from server:
 from xrpl.models.requests import ServerInfo
 resp = client.request(ServerInfo())
 base_fee = resp.result["info"]["validated_ledger"]["base_fee_xrp"]
@@ -300,26 +300,8 @@ Flags control transaction behavior. Each transaction type has its own flags:
 
 ## 9. Transaction Signing
 
-```python
-from xrpl.wallet import Wallet
-from xrpl.models.transactions import Payment
-from xrpl.transaction import sign, autofill
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-client = JsonRpcClient("https://xrplcluster.com")
-wallet = Wallet.from_seed("sn...")
-
-tx = Payment(
-    account=wallet.address,
-    destination="rDEST...",
-    amount="1000000"
-)
-
-# Autofill fills Sequence, Fee, LastLedgerSequence
-tx_autofilled = autofill(tx, client)
-tx_signed = sign(tx_autofilled, wallet)
-
-print(tx_signed.to_xrpl())  # JSON ready to submit
-```
 
 ---
 

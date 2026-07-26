@@ -9,9 +9,9 @@ the toolkit.
 Read first: `knowledge/12-xrpl-multisig.md`, `knowledge/13-xrpl-tickets.md`,
 `knowledge/15-xrpl-transaction-format.md`.
 
-Boundary reminder: `build-signer-list-set` emits unsigned JSON; the signing ceremony
-happens in the signers' own wallets or their own xrpl-py stack. `submit-multisigned`
-accepts **already-signed** transaction JSON only — it never signs anything.
+Boundary reminder: `build-signer-list-set` emits unsigned JSON. The signing ceremony,
+assembly, authorization and broadcast happen in a separately accepted user-controlled
+multisign system. Hermes receives only the resulting hash/status for verification.
 
 ---
 
@@ -73,18 +73,15 @@ field) in their own wallet or stack. Rules the ceremony must respect:
   (`knowledge/13`). Otherwise any interleaved transaction invalidates the half-signed
   JSON (`tefPAST_SEQ`).
 
-If signers use xrpl-py, keys come from their own environment (`os.environ["XRPL_SEED"]`
-pattern) — never paste seeds into this toolkit; it has no command that accepts one.
+Each participant signs in an independent user-controlled wallet/HSM/KMS or other separately audited signing system. XRPL-Hermes receives no key material and only verifies the assembled signed intent and final validated result.
 
-## Step 4 — Submit and verify
+## Step 4 — External authorization and verify
 
-```bash
-python3 scripts/xrpl_tools.py submit-multisigned '{"TransactionType":"...","Signers":[...]}'
-python3 scripts/xrpl_tools.py tx-info HASH                          # wait for validated
-python3 scripts/xrpl_tools.py account_objects rTREASURY signer_list # list matches design?
-```
+The user-controlled multisign coordinator broadcasts outside Hermes and returns a transaction hash.
+Hermes then uses `tx-info HASH` to wait for validated finality and `account_objects rTREASURY signer_list`
+to confirm the resulting signer-list state where applicable.
 
-The submit result is provisional — apply the finality rules from
+The external authorization/broadcast result is provisional — apply the finality rules from
 `skills/failed-transaction-diagnosis-flow.md` (only a validated ledger is final).
 
 ## Step 5 — Changing, removing, recovering

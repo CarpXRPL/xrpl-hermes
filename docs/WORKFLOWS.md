@@ -29,8 +29,8 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Query: `account`/`balance`, `account_objects`, `account-tx`, `trustlines`, `ledger`, `ledger-entry`, `server-info`, `tx-info`, `decode`, `validate-address`, `subscribe`
 - Build: `build-payment`, `build-trustset`, `build-offer`, `build-cross-currency-payment`, `build-account-set`, `build-account-delete`, `build-set-regular-key`, `build-deposit-preauth`
 - DEX read side: `book-offers`, `path-find`
-- Advanced ops: `build-signer-list-set` (multisig), `build-ticket-create`, `build-escrow-*`, `build-check-*`, `build-paychannel-*`, `build-batch` (XLS-56, warns until enabled on mainnet), `build-set-oracle` (XLS-47), `build-credential-*` (XLS-70)
-- Submit path for advanced users with externally signed blobs: `submit`, `submit-multisigned`
+- Advanced ops: `build-signer-list-set` (multisig), `build-ticket-create`, `build-escrow-*`, `build-check-*`, `build-paychannel-*`, `build-set-oracle` (XLS-47), `build-credential-*` (XLS-70). `build-batch` is retired and unregistered.
+- Broadcast is outside supported agent workflows; legacy local `submit*` commands remain MCP-denied quarantine surfaces.
 - Knowledge: `01`–`04`, `09`–`15`, `52-xrpl-l1-reference.md`, `60-xrpl-account-set.md`, `61-xrpl-websocket-streams.md` · Card: `references/xrpl-l1.md`
 - Workflow playbooks: `skills/treasury-monitor-flow.md`, `skills/multisig-safety-flow.md`, `skills/account-access-safety-flow.md`, `skills/failed-transaction-diagnosis-flow.md` · Examples: `example-build-payment.py`, `example-setup-trustline.py`, `example-create-offer.py`, `example-cross-currency.py`, `example-multisig.py`
 
@@ -42,7 +42,7 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - Research: `token-intel` (one-shot live report: issuer flags/domain, trustline sample, DEX book, AMM, risk flags), plus `account`, `trustlines`, `book-offers`, `account-tx` for deeper digging
 - Knowledge: `21-xrpl-token-model.md`, `22-xrpl-token-issuance.md`, `07-xrpl-clawback.md`, `38-xrpl-minting-ops.md`, `58-rlusd-operations.md`, `59-rwa-tokenization.md` · Card: `references/rlusd.md`
 - Workflow playbooks: `skills/issuer-first-mint-flow.md` (minimal path), `skills/token-launch-flow.md` (full launch), `skills/clawback-flow.md` · Examples: `example-clawback.py`, `example-token-safety-check.py` (read-only pass/fail verdict over `token-intel`, exit-code friendly for scripts and CI)
-- **Token intelligence reports:** `token-intel CURRENCY rISSUER` implements the research workflow (≥5 live datapoints, confidence score, mandatory missing-data list, source labels) specified in `knowledge/64-token-intelligence-reports.md` with the quick card at `references/token-intelligence.md`.
+- **Token intelligence reports:** `token-intel CURRENCY rISSUER` is a five-query ledger snapshot with confidence capped at Medium, explicit scope/source labels, a mandatory missing-data list and no recommendation. See `knowledge/64-token-intelligence-reports.md` and `references/token-intelligence.md`.
 
 ## NFTs (XLS-20)
 
@@ -78,10 +78,10 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 ## Xaman (XUMM) workflows
 
-**Coverage: Live command + knowledge.**
+**Coverage: Guarded external API side effect + boundary documentation.**
 
-- `xaman-payload` pushes signer-ready JSON to the Xaman Platform API and returns the sign URL + QR (requires free `XUMM_API_KEY`/`XUMM_API_SECRET`; without keys it fails safely with instructions)
-- No keys needed at all for the manual path: every builder's JSON pastes directly into Xaman's Developer console for signing
+- `xaman-payload` validates an unsigned XRPL L1 Payment before creating a real Platform payload; all other transaction types are currently rejected (requires `XUMM_API_KEY`/`XUMM_API_SECRET`; denied over MCP).
+- Payload creation is an external side effect, not transaction success. Verify the wallet-selected network and final validated XRPL transaction independently.
 - Knowledge: `26-xrpl-xaman-deeplink.md`, `63-xrpl-xaman-platform.md`, `53-xrpl-wallets-auth.md` · Card: `references/xrpl-wallets-auth.md`
 
 ## Xahau / Hooks
@@ -101,20 +101,20 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 - `flare-price XRP FLR …` — current prices from a public fallback API, labeled as **not direct on-chain FTSOv2 proof**.
 - Knowledge: `49-xrpl-flare-ftso.md` · Card: `references/flare-ftso.md`
 
-## Axelar — bridging XRPL ↔ EVM and beyond
+## Axelar — registration and GMP-index inspection
 
-**Coverage: Live read-only status + knowledge + references.** Bridging executes through Axelar's own contracts/UI, while xrpl-hermes can inspect route registration and transfer status.
+**Coverage: Narrow read-only registration lookup + partial GMP-index search. No transfer certification.**
 
-- `bridge-status [xrpl xrpl-evm]` — reads Axelar/XRPL chain registration and gateway context from Axelarscan; does not move funds.
-- `bridge-tx TXHASH` — looks up an Axelar GMP transfer by source-chain transaction hash.
+- `bridge-status [xrpl xrpl-evm]` — reads Axelarscan registration metadata; it does not establish route/assets/fees/liquidity.
+- `bridge-tx TXHASH` — searches the GMP index; it is not a general ITS token-transfer receipt checker.
 - Knowledge: `46-xrpl-axelar-bridge.md`, `55-xrpl-sidechain-interop.md`, `35-xrpl-full-interop.md` · Card: `references/axelar-bridge.md`
 - Always verify current gateway/contract addresses from official Axelar/XRPL EVM docs before moving funds — addresses are deliberately not hardcoded here.
 
-## Arweave — permanent storage for token/NFT metadata
+## Arweave — base-network storage cost
 
-**Coverage: Live cost estimate + knowledge + references.** The workflow (upload metadata/images, reference `ar://` URIs from NFT mints and issuer TOMLs) still runs with Arweave tooling per the docs.
+**Coverage: Narrow point-in-time base fee estimate. Upload and retrieval workflows are quarantined.**
 
-- `arweave-cost 1MB` — estimates permanent storage cost from the public Arweave gateway. It never uploads data or handles wallet keys.
+- `arweave-cost 1MB` — estimates the base-network fee from a public gateway. It never uploads, touches keys, or guarantees retrieval.
 - Knowledge: `47-xrpl-arweave-storage.md` · Card: `references/arweave-storage.md`
 - Pairs with: `build-nft-mint --uri 'ar://...'` for text (encoded once by the builder),
   or `--uri-hex HEX` only when the input is already encoded. Never pass pre-encoded hex to
@@ -122,27 +122,27 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 ## XRPL EVM Sidechain
 
-**Coverage: Live commands + knowledge.**
+**Coverage: Experimental balance/network reads + build-only deployment intent. No transfer certification.**
 
 - `evm-balance 0xADDR [mainnet|testnet]` — live balance via `rpc.xrplevm.org` (chain ID 1440000) / testnet (1449000)
-- `evm-contract` — raw deployment transaction JSON for external signing (e.g. MetaMask)
-- `evm-bridge` — live chain status (latest block, observed chain ID)
+- `evm-contract` — explicitly experimental unsigned intent; no compile/simulation/gas/deployment proof
+- `evm-bridge` — RPC identity/latest block only and reports `BridgeCertified: false`
 - Knowledge: `29-xrpl-metamask-evm.md`, `33-xrpl-evm-dev.md`, `44-xrpl-evm-advanced.md`, `50-xrpl-evm-sidechain.md` · Card: `references/xrpl-evm-sidechain.md`
-- Example: `example-evm-swap.py`
+- The former swap/bridge examples are not certification evidence and must not be used as production instructions.
 
 ## Bots and monitoring (Telegram / Discord)
 
-**Coverage: Knowledge + runnable examples.**
+**Coverage: Knowledge + signer-separated examples.**
 
-- Knowledge: `40-xrpl-monitoring.md`, `41-xrpl-bots-patterns.md` (secret-sourcing rules, signer-handoff over hot wallets), `56-telegram-xrpl-bots.md`, `57-discord-xrpl-bots.md`
+- Knowledge: `40-xrpl-monitoring.md`, `41-xrpl-bots-patterns.md`, `56-telegram-xrpl-bots.md`, `57-discord-xrpl-bots.md`
 - Examples: `example-telegram-bot.py`, `example-discord-bot.py` · Stream feed: `subscribe`
 
 ## Infrastructure — your own node
 
-**Coverage: Deploy configs + knowledge.**
+**Coverage: External dependency boundary + knowledge.**
 
-- `deploy/` — docker-compose for rippled + Clio, with configs; point the toolkit at it via `XRPL_PRIVATE_RPC`
-- Knowledge: `16-xrpl-clio.md`, `17-xrpl-private-node.md`, `18-xrpl-rate-limits.md`, `24-xrpl-deploy-guide.md`
+- `deploy/` contains only the retirement notice for the former unverified node stack.
+- Knowledge: `16-xrpl-clio.md`, `17-xrpl-private-node.md`, `18-xrpl-rate-limits.md`, `24-xrpl-deploy-guide.md`. Current first-party rippled/Clio operations documentation is the authority; `XRPL_PRIVATE_RPC` can target infrastructure the user independently operates.
 
 ---
 
@@ -150,8 +150,8 @@ One page mapping every ecosystem xrpl-hermes covers to its live commands, knowle
 
 Honest gaps, in rough priority order:
 
-1. **Bridge workflow depth** — add richer, typed Axelar route/fee guidance while staying read-only by default.
-2. **Arweave workflow depth** — add optional signed upload handoff patterns without introducing hidden paid uploads or wallet-key handling.
+1. **Bridge proof** — current first-party schema fixtures plus Testnet round-trip and recovery evidence before restoring transfer guidance.
+2. **Arweave upload proof** — current SDK, user-controlled signer, fee separation, confirmed upload and multi-gateway retrieval before restoring upload guidance.
 3. **Flare FTSOv2 hardening** — expand feed coverage and official-source regression tests for feed IDs/contracts.
 
 Shipped from earlier roadmaps: AMM pool state is now the first-class `amm-info` command, the token-intelligence research workflow is the first-class `token-intel` command (both v1.5.1), and v1.5.2 added read-only Axelar status, Arweave cost estimates, Flare FTSOv2 reads, and a real Xahau HookOn calculator.

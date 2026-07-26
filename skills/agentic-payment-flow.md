@@ -11,8 +11,8 @@ block in `SKILL.md`.
 agent intent
   └── Hermes build-* ──► unsigned Payment JSON  (SourceTag + Memo; no keys, no signing)
         └── human preview + approval (asset/amount/destination/tags/memos/fee)
-              └── wallet/signing layer ──► autofill ──► sign locally ──► submitAndWait
-                    └── read result code ──► tx-info <hash> (finality, ~3-5s)
+              └── compatible external authorization/broadcast layer
+                    └── returned hash/result ──► tx-info <hash> (validated finality)
 ```
 
 ---
@@ -72,31 +72,17 @@ Mainnet spend requires **explicit human approval** (Safety rule 5).
 
 ## Step 4 — Hand off to the wallet/signing layer (testnet)
 
-Signing stays with the user. Two honest paths — **never put a seed in chat/logs.**
+Signing stays with the user—**never put a seed in chat/logs.** Hand reviewed JSON to a compatible
+user-owned external wallet/HSM/KMS whose exact network and transaction support has been independently
+verified. Joey and Privy are not certified handoffs. `xaman-payload` supports reviewed XRPL L1
+Payments only and creates a guarded external side effect.
 
-**Wallet handoff (preferred):** pass the JSON to Xaman / Joey / Privy; the human signs in their
-wallet (`references/xrpl-wallets-auth.md`).
+**Legacy in-process signing:**
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-**Self-managed signer (xrpl-py, dev — seed from env, never hardcoded):**
-```python
-import os
-from xrpl.clients import JsonRpcClient
-from xrpl.wallet import Wallet
-from xrpl.models.transactions import Transaction
-from xrpl.transaction import autofill, submit_and_wait
 
-client = JsonRpcClient("https://s.altnet.rippletest.net:51234")   # testnet default
-wallet = Wallet.from_seed(os.environ["XRPL_SEED"])                  # KMS/HSM in production
-# payment_json is the build-* CLI output (ledger/PascalCase form) — rebuild with from_xrpl:
-tx = Transaction.from_xrpl(payment_json)                           # unsigned tx from Step 1/2
-prepared = autofill(tx, client)                                    # Fee/Sequence/LastLedgerSequence
-# preview `prepared` to the human, then:
-result = submit_and_wait(prepared, client, wallet)                 # signs + submits + waits
-print(result.result["meta"]["TransactionResult"])
-```
-
-**xrpl.js equivalent (TypeScript projects):** `Wallet.fromSeed(process.env.XRPL_SEED)` →
-`await client.autofill(tx)` → `wallet.sign(prepared)` (persist `.hash`) → `await client.submitAndWait(signed.tx_blob)`.
+**JavaScript/TypeScript projects:** use a separately audited user-owned external wallet/signing layer;
+do not place wallet keys or signing code inside the Hermes workflow.
 
 ---
 
@@ -130,7 +116,7 @@ facilitator issues a receipt. Full flow, package names, and network ids: `refere
 | Passing `"RLUSD"` as the currency | Use the 160-bit hex `524C5553...0000`; the 5-letter literal is invalid on-ledger |
 | Paying RLUSD before a trust line exists | `build-trustset` first → `tecNO_LINE` otherwise |
 | Setting `Fee`/`Sequence` by hand on a connected flow | Let `autofill` populate them (Safety rule 7) |
-| Seed in code/logs/chat | `os.environ["XRPL_SEED"]` (dev) or KMS/HSM (prod); redact always |
+| Seed/key requested by agent code | Stop; use a user-owned external wallet/HSM/KMS that never exposes the key to Hermes |
 | Raw XRP floats | `xrp_to_drops()` / drops only |
 | Going to mainnet without approval | Explicit human sign-off; change endpoint deliberately |
 

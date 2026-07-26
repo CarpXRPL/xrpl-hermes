@@ -25,8 +25,8 @@ agent finishes work / a skill evolves
   └── summarize it as a compact receipt (≤256-byte URI, or a pointer to an off-ledger record)
         └── Hermes build-nft-mint ──► unsigned NFTokenMint JSON  (no keys, no signing)
               └── human preview + approval (account, taxon, flags, decoded URI)
-                    └── wallet/signing layer ──► autofill ──► sign locally ──► submitAndWait
-                          └── nft-info <NFTokenID> ──► read the receipt back from the ledger
+                    └── compatible external authorization/broadcast layer
+                          └── returned hash/id ──► nft-info <NFTokenID> after validated finality
 ```
 
 ---
@@ -104,11 +104,10 @@ is still a permanent, public ledger write — record it deliberately.
 
 ## Step 4 — Hand off to the wallet/signing layer (testnet)
 
-Signing stays with the user — **never put a seed in chat/logs.** Pass the JSON to Xaman / Joey /
-Privy and the human signs in their wallet (`references/xrpl-wallets-auth.md`), or use a self-managed
-signer with the seed from `os.environ["XRPL_SEED"]` (dev) or KMS/HSM (prod). The wallet layer does
-`autofill → preview → sign → submitAndWait`; the agent never holds the key. The pattern is identical
-to Step 4 of `skills/agentic-payment-flow.md`.
+Signing stays with the user — **never put a seed in chat/logs.** Use a compatible user-owned external
+wallet/HSM/KMS that never exposes its key to Hermes. Compare the
+authorized fields with reviewed intent, then return a hash for validated-result verification. The
+pattern is identical to the authorization boundary in `skills/agentic-payment-flow.md`.
 
 ---
 
@@ -132,7 +131,7 @@ off-ledger record. Anyone can do this — that is the point of putting it on-cha
 | Checking the size before encoding | base64+hex inflates the payload; check the **final** hex length (≤512) |
 | Calling it "proof the agent got smarter" | A receipt records a *claim* with provenance — describe what changed, don't overclaim |
 | Recording on mainnet without approval | Explicit human sign-off; it is a permanent public write (Safety rule 5) |
-| Seed in code/logs/chat | `os.environ["XRPL_SEED"]` (dev) or KMS/HSM (prod); redact always |
+| Seed/key requested by agent code | Stop; use a user-owned external signer that never exposes the key to Hermes |
 
 See also: `examples/example-agent-receipt.py`, `examples/js/agent-receipt-nft.js`, `skills/agentic-payment-flow.md`,
 `knowledge/06-xrpl-nfts.md`, `knowledge/23-xrpl-nft-minting.md`, `references/agentic-payments.md`.

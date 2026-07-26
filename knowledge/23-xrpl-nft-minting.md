@@ -92,52 +92,8 @@ FULL_FLAGS = TF_BURNABLE | TF_ONLY_XRP | TF_TRANSFERABLE  # 0x0000000B
 > # uri = "ipfs://QmXXX..."               # WRONG — do not pass raw string
 > ```
 
-```python
-from xrpl.clients import JsonRpcClient
-from xrpl.wallet import Wallet
-from xrpl.models.transactions import NFTokenMint
-from xrpl.transaction import autofill_and_sign, submit_and_wait
-import binascii
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-client = JsonRpcClient("https://xrplcluster.com")
-wallet = Wallet.from_seed("sn...")
-
-TRANSFER_FEE = 5000  # 5% royalty (max 50000 = 50%)
-# TransferFee: fee in 1/100000 units → 5000 = 5%
-
-def encode_uri(uri: str) -> str:
-    return binascii.hexlify(uri.encode()).decode().upper()
-
-metadata_uri = "ipfs://QmXXXX..."
-taxon = 0  # Token collection ID (your choice of integer)
-
-tx = NFTokenMint(
-    account=wallet.address,
-    nftoken_taxon=taxon,
-    flags=0x0000000B,      # Burnable | OnlyXRP | Transferable
-    transfer_fee=TRANSFER_FEE,
-    uri=encode_uri(metadata_uri),
-    fee="12"
-)
-
-signed = autofill_and_sign(tx, wallet, client)
-result = submit_and_wait(signed, client)
-
-# Extract NFToken ID from metadata
-nftoken_id = None
-for node in result.result["meta"]["AffectedNodes"]:
-    if node.get("ModifiedNode", {}).get("LedgerEntryType") == "NFTokenPage":
-        final = node["ModifiedNode"]["FinalFields"]
-        prev = node["ModifiedNode"]["PreviousFields"]
-        new_tokens = [
-            t for t in final.get("NFTokens", [])
-            if t not in prev.get("NFTokens", [])
-        ]
-        if new_tokens:
-            nftoken_id = new_tokens[0]["NFToken"]["NFTokenID"]
-
-print(f"Minted NFT ID: {nftoken_id}")
-```
 
 ---
 
@@ -181,117 +137,22 @@ def parse_nftoken_id(nft_id: str) -> dict:
 
 Use tickets for parallel batch minting:
 
-```python
-import asyncio
-from xrpl.asyncio.clients import AsyncJsonRpcClient
-from xrpl.models.transactions import TicketCreate, NFTokenMint
-from xrpl.asyncio.transaction import autofill_and_sign, submit_and_wait
-from xrpl.models.requests import AccountObjects
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-async def batch_mint(
-    wallet: Wallet,
-    metadata_uris: list,
-    taxon: int = 0,
-    transfer_fee: int = 5000,
-    flags: int = 0x0000000B
-) -> list:
-    client = AsyncJsonRpcClient("https://xrplcluster.com")
-    n = len(metadata_uris)
-    
-    # Create tickets
-    ticket_tx = TicketCreate(
-        account=wallet.address,
-        ticket_count=n,
-        fee="12"
-    )
-    signed = await autofill_and_sign(ticket_tx, wallet, client)
-    await submit_and_wait(signed, client)
-    
-    # Get ticket sequences
-    resp = await client.request(AccountObjects(account=wallet.address, type="ticket"))
-    ticket_seqs = sorted([t["TicketSequence"] for t in resp.result["account_objects"]])
-    
-    # Mint all in parallel
-    async def mint_one(uri: str, ticket_seq: int) -> str:
-        tx = NFTokenMint(
-            account=wallet.address,
-            nftoken_taxon=taxon,
-            flags=flags,
-            transfer_fee=transfer_fee,
-            uri=encode_uri(uri),
-            sequence=0,
-            ticket_sequence=ticket_seq,
-            fee="12"
-        )
-        signed = await autofill_and_sign(tx, wallet, client)
-        result = await submit_and_wait(signed, client)
-        
-        # Extract NFToken ID
-        for node in result.result["meta"]["AffectedNodes"]:
-            modified = node.get("ModifiedNode") or node.get("CreatedNode")
-            if modified and modified.get("LedgerEntryType") == "NFTokenPage":
-                tokens = (modified.get("FinalFields") or modified.get("NewFields", {})).get("NFTokens", [])
-                if tokens:
-                    return tokens[-1]["NFToken"]["NFTokenID"]
-        return None
-    
-    tasks = [mint_one(uri, seq) for uri, seq in zip(metadata_uris, ticket_seqs)]
-    nft_ids = await asyncio.gather(*tasks)
-    
-    await client.close()
-    return nft_ids
-
-# Usage
-uris = [f"ipfs://QmXXX.../metadata/{i}.json" for i in range(10)]
-nft_ids = asyncio.run(batch_mint(wallet, uris))
-print(f"Minted {len(nft_ids)} NFTs")
-```
 
 ---
 
 ## 6. Create Sell Offer
 
-```python
-from xrpl.models.transactions import NFTokenCreateOffer
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Direct sell offer for 10 XRP
-tx_offer = NFTokenCreateOffer(
-    account=wallet.address,
-    nftoken_id=nftoken_id,
-    amount="10000000",  # 10 XRP in drops
-    flags=0x00000001,  # tfSellNFToken
-    destination=None,  # Anyone can buy; set address to restrict
-    expiration=None,   # No expiry; set ripple epoch to restrict
-    fee="12"
-)
-signed = autofill_and_sign(tx_offer, wallet, client)
-result = submit_and_wait(signed, client)
-
-# Get offer ID from metadata
-offer_id = None
-for node in result.result["meta"]["AffectedNodes"]:
-    if node.get("CreatedNode", {}).get("LedgerEntryType") == "NFTokenOffer":
-        offer_id = node["CreatedNode"]["LedgerIndex"]
-print(f"Offer ID: {offer_id}")
-```
 
 ---
 
 ## 7. Accept Sell Offer (Buy)
 
-```python
-from xrpl.models.transactions import NFTokenAcceptOffer
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Buyer accepts the sell offer
-tx_accept = NFTokenAcceptOffer(
-    account=buyer_wallet.address,
-    nftoken_sell_offer=offer_id,
-    fee="12"
-)
-signed = autofill_and_sign(tx_accept, buyer_wallet, client)
-result = submit_and_wait(signed, client)
-print(f"NFT purchased: {result.result['meta']['TransactionResult']}")
-```
 
 ---
 
@@ -317,18 +178,8 @@ for nft in resp.result["account_nfts"]:
 
 ## 9. Burn NFT
 
-```python
-from xrpl.models.transactions import NFTokenBurn
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Creator burns (requires TF_BURNABLE flag or owner burning their own)
-tx_burn = NFTokenBurn(
-    account=wallet.address,
-    nftoken_id=nftoken_id,
-    fee="12"
-)
-signed = autofill_and_sign(tx_burn, wallet, client)
-submit_and_wait(signed, client)
-```
 
 ---
 
@@ -356,48 +207,14 @@ buy_offers = client.request(NFTBuyOffers(nft_id=nftoken_id))
 
 ## 11. Minting with a Different Issuer (Authorized Minting)
 
-```python
-# Issuer delegates minting rights to a minter account
-from xrpl.models.transactions import AccountSet
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Step 1: Issuer authorizes minter
-tx_auth = AccountSet(
-    account=issuer_wallet.address,
-    nftoken_minter=minter_wallet.address,  # set_flag not needed here
-    fee="12"
-)
-signed = autofill_and_sign(tx_auth, issuer_wallet, client)
-submit_and_wait(signed, client)
-
-# Step 2: Minter mints on behalf of issuer
-tx_mint = NFTokenMint(
-    account=minter_wallet.address,
-    nftoken_taxon=0,
-    issuer=issuer_wallet.address,  # specify issuer
-    flags=0x0000000B,
-    transfer_fee=5000,
-    uri=encode_uri("ipfs://Qm..."),
-    fee="12"
-)
-signed = autofill_and_sign(tx_mint, minter_wallet, client)
-submit_and_wait(signed, client)
-```
 
 ---
 
 ## 12. Reserve Impact
 
-NFTs are stored in pages of up to 32:
-```
-Owner reserve per NFTokenPage = 0.2 XRP
-
-0–32 NFTs:    1 page  = 0.2 XRP reserve
-33–64 NFTs:   2 pages = 4 XRP reserve
-65–96 NFTs:   3 pages = 6 XRP reserve
-...
-```
-
-Account must have enough XRP to cover page creation.
+NFTs are stored in pages of up to 32. Each owned page can add one incremental owner-reserve unit; page split/merge behavior and the unit's XRP value come from current validated network state. The account must have enough spendable XRP under those live values before page creation.
 
 ---
 

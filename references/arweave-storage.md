@@ -1,40 +1,29 @@
-# Arweave Storage — Complete Reference
+# Arweave Cost — Narrow Read Card
 
-## Overview
-Arweave is a decentralized, permanent data storage network. Data stored once is stored forever. Uses a blockweave structure (unlike blockchain) with endowment-based storage fees. Perpetual storage funded by a single upfront fee invested in an endowment.
+## Certified surface
 
-## Architecture
-Blockweave type: Proof of Access consensus. Miners store random previous blocks AND new blocks. Storage endowment fund is invested, returns pay for ongoing storage. Data is replicated across nodes redundantly.
+`arweave-cost SIZE` requests a base-network storage quote from a public Arweave gateway and reads gateway network information.
 
-## Key Concepts
-- **Transaction**: Stores data permanently. Single fee covers storage forever.
-- **Wallet**: Arweave wallet (JWK file) or ArConnect browser extension.
-- **AR Token**: Native token. Used for storage fees, staking, mining rewards.
-- **Permaweb**: Decentralized web hosted on Arweave. Sites live forever.
-- **Gateway**: Access Arweave data via HTTP gateways (arweave.net, arweave.dev).
+```bash
+python3 scripts/xrpl_tools.py arweave-cost 1MB
+```
 
-## SmartWeave Contracts
-Smart contracts on Arweave. Lazy-evaluated: each node evaluates contract state independently. Supports JavaScript (WASM). Used for: tokens (Verto, everPay), NFTs (Koii), social (Mirror.xyz).
+The tool never uploads and never handles wallet keys. Treat the result as a point-in-time base fee estimate excluding bundler/service margins.
 
-## Bundlr Network
-Scaling solution for Arweave. Bundles many small uploads into single Arweave tx. Supports multiple tokens for payment (ETH, SOL, MATIC, AR). Faster confirmations, lower fees.
+## Not certified
 
-## XRPL Integration
-- Evernode: Decentralized hosting on XRPL using Arweave for persistent data.
-- NFTs: XLS-20 NFT metadata stored on Arweave (immutable URIs).
-- Data anchoring: XRPL tx hashes stored on Arweave for permanent record.
-- Web hosting: XRPL project sites hosted on permaweb.
+- upload or deployment;
+- Bundlr/Irys integration;
+- wallet/JWK signing;
+- ArNS/ArkB routes;
+- retrieval from every gateway;
+- absolute “permanent availability” guarantees.
 
-## Use Cases
-- Permanent XRPL document storage (legal, compliance)
-- NFT metadata and asset storage
-- dApp frontend hosting (unchangedable, DDo S-resistant)
-- Data anchoring and timestamping
-- Censorship-resistant publishing
+Upload support requires current first-party tooling, user-controlled signing, fee separation, a confirmed test upload and multi-gateway retrieval evidence.
 
-## Resources
-- Arweave: arweave.org
-- Gateway: arweave.net
-- ViewBlock explorer: viewblock.io/arweave
-- Bundlr: bundlr.network
-- Evernode: evernode.io
+Official sources:
+
+- https://docs.arweave.org/
+- https://arweave.net/info
+
+Reviewed: **2026-07-26**.

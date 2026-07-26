@@ -47,7 +47,7 @@ def tool_build_payment(frm: str, to: str, amount: str, cur: str = None,
     if memos:
         kwargs["memos"] = memos
     tx = Payment(**kwargs)
-    note_out("# Payment TX JSON - signer-ready JSON - paste into Xaman Developer tab")
+    note_out("# Payment TX JSON - signer-ready JSON for reviewed external-wallet handoff")
     if isinstance(amt, str):
         note_out(f"# Amount is {amt} drops (XRP amounts are integer drops; 1 XRP = 1000000 drops)")
     json_tx_out(tx)

@@ -29,7 +29,7 @@ The `OfferCreate` transaction places an order on the DEX. It can either execute 
     "issuer": "rIssuerAddress",
     "value": "50"
   },
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 20,
   "Flags": 0
 }
@@ -49,7 +49,7 @@ This means: "I want to sell 100 XRP and receive at least 50 USD. I'm offering at
     "value": "100"
   },
   "TakerPays": "100000000",  // 100 XRP
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 15,
   "Flags": 0
 }
@@ -59,24 +59,8 @@ This means: "I'll pay up to 100 USD to receive 100 XRP. My offer rate is 1.00 US
 
 ### Python Example
 
-```python
-from xrpl.transaction import submit_and_wait
-from xrpl.models.transactions import OfferCreate
-from xrpl.models.amounts import IssuedCurrencyAmount
-from xrpl.utils import xrp_to_drops
+> **Quarantined direct-sign recipe.** The former block handled key material or signed/submitted inside the process. Use the corresponding `build-*` command for unsigned JSON, a compatible user-owned external signer, and `tx-info` for validated-result verification.
 
-# Sell 100 XRP for USD
-offer = OfferCreate(
-    account="r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR",
-    taker_gets=xrp_to_drops(100),
-    taker_pays=IssuedCurrencyAmount(
-        currency="USD",
-        issuer="rIssuerAddress",
-        value="50",
-    ),
-)
-response = submit_and_wait(offer, client, wallet)
-```
 
 ## Offer Matching Algorithm
 
@@ -151,7 +135,7 @@ This liquidity aggregation is automatic — the trader doesn't need to do anythi
 
 ### States
 
-1. **Created**: Offer is placed on the order book. Reserve (0.2 XRP) locked.
+1. **Created**: Offer is placed on the order book and can increase the owner's reserve requirement by one live incremental-reserve unit.
 2. **Partially Filled**: Some of the offer has been consumed, remainder stays on books.
 3. **Fully Filled**: All of the offer has been consumed. Offer removed from books.
 4. **Cancelled**: Offer creator cancels it before it's filled.
@@ -175,7 +159,7 @@ Remove an offer from the order book.
   "TransactionType": "OfferCancel",
   "Account": "r9cZA1mLK5R5Am25ArfXFmqgN1sV5f3gQR",
   "OfferSequence": 20,
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 25
 }
 ```
@@ -337,10 +321,7 @@ This returns offers to **buy XRP with USD** (i.e., sell USD for XRP).
 
 ## Reserve and Offers
 
-Each offer on the DEX consumes 0.2 XRP of the account's owner reserve. An account with 5 active offers has:
-- 1 XRP base reserve
-- 1 XRP (5 × 0.2) for offers
-- Total: 20 XRP locked
+Each owned DEX offer can consume one incremental owner-reserve unit. Compute reserve from live validated base/increment values plus `OwnerCount`; do not hard-code an XRP total.
 
 **Tip:** Cancel unfilled or unwanted offers to free up reserve. Use `account_objects` RPC to find all owned objects:
 
@@ -369,7 +350,7 @@ To replace an existing offer, use `OfferSequence` to specify the offer to replac
     "value": "55"
   },
   "OfferSequence": 20,  // Cancel old offer (created at Sequence 20)
-  "Fee": "10",
+  "Fee": "<autofill>",
   "Sequence": 21
 }
 ```
